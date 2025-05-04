@@ -1,0 +1,35 @@
+services:
+  photoserv:
+    image: python:3.11-slim
+    depends_on:
+      - database
+    working_dir: /app
+    volumes:
+      - ./core:/app/core
+      - ./server:/app/server
+    env_file:
+      - .env
+    environment:
+      - PYTHONPATH=/app/core
+    command: >
+      bash -c "
+        pip install --no-cache-dir -r core/requirements.txt &&
+        pip install --no-cache-dir -r server/requirements.txt &&
+        cd server &&
+        python -m server --create-admin-key
+      "
+
+  database:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_DB=${DATABASE_NAME}
+    ports:
+      - "4545:5432" # for inspecting in internal applications
+    volumes:
+      - database:/var/lib/postgresql/data
+
+volumes:
+  database: {}
