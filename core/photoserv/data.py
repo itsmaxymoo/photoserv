@@ -12,7 +12,7 @@ class Key(Base):
     __tablename__ = "keys"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    key: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
+    key: Mapped[str] = mapped_column(String(128), unique=True, nullable=False)
     admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
 
