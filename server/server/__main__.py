@@ -1,7 +1,7 @@
 import argparse
 import logging
 from photoserv.db import get_db, setup_db
-from photoserv.auth import does_any_key_exist, create_key
+from photoserv.auth import does_any_key_exist, create_key, SECRET_KEY_BASE
 
 # Set up logging to print to console
 logging.basicConfig(level=logging.INFO)
@@ -22,6 +22,12 @@ def create_admin_key():
     with next(get_db()) as db:
         admin_key = create_key(db, admin=True, name="Initial admin key.")
         logger.info(f"New admin key created: {admin_key}")
+
+
+# Initial checks
+if not SECRET_KEY_BASE:
+    logger.error("You need to set a master SECRET_KEY. Run openssl rand -hex 64")
+    exit(1)
 
 
 # --- CLI Setup ---

@@ -1,4 +1,5 @@
 import hashlib
+import os
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from .data import Key
@@ -6,11 +7,14 @@ import secrets
 from typing import Optional
 
 
+SECRET_KEY_BASE = os.getenv("DATABASE_USER")
+
+
 def does_key_exist(db: Session, api_key: str) -> bool:
     """
     Check if a regular API key exists (non-admin).
     """
-    hashed_key = hashlib.sha512(api_key.encode()).hexdigest()
+    hashed_key = hashlib.sha512((SECRET_KEY_BASE + api_key).encode()).hexdigest()
     stmt = select(Key).where(Key.key == hashed_key, Key.admin == False)
     result = db.execute(stmt).scalars().first()
     return result is not None
@@ -20,7 +24,7 @@ def does_admin_key_exist(db: Session, api_key: str) -> bool:
     """
     Check if a specific admin API key exists.
     """
-    hashed_key = hashlib.sha512(api_key.encode()).hexdigest()
+    hashed_key = hashlib.sha512((SECRET_KEY_BASE + api_key).encode()).hexdigest()
     stmt = select(Key).where(Key.key == hashed_key, Key.admin == True)
     result = db.execute(stmt).scalars().first()
     return result is not None
@@ -49,7 +53,7 @@ def create_key(db: Session, admin: bool = False, name: Optional[str] = None) -> 
     Create a new API key (64 characters) and hash it with SHA-512.
     """
     new_key = secrets.token_hex(32)  # 64 characters
-    hashed_key = hashlib.sha512(new_key.encode()).hexdigest()
+    hashed_key = hashlib.sha512((SECRET_KEY_BASE + new_key).encode()).hexdigest()
     new_key_entry = Key(key=hashed_key, admin=admin, name=name)
     db.add(new_key_entry)
     db.commit()
@@ -62,7 +66,7 @@ def delete_key(db: Session, key_or_id: str | int) -> bool:
     Delete a key from the database by key or ID.
     """
     if isinstance(key_or_id, str):
-        hashed_key = hashlib.sha512(key_or_id.encode()).hexdigest()
+        hashed_key = hashlib.sha512((SECRET_KEY_BASE + key_or_id).encode()).hexdigest()
         stmt = select(Key).where(Key.key == hashed_key)
     else:
         stmt = select(Key).where(Key.id == key_or_id)
