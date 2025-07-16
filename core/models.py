@@ -1,10 +1,11 @@
 from django.db import models
+from .utils import raw_photo_upload_path
 
 
 class Photo(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(max_length=4096)
-    raw_image = models.ImageField(upload_to="raw_images/")
+    raw_image = models.ImageField(upload_to=raw_photo_upload_path)
     publish_date = models.DateTimeField(auto_now=True)
 
 

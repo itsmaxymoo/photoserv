@@ -1,0 +1,1 @@
+CONTENT_BASE_PATH = "content"

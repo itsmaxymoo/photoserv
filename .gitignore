@@ -1,5 +1,6 @@
 database/
 db/
+content/
 
 docker-compose.*override.yml
 
