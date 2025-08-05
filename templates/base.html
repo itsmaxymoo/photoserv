@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>
+        {% block title %}Photoserv{% endblock %}
+    </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    {% load static %}
+    
+    <link href="{% static 'css/style.css' %}" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+    <header class="p-4 bg-base-200">
+        <a href="/assets">
+            <div class="max-w-6xl mx-auto">
+                <h1 class="text-xl">Photoserv</h1>
+            </div>
+        </a>
+    </header>
+    <main class="p-4 max-w-6xl mx-auto">
+        <div class="grid grid-cols-1 gap-y-4">{% block content %} {% endblock %}</div>
+    </main>
+</body>
+
+</html>

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load render_table from django_tables2 %}
+
+{% block title %}List of {{ object_type_name_plural }}{% endblock %}
+
+{% block content %}
+<div class="flex justify-between">
+    <h2>List of {{ object_type_name_plural }}</h2>
+    <a href="{% url object_url_name_slug|add:'-create' %}" class="btn btn-primary">
+        Create
+    </a>
+</div>
+
+<div class="overflow-x-scroll">
+    {% render_table table %}
+</div>
+{% endblock %}
