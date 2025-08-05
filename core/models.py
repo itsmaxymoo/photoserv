@@ -1,6 +1,7 @@
 from django.db import models
 import os
 import uuid
+from django.urls import reverse
 from django.utils.text import slugify
 from . import CONTENT_BASE_PATH
 
@@ -10,8 +11,8 @@ class Photo(models.Model):
         ext = os.path.splitext(filename)[1]
         random_str = uuid.uuid4().hex[:8]
         kebab_title = slugify(instance.title)
-        new_filename = f"{random_str}-{kebab_title}{ext}"
-        return os.path.join(f"{CONTENT_BASE_PATH}/raw_photos/", new_filename)
+        new_filename = f"{random_str}-{kebab_title}_original{ext}"
+        return os.path.join(f"{CONTENT_BASE_PATH}/photos/", new_filename)
 
     title = models.CharField(max_length=255)
     description = models.TextField(max_length=4096)
@@ -19,6 +20,9 @@ class Photo(models.Model):
     publish_date = models.DateTimeField(auto_now=True)
 
     capture_date = models.DateTimeField(default=None, null=True, blank=True)
+
+    def get_absolute_url(self):
+        return reverse("photo-detail", kwargs={"pk": self.pk})
 
     def __str__(self):
         return self.title

@@ -1,0 +1,28 @@
+@import "tailwindcss" source("../../templates");
+@source "../../.venv/lib/python3.13/site-packages/crispy_daisyui/templates/daisyui";
+@plugin "daisyui";
+@import "./theme.css";
+
+h2 {
+    @apply text-3xl;
+    @apply pb-2;
+}
+
+h3 {
+    @apply text-2xl;
+    @apply pb-2;
+}
+
+td a {
+    @apply font-medium;
+    @apply underline decoration-dotted;
+}
+
+th a {
+    @apply font-medium;
+    @apply underline decoration-dashed;
+}
+
+.box {
+    @apply bg-base-100 p-4 shadow-[0_0_10px_rgba(0,0,0,0.2)];
+}

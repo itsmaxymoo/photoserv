@@ -9,7 +9,7 @@ Editing {{ object|default:object_type_name }}
 
 {% block content %}
 
-<form method="post">
+<form method="post" enctype="multipart/form-data">
     {% csrf_token %}
 
     <div class="grid grid-cols-1 gap-4">

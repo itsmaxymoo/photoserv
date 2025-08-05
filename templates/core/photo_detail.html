@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ object }}
+{% endblock %}
+
+{% block content %}
+<h2 class="text-3xl inline-flex gap-2">
+    <span class="font-extralight">
+        {% include "partials/components/back_button.html" %}
+        Photo #{{ object.id }}:
+    </span>
+    {{ object }}
+</h2>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="box">
+        <div class="overflow-x-scroll">
+            <table class="table table-zebra table-auto">
+                <colgroup>
+                    <col class="w-min whitespace-nowrap" />
+                    <col class="w-full" />
+                </colgroup>
+                <tr>
+                    <th>Title</th>
+                    <td>{{ object.title }}</td>
+                </tr>
+                <tr>
+                    <th>Description</th>
+                    <td class="whitespace-pre-wrap">{{ object.description|default:"(none)" }}</td>
+                </tr>
+                <tr>
+                    <th>Capture Date</th>
+                    <td>{{ object.capture_date|date:"Y-m-d H:i" }}</td>
+                </tr>
+                <tr>
+                    <th>Publish Date</th>
+                    <td>{{ object.publish_date|date:"Y-m-d H:i" }}</td>
+                </tr>
+                <tr>
+                    <th>Image</th>
+                    <td>
+                        {% if object.raw_image %}
+                        <img src="{{ object.raw_image.url }}" alt="{{ object.title }}" class="max-w-full rounded shadow" />
+                        {% else %}
+                        (No image)
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <div>
+        <!-- Optional: You could include additional sections here, like metadata, tags, or image EXIF info -->
+    </div>
+</div>
+
+<div>
+    {% include "partials/model_view_modify_buttons.html" %}
+</div>
+
+{% endblock %}
