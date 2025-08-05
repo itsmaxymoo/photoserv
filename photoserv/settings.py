@@ -24,10 +24,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("MASTER_KEY")
+SECRET_KEY = os.environ.get("APP_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = (os.environ.get("DEBUG_MODE").strip() == "true")
+DEBUG = (os.environ.get("DEBUG_MODE", "false").strip() == "true")
 
 ALLOWED_HOSTS = []
 
@@ -42,6 +42,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    "django_tables2",
+    "crispy_forms",
+    "crispy_daisyui",
 ]
 
 MIDDLEWARE = [
@@ -73,6 +77,14 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'photoserv.wsgi.application'
 
+# Templating Plugin Config
+DJANGO_TABLES2_TABLE_ATTRS = {
+    "class": "table table-zebra"
+}
+
+# Crispy Forms Config
+CRISPY_ALLOWED_TEMPLATE_PACKS = "daisyui"
+CRISPY_TEMPLATE_PACK = "daisyui"
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
