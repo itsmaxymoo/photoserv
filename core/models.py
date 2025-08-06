@@ -11,7 +11,8 @@ class Photo(models.Model):
         ext = os.path.splitext(filename)[1]
         random_str = uuid.uuid4().hex[:8]
         kebab_title = slugify(instance.title)
-        new_filename = f"{random_str}-{kebab_title}_original{ext}"
+        basename = {random_str}-{kebab_title}
+        new_filename = f"{basename}/{basename}_original{ext}"
         return os.path.join(f"{CONTENT_BASE_PATH}/photos/", new_filename)
 
     title = models.CharField(max_length=255)
