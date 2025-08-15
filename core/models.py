@@ -126,8 +126,11 @@ class Size(models.Model):
             raise ValueError("Cannot modify a builtin size.")
         super().save(*args, **kwargs)
 
-        # Delete all existing PhotoSizes for this size
-        PhotoSize.objects.filter(size=self).delete()
+        file_paths = list(self.photos.values_list("image", flat=True))
+        self.photos.all().delete()
+
+        if file_paths:
+            tasks.size_delete_cleanup.delay_on_commit(file_paths)
 
         # Trigger task to regenerate photos for this size after DB commit
         tasks.generate_photo_sizes_for_size.delay_on_commit(self.id)
