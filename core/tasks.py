@@ -3,6 +3,7 @@ from . import models
 from PIL import Image
 from io import BytesIO
 from django.core.files.base import ContentFile
+import os
 
 
 def gen_size(photo, size):
@@ -71,3 +72,12 @@ def generate_photo_sizes_for_size(size_id):
     photos = models.Photo.objects.all()
     for photo in photos:
         generate_sizes_for_photo.delay(photo.id)
+
+
+@shared_task
+def size_delete_cleanup(files):
+    for path in files:
+        try:
+            os.remove(path)
+        except FileNotFoundError:
+            pass

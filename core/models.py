@@ -136,7 +136,13 @@ class Size(models.Model):
     def delete(self, *args, **kwargs):
         if self.builtin:
             raise ValueError("Cannot delete a builtin size.")
-        PhotoSize.objects.filter(size=self).delete()
+        
+        file_paths = list(self.photos.values_list("image", flat=True))
+        self.photos.all().delete()
+
+        if file_paths:
+            tasks.size_delete_cleanup.delay_on_commit(file_paths)
+
         super().delete(*args, **kwargs)
 
     def __str__(self):
