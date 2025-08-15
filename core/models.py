@@ -151,17 +151,6 @@ class Size(models.Model):
     class Meta:
         ordering = ["max_dimension"]
 
-    # Form validation
-    def clean(self):
-        if not self.slug:
-            raise ValueError("Slug cannot be empty.")
-        if self.slug == "original":
-            raise ValueError("Slug 'original' is reserved and cannot be used.")
-        if self.max_dimension <= 0:
-            raise ValueError("Max dimension must be a positive integer.")
-        if not isinstance(self.square_crop, bool):
-            raise ValueError("Square crop must be a boolean value.")
-
 
 class PhotoSize(models.Model):
     def get_image_file_path(instance, filename):

@@ -22,10 +22,4 @@ class SizeForm(forms.ModelForm):
         model = Size
         fields = ["slug", "max_dimension", "square_crop"]
 
-    def clean_slug(self):
-        slug = self.cleaned_data["slug"]
-        if slug == "original":
-            raise forms.ValidationError("Slug 'original' is reserved.")
-        return slug
-
 #endregion

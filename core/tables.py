@@ -9,4 +9,4 @@ class PhotoTable(tables.Table):
 
     class Meta:
         model = Photo
-        fields = ("id", "title", "description", "publish_date", "capture_date")
+        fields = ("id", "title", "description", "publish_date")
