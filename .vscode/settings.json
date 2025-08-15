@@ -1,5 +1,8 @@
 {
     "cSpell.words": [
         "Photoserv"
-    ]
+    ],
+    "files.associations": {
+        "*.django-html": "html"
+    }
 }

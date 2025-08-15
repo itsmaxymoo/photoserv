@@ -12,17 +12,27 @@
 
     {% load static %}
     {% htmx_script %}
-    
+
     <link href="{% static 'css/style.css' %}" rel="stylesheet" type="text/css" />
 </head>
 
 <body hx-headers='{"x-csrftoken": "{{ csrf_token }}"}'>
-    <header class="p-4 bg-base-200">
-        <a href="/photos">
-            <div class="max-w-6xl mx-auto">
-                <h1 class="text-xl">Photoserv</h1>
+    <header>
+        <div class="navbar p-4 bg-base-200 shadow-sm">
+            <div class="navbar-start">
+                <a href="/photos">
+                    <h1 class="text-xl">Photoserv</h1>
+                </a>
             </div>
-        </a>
+            <div class="navbar-end">
+                <a href="/photos" class="btn btn-ghost">
+                    Photos
+                </a>
+                <a href="/sizes" class="btn btn-ghost">
+                    Sizes
+                </a>
+            </div>
+        </div>
     </header>
     <main class="p-4 max-w-6xl mx-auto">
         <div class="grid grid-cols-1 gap-y-4">{% block content %} {% endblock %}</div>
