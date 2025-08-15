@@ -3,17 +3,17 @@ import os
 import uuid
 from django.urls import reverse
 from django.utils.text import slugify
-from . import CONTENT_BASE_PATH
+from . import CONTENT_RAW_PHOTOS_PATH, CONTENT_RESIZED_PHOTOS_PATH
+from . import tasks
 
 
 class Photo(models.Model):
-    def get_image_file_path(instance, filename, suffix="_original"):
+    def get_image_file_path(instance, filename):
         ext = os.path.splitext(filename)[1]
         random_str = uuid.uuid4().hex[:8]
         kebab_title = slugify(instance.title)
-        basename = {random_str}-{kebab_title}
-        new_filename = f"{basename}/{basename}_{suffix}{ext}"
-        return os.path.join(f"{CONTENT_BASE_PATH}/photos/", new_filename)
+        new_filename = f"{random_str}-{kebab_title}{ext}"
+        return os.path.join(CONTENT_RAW_PHOTOS_PATH, new_filename)
 
     title = models.CharField(max_length=255)
     description = models.TextField(max_length=4096)
@@ -22,6 +22,28 @@ class Photo(models.Model):
 
     def get_absolute_url(self):
         return reverse("photo-detail", kwargs={"pk": self.pk})
+    
+    # After saving a new photo, trigger the task to generate sizes
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+
+        if is_new:
+            # Automatically create original PhotoSize
+            try:
+                original_size = Size.objects.get(slug="original")
+            except Size.DoesNotExist:
+                original_size = None
+
+            if original_size:
+                PhotoSize.objects.get_or_create(
+                    photo=self,
+                    size=original_size,
+                    defaults={'image': self.raw_image}
+                )
+
+            # Generate other sizes via Celery task
+            tasks.generate_sizes_for_photo.delay_on_commit(self.id)
 
     def __str__(self):
         return self.title
@@ -104,10 +126,17 @@ class Size(models.Model):
             raise ValueError("Cannot modify a builtin size.")
         super().save(*args, **kwargs)
 
+        # Delete all existing PhotoSizes for this size
+        PhotoSize.objects.filter(size=self).delete()
+
+        # Trigger task to regenerate photos for this size after DB commit
+        tasks.generate_photo_sizes_for_size.delay_on_commit(self.id)
+
     # Disallow deleting a builtin size
     def delete(self, *args, **kwargs):
         if self.builtin:
             raise ValueError("Cannot delete a builtin size.")
+        PhotoSize.objects.filter(size=self).delete()
         super().delete(*args, **kwargs)
 
     def __str__(self):
@@ -130,10 +159,11 @@ class Size(models.Model):
 
 class PhotoSize(models.Model):
     def get_image_file_path(instance, filename):
-        # instance is a PhotoSize instance here
-        suffix = instance.size.slug
-        # Call Photo's method with photo instance, filename, and custom suffix
-        return instance.photo.get_image_file_path(filename, suffix=suffix)
+        ext = os.path.splitext(filename)[1]
+        random_str = uuid.uuid4().hex[:16]
+        kebab_title = slugify(instance.photo.title)
+        new_filename = f"{random_str}-{kebab_title}_{instance.size.slug}{ext}"
+        return os.path.join(CONTENT_RESIZED_PHOTOS_PATH, new_filename)
 
     photo = models.ForeignKey("core.Photo", on_delete=models.CASCADE, related_name="sizes")
     size = models.ForeignKey(Size, on_delete=models.CASCADE, related_name="photos")

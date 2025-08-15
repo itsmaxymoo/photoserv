@@ -1,0 +1,17 @@
+<table class="table table-zebra w-full">
+    <thead>
+        <tr>
+            <th>Slug</th>
+            <th>Max Dimension</th>
+            <th>Square Crop</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody id="sizes-table">
+        {% for size in sizes %}
+            {% include "core/partials/size_row.html" %}
+        {% endfor %}
+        <tr id="new-size-row">
+        </tr>
+    </tbody>
+</table>

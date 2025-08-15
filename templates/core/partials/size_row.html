@@ -1,0 +1,22 @@
+<tr id="size-{{ size.id }}">
+    <td>{{ size.slug }}</td>
+    <td>{{ size.max_dimension }}</td>
+    <td>{{ size.square_crop|yesno:"Yes," }}</td>
+    <td>
+        {% if not size.builtin %}
+            <button class="btn btn-sm"
+                    hx-get="{% url 'size-edit' size.id %}"
+                    hx-target="#size-{{ size.id }}"
+                    hx-swap="outerHTML">
+                Edit
+            </button>
+            <button class="btn btn-sm"
+                    hx-post="{% url 'size-delete' size.id %}"
+                    hx-confirm="Are you sure you want to delete this size?"
+                    hx-swap="delete"
+                    hx-target="#size-{{ size.id }}">
+                Delete
+            </button>
+        {% endif %}
+    </td>
+</tr>
