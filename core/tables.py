@@ -5,11 +5,12 @@ class PhotoTable(tables.Table):
     id = tables.Column(linkify=True)
     title = tables.Column(linkify=True)
     description = tables.Column()
-    date_taken = tables.Column()
+    publish_date = tables.Column()
 
     class Meta:
         model = Photo
         fields = ("id", "title", "description", "publish_date")
+        order_by = ("-publish_date",)
 
 
 class SizeTable(tables.Table):
