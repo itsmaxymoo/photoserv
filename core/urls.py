@@ -9,8 +9,8 @@ urlpatterns = [
     path("photos/<pk>/delete/", PhotoDeleteView.as_view(), name="photo-delete"),
     path("photos/<pk>/", PhotoDetailView.as_view(), name="photo-detail"),
 
-    path("sizes/", size_list, name="size-list"),
-    path("sizes/new/", size_create, name="size-create"),
-    path("sizes/<int:pk>/edit/", size_edit, name="size-edit"),
-    path("sizes/<int:pk>/delete/", size_delete, name="size-delete"),
+    path("sizes/", SizeListView.as_view(), name="size-list"),
+    path("sizes/new/", SizeCreateView.as_view(), name="size-create"),
+    path("sizes/<int:pk>/edit/", SizeUpdateView.as_view(), name="size-edit"),
+    path("sizes/<int:pk>/delete/", SizeDeleteView.as_view(), name="size-delete"),
 ]

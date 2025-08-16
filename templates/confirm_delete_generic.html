@@ -31,7 +31,7 @@ Confirm Delete - {{ object }}</title>
                 </button>
             </div>
             <div>
-                <a href="../" class="btn btn-primary">
+                <a href="{% if not no_object_detail_page %}../{% else %}../../{% endif %}" class="btn btn-primary">
                     Cancel
                 </a>
             </div>

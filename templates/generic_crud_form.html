@@ -16,13 +16,21 @@ Editing {{ object|default:object_type_name }}
         <div>
             <h2>Editing {{ object|default:object_type_name }}</h2>
         </div>
+        {% if edit_disclaimer is not None %}
+        <div>
+            <p>
+                <strong>Note:</strong> {{ edit_disclaimer }}
+            </p>
+        </div>
+        {% endif %}
         <div>
             {{ form|crispy }}
         </div>
 
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
             <div>
-                <a href="../" class="btn btn-secondary btn">
+                <a href="{% if not no_object_detail_page or object is None %}../{% else %}../../{% endif %}"
+                    class="btn btn-secondary btn">
                     Cancel
                 </a>
             </div>

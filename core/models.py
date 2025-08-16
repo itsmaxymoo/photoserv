@@ -149,7 +149,7 @@ class Size(models.Model):
         super().delete(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.name} ({self.max_dimension}px)"
+        return f"{self.slug} ({self.max_dimension}px)"
     
     class Meta:
         ordering = ["max_dimension"]
