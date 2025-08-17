@@ -5,6 +5,7 @@ from django.urls import reverse
 from django.utils.text import slugify
 from . import CONTENT_RAW_PHOTOS_PATH, CONTENT_RESIZED_PHOTOS_PATH
 from . import tasks
+from django.core.exceptions import ValidationError
 
 
 class Photo(models.Model):
@@ -116,14 +117,22 @@ class PhotoInAlbum(models.Model):
 
 class Size(models.Model):
     slug = models.CharField(max_length=32, unique=True)
+    comment = models.CharField(max_length=255, blank=True, null=True)
     max_dimension = models.PositiveIntegerField()
     square_crop = models.BooleanField(default=False)
     builtin = models.BooleanField(default=False)
+    can_edit = models.BooleanField(default=True)
 
-    # Disallow modifying a builtin size
+    def clean(self):
+        # Prevent modifications to builtin sizes
+        if not self.can_edit:
+            raise ValidationError("Cannot modify this size.")
+        # Don't allow changes to slug or comment if it's a builtin size
+        orig = Size.objects.get(pk=self.pk)
+        if self.builtin and (self.slug != orig.slug or self.comment != orig.comment):
+            raise ValidationError("Cannot change the slug or comment of a builtin size.")
+
     def save(self, *args, **kwargs):
-        if self.builtin and (self.slug or self.max_dimension or self.square_crop):
-            raise ValueError("Cannot modify a builtin size.")
         super().save(*args, **kwargs)
 
         file_paths = list(self.photos.values_list("image", flat=True))
@@ -137,8 +146,8 @@ class Size(models.Model):
 
     # Disallow deleting a builtin size
     def delete(self, *args, **kwargs):
-        if self.builtin:
-            raise ValueError("Cannot delete a builtin size.")
+        if self.builtin or not self.can_edit:
+            raise ValidationError("Cannot delete a builtin size.")
         
         file_paths = list(self.photos.values_list("image", flat=True))
         self.photos.all().delete()

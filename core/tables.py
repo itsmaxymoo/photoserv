@@ -15,6 +15,7 @@ class PhotoTable(tables.Table):
 
 class SizeTable(tables.Table):
     slug = tables.Column()
+    comment = tables.Column()
     max_dimension = tables.Column()
     square_crop = tables.BooleanColumn()
 
@@ -32,4 +33,4 @@ class SizeTable(tables.Table):
 
     class Meta:
         model = Size
-        fields = ("slug", "max_dimension", "square_crop")
+        fields = ("slug", "comment", "max_dimension", "square_crop")
