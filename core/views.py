@@ -1,9 +1,9 @@
 from django.urls import reverse
 from django.views.generic import DetailView, CreateView, UpdateView, DeleteView
 from django_tables2.views import SingleTableView
-from .models import Photo, Size
-from .forms import PhotoForm, SizeForm
-from .tables import PhotoTable, SizeTable
+from .models import *
+from .forms import *
+from .tables import *
 from .mixins import CRUDGenericMixin
 
 #region Photo
@@ -93,5 +93,51 @@ class SizeDeleteView(SizeMixin, DeleteView):
     def get_success_url(self):
         return reverse('size-list')
 
+
+#endregion
+
+#region Albums
+
+
+class AlbumMixin(CRUDGenericMixin):
+    object_type_name = "Album"
+    object_type_name_plural = "Albums"
+    object_url_name_slug = "album"
+
+
+class AlbumDetailView(DetailView):
+    model = Album
+
+
+class AlbumListView(AlbumMixin, SingleTableView):
+    model = Album
+    template_name = "generic_crud_list.html"
+    table_class = AlbumTable
+
+
+class AlbumCreateView(AlbumMixin, CreateView):
+    model = Album
+    form_class = AlbumForm
+    template_name = "generic_crud_form.html"
+
+    def get_success_url(self):
+        return reverse('album-detail', kwargs={'pk': self.object.pk})
+
+
+class AlbumUpdateView(AlbumMixin, UpdateView):
+    model = Album
+    form_class = AlbumForm
+    template_name = "generic_crud_form.html"
+
+    def get_success_url(self):
+        return reverse('album-detail', kwargs={'pk': self.object.pk})
+
+
+class AlbumDeleteView(AlbumMixin, DeleteView):
+    model = Album
+    template_name = 'confirm_delete_generic.html'
+
+    def get_success_url(self):
+        return reverse('album-list')
 
 #endregion

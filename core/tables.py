@@ -34,3 +34,13 @@ class SizeTable(tables.Table):
     class Meta:
         model = Size
         fields = ("slug", "comment", "max_dimension", "square_crop")
+
+
+class AlbumTable(tables.Table):
+    title = tables.Column(linkify=True)
+    description = tables.Column()
+
+    class Meta:
+        model = Album
+        fields = ("title", "description")
+        order_by = ("title",)

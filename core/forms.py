@@ -3,7 +3,6 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Field
 from .models import *
 
-#region Photos
 
 class PhotoForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -14,9 +13,6 @@ class PhotoForm(forms.ModelForm):
         model = Photo
         exclude = ["last_updated"]
 
-#endregion
-
-#region Sizes
 
 class SizeForm(forms.ModelForm):
     class Meta:
@@ -31,4 +27,12 @@ class SizeForm(forms.ModelForm):
             self.fields["slug"].disabled = True
             self.fields["comment"].disabled = True
 
-#endregion
+
+class AlbumForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+
+    class Meta:
+        model = Album
+        exclude = ["_photos"]

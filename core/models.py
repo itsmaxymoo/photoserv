@@ -70,9 +70,9 @@ class Album(models.Model):
     sort_method = models.CharField(
         max_length=10,
         choices=DefaultSortMethod.choices,
-        default=DefaultSortMethod.MANUAL
+        default=DefaultSortMethod.PUBLISHED
     )
-    sort_ascending = models.BooleanField(default=True)
+    sort_descending = models.BooleanField(default=False)
     _photos = models.ManyToManyField(
         "Photo",
         through="PhotoInAlbum",
@@ -93,13 +93,16 @@ class Album(models.Model):
         else:
             order_by = "photoinalbum__order"
 
-        if not self.sort_ascending:
+        if self.sort_descending:
             order_by = f'-{order_by}'
 
         return qs.order_by(order_by)
 
     def __str__(self):
         return self.title
+    
+    def get_absolute_url(self):
+        return reverse("album-detail", kwargs={"pk": self.pk})
 
 
 class PhotoInAlbum(models.Model):
