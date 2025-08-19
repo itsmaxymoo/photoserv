@@ -58,6 +58,7 @@ class Photo(models.Model):
     def delete(self, *args, **kwargs):
         # Delete all sizes associated with this photo
         size_files = list(self.sizes.values_list('image', flat=True))
+        size_files.append(self.raw_image.path)
 
         if size_files:
             tasks.delete_files.delay_on_commit(size_files)
