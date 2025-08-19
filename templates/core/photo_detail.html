@@ -37,7 +37,7 @@
                     <th>Image</th>
                     <td>
                         {% if object.raw_image %}
-                        <img src="{{ object.raw_image.url }}" alt="{{ object.title }}"
+                        <img src="{% url 'photo-image' object.pk UI_THUMBNAIL_SIZE %}" alt="{{ object.title }}"
                             class="max-w-full rounded shadow" />
                         {% else %}
                         (No image)

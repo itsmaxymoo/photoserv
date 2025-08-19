@@ -23,6 +23,9 @@ class Photo(models.Model):
 
     def get_absolute_url(self):
         return reverse("photo-detail", kwargs={"pk": self.pk})
+
+    def get_size(self, size: str):
+        return self.sizes.filter(size__slug=size).first()
     
     # After saving a new photo, trigger the task to generate sizes
     def save(self, *args, **kwargs):

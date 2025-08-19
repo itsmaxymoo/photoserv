@@ -5,6 +5,7 @@ from .models import *
 from .forms import *
 from .tables import *
 from .mixins import CRUDGenericMixin
+from django.http import FileResponse, Http404
 
 #region Photo
 
@@ -22,6 +23,21 @@ class PhotoListView(PhotoMixin, SingleTableView):
 
 class PhotoDetailView(DetailView):
     model = Photo
+
+
+class PhotoImageView(DetailView):
+    model = Photo
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        size = kwargs.get('size')
+        try:
+            image_file = self.object.get_size(size).image
+        except (AttributeError, KeyError, FileNotFoundError):
+            raise Http404("Requested size not found.")
+        if not image_file or not hasattr(image_file, 'open'):
+            raise Http404("Image not available.")
+        return FileResponse(image_file.open('rb'), content_type='image/jpeg')
 
 
 class PhotoCreateView(PhotoMixin, CreateView):
