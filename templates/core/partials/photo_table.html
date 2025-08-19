@@ -1,28 +1,21 @@
-<table>
-    <thead>
-        <tr>
-            <th>Preview</th>
-            <th>Title</th>
-            <th>Created</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for row in table.rows %}
-        <tr>
-            {% if row.record.raw_image %}
-            <img src="{{ row.record.raw_image.url }}" alt="{{ row.record.title }}"
-                class="max-w-16 max-h-16 rounded shadow" />
-            {% else %}
-            (No image)
-            {% endif %}
-            <td>{{ row.record.title }}</td>
-            <td>{{ row.record.publish_date|date:"Y-m-d H:i" }}</td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="4">No photos.</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+{% if table.rows %}
+<div class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    {% for row in table.rows %}
+
+    <a href="{% url 'photo-detail' row.record.id %}">
+        <div class="box">
+            <img src="{% url 'photo-image' row.record.id UI_THUMBNAIL_SIZE %}" alt="{{ row.record.title }}"
+                class="shadow mx-auto mb-2" />
+            <h4 class="text-md text-center font-semibold pb-0 mb-0">{{ row.record.title }}</h4>
+        </div>
+    </a>
+
+    {% endfor %}
+</div>
+{% else %}
+
+<p>
+    No photos.
+</p>
+
+{% endif %}
