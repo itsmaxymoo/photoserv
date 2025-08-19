@@ -1,11 +1,17 @@
 {
   "scripts": {
     "build:css": "tailwindcss -i ./static/css/app.css -o ./static/css/style.css --minify",
-    "dev:css": "tailwindcss -i ./static/css/app.css -o ./static/css/style.css --watch"
+    "dev:css": "tailwindcss -i ./static/css/app.css -o ./static/css/style.css --watch",
+    "build:js": "esbuild ./static/js/app.js --bundle --outfile=./static/js/bundle.js --minify",
+    "dev:js": "esbuild ./static/js/app.js --bundle --outfile=./static/js/bundle.js --watch"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.11",
     "daisyui": "^5.0.46",
+    "esbuild": "^0.25.9",
     "tailwindcss": "^4.1.11"
+  },
+  "dependencies": {
+    "alpinejs": "^3.14.9"
   }
 }

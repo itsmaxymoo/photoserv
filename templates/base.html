@@ -13,6 +13,7 @@
     {% load static %}
 
     <link href="{% static 'css/style.css' %}" rel="stylesheet" type="text/css" />
+    <script src="{% static 'js/bundle.js' %}" defer></script>
 </head>
 
 <body>
@@ -24,15 +25,32 @@
                 </a>
             </div>
             <div class="navbar-end">
-                <a href="/photos" class="btn btn-ghost">
+                <a href="{% url 'photo-list' %}" class="btn btn-ghost">
                     Photos
                 </a>
-                <a href="/albums" class="btn btn-ghost">
+                <a href="{% url 'album-list' %}" class="btn btn-ghost">
                     Albums
                 </a>
-                <a href="/sizes" class="btn btn-ghost">
-                    Sizes
-                </a>
+
+                <div class="dropdown dropdown-end" x-data="{ openNavMenu: false }">
+                    <button class="btn btn-ghost" @click="openNavMenu = !openNavMenu" :aria-expanded="openNavMenu.toString()"
+                        aria-controls="dropdown-menu">
+                        Settings
+                        <svg class="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <ul id="dropdown-menu"
+                        class="list-none dropdown-content menu min-w-30 bg-base-100 shadow-sm" x-show="openNavMenu"
+                        x-transition @click.outside="openNavMenu = false">
+                        
+                        <li>
+                            <a href="{% url 'size-list' %}">Sizes</a>
+                        </li>
+                    </ul>
+                </div>
+
             </div>
         </div>
     </header>
