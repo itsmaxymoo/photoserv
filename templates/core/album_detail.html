@@ -13,23 +13,42 @@ Album: {{ object }}
     {{ object }}
 </h2>
 
-<div>
-    <h3>Description</h3>
-
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     <div class="box">
-        <p>{{ object.description|default:"No description for album." }}</p>
+        <div class="overflow-x-scroll">
+            <table class="table table-zebra table-auto">
+                <colgroup>
+                    <col class="w-min whitespace-nowrap" />
+                    <col class="w-full" />
+                </colgroup>
+                <tr>
+                    <th>Title</th>
+                    <td>{{ object.title }}</td>
+                </tr>
+                <tr>
+                    <th>Public ID</th>
+                    <td>{{ object.public_id }}</td>
+                </tr>
+                <tr>
+                    <th>Sort Mode</th>
+                    <td>{{ object.get_sort_method_display }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <div>
+        <div class="box">
+            <div>
+                <h3>Description</h3>
+
+                <p>{{ object.description|default:"No description for album." }}</p>
+            </div>
+        </div>
     </div>
 </div>
 
 <div>
     <h3>Photos</h3>
-
-    <p class="py-4">
-        Sort Method:
-        <span class="font-bold">
-            {{ object.get_sort_method_display }}
-        </span>
-    </p>
 
     {% load django_tables2 %}
     {% render_table photo_table %}

@@ -15,9 +15,11 @@ class Photo(models.Model):
         kebab_title = slugify(instance.title)
         new_filename = f"{random_str}-{kebab_title}{ext}"
         return os.path.join(CONTENT_RAW_PHOTOS_PATH, new_filename)
+    
+    public_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
 
     title = models.CharField(max_length=255)
-    description = models.TextField(max_length=4096)
+    description = models.TextField(max_length=4096, default="", blank=True)
     raw_image = models.ImageField(upload_to=get_image_file_path)
     publish_date = models.DateTimeField(auto_now=True)
 
@@ -83,6 +85,8 @@ class Album(models.Model):
         PUBLISHED = "PUBLISHED", "Published/Uploaded"
         MANUAL = "MANUAL", "Manual"
         RANDOM = "RANDOM", "Random"
+
+    public_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
 
     title = models.CharField(max_length=255, unique=True)
     description = models.TextField(max_length=4096)
