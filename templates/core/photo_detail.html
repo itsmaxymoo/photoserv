@@ -69,8 +69,26 @@
             </table>
         </div>
     </div>
-    <div>
-        <!-- Optional: You could include additional sections here, like metadata, tags, or image EXIF info -->
+    <div>        
+        <div class="box overflow-x-scroll">
+            <h3 class="text-2xl">Sizes</h3>
+
+            <table class="table table-zebra table-auto">
+                <colgroup>
+                    <col class="w-min whitespace-nowrap" />
+                    <col class="w-full" />
+                </colgroup>
+                {% for size in object.sizes.all %}
+                <tr>
+                    <th>{{ size.slug }}</th>
+                    <td>
+                        <a href="{% url 'photo-image' object.pk size.size.slug %}" download>
+                            {{ size.size }}
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
     </div>
 </div>
 
