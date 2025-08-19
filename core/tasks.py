@@ -50,15 +50,6 @@ def generate_sizes_for_photo(photo_id):
         if models.PhotoSize.objects.filter(photo=photo, size=size).exists():
             continue  # Skip if already exists
 
-        if size.slug == "original":
-            # Save the uploaded raw image as-is for the original size
-            models.PhotoSize.objects.create(
-                photo=photo,
-                size=size,
-                image=photo.raw_image
-            )
-            continue
-
         gen_size(photo, size)
 
 
@@ -75,7 +66,7 @@ def generate_photo_sizes_for_size(size_id):
 
 
 @shared_task
-def size_delete_cleanup(files):
+def delete_files(files):
     for path in files:
         try:
             os.remove(path)

@@ -31,19 +31,13 @@ class Photo(models.Model):
     def save(self, *args, **kwargs):
         is_new = self.pk is None
 
+        super().save(*args, **kwargs)
+
         if is_new:
-            # Automatically create original PhotoSize
             try:
                 original_size = Size.objects.get(slug="original")
             except Size.DoesNotExist:
                 original_size = None
-
-            if original_size:
-                PhotoSize.objects.get_or_create(
-                    photo=self,
-                    size=original_size,
-                    defaults={'image': self.raw_image}
-                )
 
             # Generate other sizes via Celery task
             tasks.generate_sizes_for_photo.delay_on_commit(self.id)
@@ -60,6 +54,15 @@ class Photo(models.Model):
                 )
                 next_order = (last_order or 0) + 1
                 PhotoInAlbum.objects.create(photo=self, album=album, order=next_order)
+    
+    def delete(self, *args, **kwargs):
+        # Delete all sizes associated with this photo
+        size_files = list(self.sizes.values_list('image', flat=True))
+
+        if size_files:
+            tasks.delete_files.delay_on_commit(size_files)
+
+        super().delete(*args, **kwargs)
 
     def __str__(self):
         return self.title
@@ -158,7 +161,7 @@ class Size(models.Model):
         self.photos.all().delete()
 
         if file_paths:
-            tasks.size_delete_cleanup.delay_on_commit(file_paths)
+            tasks.delete_files.delay_on_commit(file_paths)
 
         # Trigger task to regenerate photos for this size after DB commit
         tasks.generate_photo_sizes_for_size.delay_on_commit(self.id)
@@ -172,7 +175,7 @@ class Size(models.Model):
         self.photos.all().delete()
 
         if file_paths:
-            tasks.size_delete_cleanup.delay_on_commit(file_paths)
+            tasks.delete_files.delay_on_commit(file_paths)
 
         super().delete(*args, **kwargs)
 
