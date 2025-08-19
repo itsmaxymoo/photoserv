@@ -27,7 +27,6 @@ class Photo(models.Model):
     # After saving a new photo, trigger the task to generate sizes
     def save(self, *args, **kwargs):
         is_new = self.pk is None
-        super().save(*args, **kwargs)
 
         if is_new:
             # Automatically create original PhotoSize
@@ -45,6 +44,19 @@ class Photo(models.Model):
 
             # Generate other sizes via Celery task
             tasks.generate_sizes_for_photo.delay_on_commit(self.id)
+    
+    def assign_albums(self, albums):
+        # Remove unselected
+        PhotoInAlbum.objects.filter(photo=self).exclude(album__in=albums).delete()
+
+        for album in albums:
+            if not PhotoInAlbum.objects.filter(photo=self, album=album).exists():
+                last_order = (
+                    PhotoInAlbum.objects.filter(album=album)
+                    .aggregate(max_order=models.Max('order'))['max_order']
+                )
+                next_order = (last_order or 0) + 1
+                PhotoInAlbum.objects.create(photo=self, album=album, order=next_order)
 
     def __str__(self):
         return self.title
@@ -65,7 +77,7 @@ class Album(models.Model):
         MANUAL = "MANUAL", "Manual"
         RANDOM = "RANDOM", "Random"
 
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, unique=True)
     description = models.TextField(max_length=4096)
     sort_method = models.CharField(
         max_length=10,
@@ -76,18 +88,19 @@ class Album(models.Model):
     _photos = models.ManyToManyField(
         "Photo",
         through="PhotoInAlbum",
-        related_name="albums"
+        related_name="albums",
+        verbose_name="Photos"
     )
 
     def get_ordered_photos(self):
-        qs = self.photos.all()
+        qs = self._photos.all()
 
         if self.sort_method == self.DefaultSortMethod.MANUAL:
             order_by = "photoinalbum__order"
         elif self.sort_method == self.DefaultSortMethod.CREATED:
-            order_by = "photo__exif__capture_date"
+            order_by = "exif__capture_date"
         elif self.sort_method == self.DefaultSortMethod.PUBLISHED:
-            order_by = "photo__publish_date"
+            order_by = "publish_date"
         elif self.sort_method == self.DefaultSortMethod.RANDOM:
             return qs.order_by("?")  # random order, no need for sort_ascending
         else:

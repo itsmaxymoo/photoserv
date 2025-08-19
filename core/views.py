@@ -108,6 +108,16 @@ class AlbumMixin(CRUDGenericMixin):
 class AlbumDetailView(DetailView):
     model = Album
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        ordered_photos = self.object.get_ordered_photos()
+
+        table = PhotoInAlbumTable(ordered_photos)
+
+        context["photo_table"] = table
+        return context
+
 
 class AlbumListView(AlbumMixin, SingleTableView):
     model = Album

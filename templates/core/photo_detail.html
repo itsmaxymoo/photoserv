@@ -37,12 +37,31 @@
                     <th>Image</th>
                     <td>
                         {% if object.raw_image %}
-                        <img src="{{ object.raw_image.url }}" alt="{{ object.title }}" class="max-w-full rounded shadow" />
+                        <img src="{{ object.raw_image.url }}" alt="{{ object.title }}"
+                            class="max-w-full rounded shadow" />
                         {% else %}
                         (No image)
                         {% endif %}
                     </td>
                 </tr>
+                {% if object.albums %}
+                <tr>
+                    <th>
+                        Albums
+                    </th>
+
+                    <td>
+                        <ul>
+                            {% for album in object.albums.all %}
+                            <li>
+                                <a href="{{ album.get_absolute_url }}" class="link link-hover">
+                                    {{ album }}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                </tr>
+                {% endif %}
             </table>
         </div>
     </div>

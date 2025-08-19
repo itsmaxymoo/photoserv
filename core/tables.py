@@ -40,7 +40,16 @@ class AlbumTable(tables.Table):
     title = tables.Column(linkify=True)
     description = tables.Column()
 
+    def render_description(self, value):
+        return (value[:117] + '...') if value and len(value) > 120 else value
+
     class Meta:
         model = Album
         fields = ("title", "description")
         order_by = ("title",)
+
+
+class PhotoInAlbumTable(tables.Table):
+    class Meta:
+        model = Photo
+        template_name = "core/partials/photo_table.html"

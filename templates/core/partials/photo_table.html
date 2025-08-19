@@ -1,0 +1,28 @@
+<table>
+    <thead>
+        <tr>
+            <th>Preview</th>
+            <th>Title</th>
+            <th>Created</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in table.rows %}
+        <tr>
+            {% if row.record.raw_image %}
+            <img src="{{ row.record.raw_image.url }}" alt="{{ row.record.title }}"
+                class="max-w-16 max-h-16 rounded shadow" />
+            {% else %}
+            (No image)
+            {% endif %}
+            <td>{{ row.record.title }}</td>
+            <td>{{ row.record.publish_date|date:"Y-m-d H:i" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4">No photos.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

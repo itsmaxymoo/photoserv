@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}
+Album: {{ object }}
+{% endblock %}
+
+{% block content %}
+<h2 class="text-3xl inline-flex gap-2">
+    <span class="font-extralight">
+        {% include "partials/back_button.html" %}
+        Album:
+    </span>
+    {{ object }}
+</h2>
+
+<div>
+    <h3>Description</h3>
+
+    <div class="box">
+        <p>{{ object.description|default:"No description for album." }}</p>
+    </div>
+</div>
+
+<div>
+    <h3>Photos</h3>
+
+    <p class="py-4">
+        Sort Method:
+        <span class="font-bold">
+            {{ object.get_sort_method_display }}
+        </span>
+    </p>
+
+    {% load django_tables2 %}
+    {% render_table photo_table %}
+</div>
+
+<div>
+    {% include "partials/model_view_modify_buttons.html" %}
+</div>
+
+{% endblock %}
