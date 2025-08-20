@@ -155,9 +155,10 @@ class Size(models.Model):
         if not self.can_edit:
             raise ValidationError("Cannot modify this size.")
         # Don't allow changes to slug or comment if it's a builtin size
-        orig = Size.objects.get(pk=self.pk)
-        if self.builtin and (self.slug != orig.slug or self.comment != orig.comment):
-            raise ValidationError("Cannot change the slug or comment of a builtin size.")
+        if self.pk is not None:
+            orig = Size.objects.get(pk=self.pk)
+            if self.builtin and (self.slug != orig.slug or self.comment != orig.comment):
+                raise ValidationError("Cannot change the slug or comment of a builtin size.")
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -205,6 +206,7 @@ class PhotoSize(models.Model):
 
     class Meta:
         unique_together = ("photo", "size")
+        ordering = ["size__max_dimension"]
 
     def __str__(self):
         return f"{self.photo.title} - {self.size.slug}"
