@@ -66,10 +66,29 @@
                         </ul>
                 </tr>
                 {% endif %}
+                <tr>
+                    <th>Tags</th>
+                    <td>
+                        {% if object.tags.all %}
+                        <ul class="flex flex-wrap gap-2">
+                            {% for tag in object.tags.all %}
+                            <li>
+                                <a href="{% url 'tag-detail' tag.tag.id %}">
+                                    <span class="badge badge-secondary">
+                                        {{ tag.tag }}
+                                    </span>
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        (No tags)
+                        {% endif %}
+                    </td>
             </table>
         </div>
     </div>
-    <div>        
+    <div>
         <div class="box overflow-x-scroll">
             <h3 class="text-2xl">Sizes</h3>
 
@@ -91,7 +110,7 @@
             </table>
 
             <p class="pt-4">
-                Note: These links are not public! You must use the public API.
+                Note: These links are not public! You must use the public API in your clients to access these images.
             </p>
         </div>
     </div>

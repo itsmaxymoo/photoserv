@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}
+Tag: {{ object }}
+{% endblock %}
+
+{% block content %}
+<h2 class="text-3xl inline-flex gap-2">
+    <span class="font-extralight">
+        {% include "partials/back_button.html" %}
+        Tag:
+    </span>
+    {{ object }}
+</h2>
+
+<div>
+    <h3>Photos</h3>
+
+    {% load django_tables2 %}
+    {% render_table photo_table %}
+</div>
+
+<div>
+    {% include "partials/model_view_modify_buttons.html" %}
+</div>
+
+{% endblock %}

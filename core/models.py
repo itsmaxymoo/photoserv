@@ -79,6 +79,67 @@ class PhotoExif(models.Model):
         return f"EXIF for {str(self.photo)}"
 
 
+class Tag(models.Model):
+    public_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
+    name = models.CharField(max_length=128)  # the tag text
+
+    class Meta:
+        ordering = ["name"]
+    
+    def clean(self):
+        # Disallow semicolons or newlines in tag names
+        if ";" in self.name or "\n" in self.name:
+            raise ValidationError("Tag names cannot contain semicolons or newlines.")
+        
+        return super().clean()
+    
+    def save(self, *args, **kwargs):
+        self.name = self.name.strip().lower()  # Normalize tag name
+        # Are we renaming (object already exists)?
+        if self.pk:
+            old = Tag.objects.get(pk=self.pk)
+            if old.name != self.name:
+                # Case: renaming to an existing tag -> merge
+                try:
+                    existing = Tag.objects.get(name=self.name)
+                except Tag.DoesNotExist:
+                    # unique -> just rename
+                    return super().save(*args, **kwargs)
+
+                # merge: move photos over
+                for pt in PhotoTag.objects.filter(tag=old):
+                    # avoid duplicates
+                    if not PhotoTag.objects.filter(photo=pt.photo, tag=existing).exists():
+                        pt.tag = existing
+                        pt.save()
+                    else:
+                        pt.delete()
+
+                # finally, delete the old tag
+                old.delete()
+                return existing
+        # Normal creation or no name change
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse("tag-detail", kwargs={"pk": self.pk})
+
+
+class PhotoTag(models.Model):
+    photo = models.ForeignKey("Photo", on_delete=models.CASCADE, related_name="tags")
+    tag = models.ForeignKey(Tag, on_delete=models.CASCADE, related_name="photos")
+
+    class Meta:
+        unique_together = ("photo", "tag")
+        ordering = ["tag__name"]
+
+    def __str__(self):
+        return self.tag
+
+
 class Album(models.Model):
     class DefaultSortMethod(models.TextChoices):
         CREATED = "CREATED", "Created/Taken"
@@ -113,7 +174,7 @@ class Album(models.Model):
         elif self.sort_method == self.DefaultSortMethod.PUBLISHED:
             order_by = "publish_date"
         elif self.sort_method == self.DefaultSortMethod.RANDOM:
-            return qs.order_by("?")  # random order, no need for sort_ascending
+            return qs.order_by("?")  # random order, no need for sort_descending
         else:
             order_by = "photoinalbum__order"
 

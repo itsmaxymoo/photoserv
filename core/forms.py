@@ -11,6 +11,7 @@ class PhotoForm(forms.ModelForm):
         widget=forms.CheckboxSelectMultiple,
         label="Albums"
     )
+    tags = forms.CharField(required=False, widget=forms.HiddenInput())
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -20,6 +21,11 @@ class PhotoForm(forms.ModelForm):
         if self.instance and self.instance.pk:
             # pre-check albums the photo already belongs to
             self.fields['albums'].initial = self.instance.albums.all()
+
+            current_tags = [pt.tag.name for pt in self.instance.tags.all()]
+            self.fields['tags'].initial = ";".join(current_tags)
+            # Also add a list version for the template
+            self.initial['tags_list'] = list(current_tags)
 
     class Meta:
         model = Photo
@@ -34,6 +40,22 @@ class PhotoForm(forms.ModelForm):
         selected_albums = self.cleaned_data.get('albums', [])
         if commit:
             photo.assign_albums(selected_albums)
+        
+        # Handle tags
+        tags_str = self.cleaned_data.get("tags", "")
+        tags_list = [t.strip().lower() for t in tags_str.split(";") if t.strip()]
+
+        # Remove old tag entries not in new list
+        photo.tags.exclude(tag__name__in=tags_list).delete()
+
+        # Add new tags (create Tag if necessary)
+        for tag_name in tags_list:
+            tag, _ = Tag.objects.get_or_create(name=tag_name)
+            PhotoTag.objects.get_or_create(photo=photo, tag=tag)
+        
+        # clean up orphaned tags
+        Tag.objects.filter(photos__isnull=True).delete()
+
 
         return photo
 
@@ -60,3 +82,16 @@ class AlbumForm(forms.ModelForm):
     class Meta:
         model = Album
         exclude = ["_photos"]
+
+
+class TagForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+
+    class Meta:
+        model = Tag
+        fields = ["name"]
+        widgets = {
+            "name": forms.TextInput(attrs={"placeholder": "Enter tag name"})
+        }

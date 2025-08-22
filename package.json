@@ -12,6 +12,7 @@
     "tailwindcss": "^4.1.11"
   },
   "dependencies": {
+    "@alpinejs/sort": "^3.14.9",
     "alpinejs": "^3.14.9"
   }
 }

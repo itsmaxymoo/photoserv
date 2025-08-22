@@ -49,7 +49,17 @@ class AlbumTable(tables.Table):
         order_by = ("title",)
 
 
-class PhotoInAlbumTable(tables.Table):
+class PhotoListTable(tables.Table):
     class Meta:
         model = Photo
         template_name = "core/partials/photo_table.html"
+
+
+class TagTable(tables.Table):
+    name = tables.Column(linkify=True)
+    photo_count = tables.Column(verbose_name="Photos")
+
+    class Meta:
+        model = Tag
+        fields = ("name", "photo_count")
+        order_by = ("name",)

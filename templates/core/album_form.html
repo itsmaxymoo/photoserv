@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% load crispy_forms_tags %}
+{% load daisyui_filters %}
+
+{% block title %}
+Editing {{ object|default:object_type_name }}
+{% endblock %}
+
+{% block content %}
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="grid grid-cols-1 gap-4">
+        <div>
+            <h2>Editing {{ object|default:object_type_name }}</h2>
+        </div>
+        {% if edit_disclaimer is not None %}
+        <div>
+            <p>
+                <strong>Note:</strong> {{ edit_disclaimer }}
+            </p>
+        </div>
+        {% endif %}
+
+        {% if form.non_field_errors %}
+        <div class="alert alert-error" id="form-errors">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+
+        <div>
+            {% for field in form %}
+            {{ field|as_crispy_field }}
+            {% endfor %}
+        </div>
+
+        <div>
+            <h3>Photos</h3>
+            <p class="font-light italic">This only affects the manual ordering mode.</p>
+
+            <div class="box my-4">
+                {% if object.get_ordered_photos %}
+                <ul x-data="{}" x-sort class="space-y-2">
+                    {% for photo in object.get_ordered_photos %}
+                    <li x-sort:item="'{{ photo.id }}'"
+                        class="rounded flex items-center justify-between space-x-2 even:bg-base-200 p-2 hover:cursor-move">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-32 h-32 flex items-center mr-4">
+                                <img src="{% url 'photo-image' photo.id 'photoserv_ui_thumbnail' %}"
+                                    alt="{{ photo.title }}" class="max-w-full object-cover shadow">
+                            </div>
+                            <span class="text-xl">{{ photo.title }}</span>
+                        </div>
+
+                        <div class="flex flex-col space-y-1">
+                            <button type="button" @click="
+                                const li = $el.closest('li');
+                                const prev = li.previousElementSibling;
+                                if(prev) { li.parentNode.insertBefore(li, prev); li.scrollIntoView({behavior:'smooth', block:'center'}); }
+                            " class="px-2 py-1 btn btn-ghost">↑</button>
+
+                                            <button type="button" @click="
+                                const li = $el.closest('li');
+                                const next = li.nextElementSibling;
+                                if(next) { li.parentNode.insertBefore(next, li); li.scrollIntoView({behavior:'smooth', block:'center'}); }
+                            " class="px-2 py-1 btn btn-ghost">↓</button>
+                        </div>
+
+                        <input type="hidden" name="photo_order[]" value="{{ photo.id }}">
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p>No photos in this album.</p>
+                {% endif %}
+
+
+            </div>
+
+
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <div>
+                    <a href="{% if not no_object_detail_page or object is None %}../{% else %}../../{% endif %}"
+                        class="btn btn-secondary btn">
+                        Cancel
+                    </a>
+                </div>
+                <div>
+                    <button type="submit" class="btn btn-primary btn">
+                        Save
+                    </button>
+                </div>
+            </div>
+        </div>
+</form>
+
+{% endblock %}

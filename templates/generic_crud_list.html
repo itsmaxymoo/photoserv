@@ -6,9 +6,12 @@
 {% block content %}
 <div class="flex justify-between">
     <h2>{{ object_type_name_plural }}</h2>
+
+    {% if can_directly_create %}
     <a href="{% url object_url_name_slug|add:'-create' %}" class="btn btn-primary">
         Create
     </a>
+    {% endif %}
 </div>
 
 <div class="overflow-x-scroll">

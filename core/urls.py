@@ -20,4 +20,9 @@ urlpatterns = [
     path("albums/<pk>/edit/", AlbumUpdateView.as_view(), name="album-edit"),
     path("albums/<pk>/delete/", AlbumDeleteView.as_view(), name="album-delete"),
     path("albums/<pk>/", AlbumDetailView.as_view(), name="album-detail"),
+
+    path("tags/", TagListView.as_view(), name="tag-list"),
+    path("tags/<int:pk>/edit/", TagUpdateView.as_view(), name="tag-edit"),
+    path("tags/<int:pk>/delete/", TagDeleteView.as_view(), name="tag-delete"),
+    path("tags/<int:pk>/", TagDetailView.as_view(), name="tag-detail"),
 ]

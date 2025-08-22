@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% load crispy_forms_tags %}
+{% load daisyui_filters %}
+
+{% block title %}
+Editing {{ object|default:object_type_name }}
+{% endblock %}
+
+{% block content %}
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="grid grid-cols-1 gap-4">
+        <div>
+            <h2>Editing {{ object|default:object_type_name }}</h2>
+        </div>
+        {% if edit_disclaimer is not None %}
+        <div>
+            <p>
+                <strong>Note:</strong> {{ edit_disclaimer }}
+            </p>
+        </div>
+        {% endif %}
+
+        {% if form.non_field_errors %}
+        <div class="alert alert-error" id="form-errors">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+
+        <div>
+            {% for field in form %}
+            {{ field|as_crispy_field }}
+            {% endfor %}
+        </div>
+
+        <!-- TAGS HERE -->
+        <div x-data="tagsInput()" class="space-y-2">
+            <label class="block font-medium mb-1">Tags</label>
+
+            <div class="flex flex-wrap gap-2">
+                <!-- Existing tags displayed as badges -->
+                <template x-for="(tag, index) in tags" :key="index">
+                    <div class="badge badge-secondary flex items-center gap-1">
+                        <span x-text="tag"></span>
+                        <button type="button" @click="removeTag(index)" class="ml-1">×</button>
+                    </div>
+                </template>
+
+                <!-- Input box -->
+                <input type="text" placeholder="Add tag + press enter" class="input input-sm max-w-48"
+                    x-model="newTag" @keydown.enter.prevent="addTag()" />
+            </div>
+
+            <!-- Hidden input to submit tags as semicolon-separated string -->
+            <input type="hidden" name="tags" :value="tags.join(';')">
+        </div>
+
+        <script>
+            function tagsInput() {
+                return {
+                    tags: [
+                        {% if form.initial.tags_list %}
+                            {% for tag in form.initial.tags_list %}
+                                "{{ tag|escapejs }}"{% if not forloop.last %},{% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    ],
+                    newTag: '',
+                    addTag() {
+                        let tag = this.newTag.trim().replace(/[;\n\r]/g, '');
+                        if (tag && !this.tags.includes(tag)) {
+                            this.tags.push(tag);
+                        }
+                        this.newTag = '';
+                    },
+                    removeTag(index) {
+                        this.tags.splice(index, 1);
+                    }
+                }
+            }
+        </script>
+
+
+
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <div>
+                <a href="{% if not no_object_detail_page or object is None %}../{% else %}../../{% endif %}"
+                    class="btn btn-secondary btn">
+                    Cancel
+                </a>
+            </div>
+            <div>
+                <button type="submit" class="btn btn-primary btn">
+                    Save
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+{% endblock %}
