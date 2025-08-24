@@ -1,0 +1,5 @@
+Third Party Licenses
+
+Exiftool by Phil Harvey
+https://exiftool.org/
+License: Artistic License

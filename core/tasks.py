@@ -6,6 +6,7 @@ from django.core.files.base import ContentFile
 import os
 from PIL.ExifTags import TAGS as ExifTags
 from datetime import datetime
+import exiftool
 
 
 def gen_size(photo, size):
@@ -97,25 +98,37 @@ def generate_photo_metadata(photo_id):
         return f"Photo with id {photo_id} does not exist."
     
     photo.raw_image.open()  # ensure file is ready
-    with Image.open(photo.raw_image) as img:
-        exif_data = img._getexif()
-        if not exif_data:
-            return f"No EXIF data found for photo id {photo.id}."
+    temp_file_path = photo.raw_image.path
+
+    with exiftool.ExifToolHelper() as et:
+        metadata_list = et.get_metadata(temp_file_path)
+        if not metadata_list:
+            return f"No metadata found for photo id {photo.id}."
+
+        # Roll all dicts into one (later dicts overwrite earlier ones)
+        metadata_dict = {}
+        for d in metadata_list:
+            metadata_dict.update(d)
 
         metadata, created = models.PhotoMetadata.objects.get_or_create(photo=photo)
 
-        # Map EXIF tags to human-readable names
-        exif = {ExifTags.get(tag, tag): value for tag, value in exif_data.items()}
+        # Extract relevant metadata
+        metadata.capture_date = parse_exif_date(metadata_dict.get("EXIF:DateTimeOriginal"))
+        metadata.rating = metadata_dict.get("XMP:Rating")
 
-        metadata.capture_date = parse_exif_date(exif.get("DateTimeOriginal", None))
-        metadata.camera_make = exif.get("Make", None)
-        metadata.camera_model = exif.get("Model", None)
-        metadata.focal_length = exif.get("FocalLength", None)
-        metadata.focal_length_35mm = exif.get("FocalLengthIn35mmFilm", None)
-        metadata.aperture = exif.get("FNumber", None)
-        metadata.shutter_speed = exif.get("ExposureTime", None)
-        metadata.iso = exif.get("ISOSpeedRatings", None)
-        metadata.copyright = exif.get("Copyright", None)
+        metadata.camera_make = metadata_dict.get("EXIF:Make")
+        metadata.camera_model = metadata_dict.get("EXIF:Model")
+        metadata.lens_model = metadata_dict.get("Composite:LensID")
+
+        metadata.focal_length = metadata_dict.get("EXIF:FocalLength")
+        metadata.focal_length_35mm = metadata_dict.get("EXIF:FocalLengthIn35mmFormat")
+        metadata.aperture = metadata_dict.get("EXIF:FNumber")
+        metadata.shutter_speed = metadata_dict.get("EXIF:ExposureTime")
+        metadata.iso = metadata_dict.get("EXIF:ISO")
+        metadata.exposure_program = metadata_dict.get("EXIF:ExposureProgram")
+        metadata.exposure_compensation = metadata_dict.get("EXIF:ExposureCompensation")
+
+        metadata.copyright = metadata_dict.get("EXIF:Copyright")
 
         metadata.save()
 

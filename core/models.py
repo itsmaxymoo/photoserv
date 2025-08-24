@@ -76,14 +76,20 @@ class PhotoMetadata(models.Model):
     photo = models.OneToOneField(Photo, on_delete=models.CASCADE, related_name="metadata", unique=True)
 
     capture_date = models.DateTimeField(null=True, blank=True)
+    rating = models.PositiveSmallIntegerField(null=True, blank=True)
+
 
     camera_make = models.CharField(max_length=255, null=True, blank=True)
     camera_model = models.CharField(max_length=255, null=True, blank=True)
+    lens_model = models.CharField(max_length=255, null=True, blank=True)
+
     focal_length = models.FloatField(null=True, blank=True)
     focal_length_35mm = models.FloatField(null=True, blank=True)
     aperture = models.FloatField(null=True, blank=True)
     shutter_speed = models.FloatField(null=True, blank=True)
     iso = models.PositiveIntegerField(null=True, blank=True)
+    exposure_program = models.PositiveSmallIntegerField(null=True, blank=True)
+    exposure_compensation = models.FloatField(null=True, blank=True)
 
     copyright = models.CharField(max_length=512, null=True, blank=True)
 

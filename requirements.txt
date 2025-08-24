@@ -5,3 +5,4 @@ django-tables2==2.7.5
 django-crispy-forms==2.4
 crispy-daisyui==0.7.0
 celery==5.5.3
+pyexiftool==0.5.6
