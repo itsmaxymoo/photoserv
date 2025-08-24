@@ -43,6 +43,7 @@ class Photo(models.Model):
 
             # Generate other sizes via Celery task
             tasks.generate_sizes_for_photo.delay_on_commit(self.id)
+            tasks.generate_photo_metadata.delay_on_commit(self.id)
     
     def assign_albums(self, albums):
         # Remove unselected
@@ -71,12 +72,23 @@ class Photo(models.Model):
         return self.title
 
 
-class PhotoExif(models.Model):
-    photo = models.OneToOneField(Photo, on_delete=models.CASCADE, related_name="exif")
-    capture_date = models.DateTimeField(default=None, null=True, blank=True)
+class PhotoMetadata(models.Model):
+    photo = models.OneToOneField(Photo, on_delete=models.CASCADE, related_name="metadata", unique=True)
+
+    capture_date = models.DateTimeField(null=True, blank=True)
+
+    camera_make = models.CharField(max_length=255, null=True, blank=True)
+    camera_model = models.CharField(max_length=255, null=True, blank=True)
+    focal_length = models.FloatField(null=True, blank=True)
+    focal_length_35mm = models.FloatField(null=True, blank=True)
+    aperture = models.FloatField(null=True, blank=True)
+    shutter_speed = models.FloatField(null=True, blank=True)
+    iso = models.PositiveIntegerField(null=True, blank=True)
+
+    copyright = models.CharField(max_length=512, null=True, blank=True)
 
     def __str__(self):
-        return f"EXIF for {str(self.photo)}"
+        return f"Metadata for {str(self.photo)}"
 
 
 class Tag(models.Model):

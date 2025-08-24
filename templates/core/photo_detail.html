@@ -38,6 +38,15 @@
                     <td>{{ object.publish_date|date:"Y-m-d H:i" }}</td>
                 </tr>
                 <tr>
+                    <th>Capture Date</th>
+                    <td>
+                        {% if object.metadata.capture_date %}
+                        {{ object.metadata.capture_date|date:"Y-m-d H:i" }}
+                        {% else %}
+                        (unknown)
+                        {% endif %}
+                    </td>
+                <tr>
                     <th>Image</th>
                     <td>
                         {% if object.raw_image %}
@@ -47,6 +56,10 @@
                         (No image)
                         {% endif %}
                     </td>
+                </tr>
+                <tr>
+                    <th>Metadata</th>
+                    <td>TODO</td>
                 </tr>
                 {% if object.albums %}
                 <tr>
