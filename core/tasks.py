@@ -9,6 +9,8 @@ import os
 def gen_size(photo, size):
     photo.raw_image.open()  # ensure file is ready
     with Image.open(photo.raw_image) as img:
+        exif_data = img.info.get('exif')  # Preserve EXIF data
+
         # Use updated resampling constant
         img.thumbnail((size.max_dimension, size.max_dimension), Image.Resampling.LANCZOS)
 
@@ -26,7 +28,7 @@ def gen_size(photo, size):
                 img = img.resize((size.max_dimension, size.max_dimension), Image.Resampling.LANCZOS)
 
         buffer = BytesIO()
-        img.save(buffer, format='JPEG')
+        img.save(buffer, format='JPEG', exif=exif_data)  # Save with EXIF data
 
         photo_size = models.PhotoSize(photo=photo, size=size)
         photo_size.image.save(
