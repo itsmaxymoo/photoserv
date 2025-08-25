@@ -88,8 +88,10 @@ class PhotoMetadata(models.Model):
     aperture = models.FloatField(null=True, blank=True)
     shutter_speed = models.FloatField(null=True, blank=True)
     iso = models.PositiveIntegerField(null=True, blank=True)
+
     exposure_program = models.PositiveSmallIntegerField(null=True, blank=True)
     exposure_compensation = models.FloatField(null=True, blank=True)
+    flash_did_fire = models.BooleanField(null=True, blank=True)
 
     copyright = models.CharField(max_length=512, null=True, blank=True)
 

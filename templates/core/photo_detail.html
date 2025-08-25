@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% load photo_metadata_extras %}
+
 {% block title %}
 {{ object }}
 {% endblock %}
@@ -57,10 +59,6 @@
                         {% endif %}
                     </td>
                 </tr>
-                <tr>
-                    <th>Metadata</th>
-                    <td>TODO</td>
-                </tr>
                 {% if object.albums %}
                 <tr>
                     <th>
@@ -68,6 +66,7 @@
                     </th>
 
                     <td>
+                        {% if object.albums.all %}
                         <ul>
                             {% for album in object.albums.all %}
                             <li>
@@ -77,6 +76,10 @@
                             </li>
                             {% endfor %}
                         </ul>
+                        {% else %}
+                        (No albums)
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endif %}
                 <tr>
@@ -101,6 +104,102 @@
             </table>
         </div>
     </div>
+
+    <div class="box overflow-x-scroll">
+        <h3 class="text-2xl">Metadata</h3>
+
+        <table class="table table-zebra">
+            <colgroup>
+                <col class="w-min whitespace-nowrap" />
+                <col class="w-full" />
+            </colgroup>
+            {% if object.metadata.rating %}
+            <tr>
+                <th>Rating</th>
+                <td>{{ object.metadata.rating }}</td>
+            </tr>
+            {% endif %}
+            {% if object.metadata.camera_make %}
+            <tr>
+                <th>Camera Make</th>
+                <td>{{ object.metadata.camera_make }}</td>
+            </tr>
+            {% endif %}
+            {% if object.metadata.camera_model %}
+            <tr>
+                <th>Camera Model</th>
+                <td>{{ object.metadata.camera_model }}</td>
+            </tr>
+            {% endif %}
+            {% if object.metadata.lens_model %}
+            <tr>
+                <th>Lens Model</th>
+                <td>{{ object.metadata.lens_model }}</td>
+            </tr>
+            {% endif %}
+            {% if object.metadata.focal_length %}
+            <tr>
+                <th>Focal Length</th>
+                <td>{{ object.metadata.focal_length|floatformat:"-1" }} mm</td>
+            </tr>
+            {% endif %}
+            {% if object.metadata.focal_length_35mm %}
+            <tr>
+                <th>Focal Length (35mm)</th>
+                <td>{{ object.metadata.focal_length_35mm|floatformat:"-1" }} mm</td>
+            </tr>
+            {% endif %}
+            {% if object.metadata.aperture %}
+            <tr>
+                <th>Aperture</th>
+                <td>f/{{ object.metadata.aperture|floatformat:"-1" }}</td>
+            </tr>
+            {% endif %}
+            {% if object.metadata.shutter_speed %}
+            <tr>
+                <th>Shutter Speed</th>
+                <td>{{ object.metadata.shutter_speed | shutter_speed }}</td>
+            </tr>
+            {% endif %}
+            {% if object.metadata.iso %}
+            <tr>
+                <th>ISO</th>
+                <td>{{ object.metadata.iso }}</td>
+            </tr>
+            {% endif %}
+            {% if object.metadata.exposure_program %}
+            <tr>
+                <th>Exposure Program</th>
+                <td>{{ object.metadata.exposure_program | exposure_program }}</td>
+            </tr>
+            {% endif %}
+            {% if object.metadata.exposure_compensation %}
+            <tr>
+                <th>Exposure Compensation</th>
+                <td>{{ object.metadata.exposure_compensation }} EV</td>
+            </tr>
+            {% endif %}
+            {% if object.metadata.flash_did_fire is not None %}
+            <tr>
+                <th>Flash Fired</th>
+                <td>
+                    {% if object.metadata.flash_did_fire %}
+                    Yes
+                    {% else %}
+                    No
+                    {% endif %}
+                </td>
+            </tr>
+            {% endif %}
+            {% if object.metadata.copyright %}
+            <tr>
+                <th>Copyright</th>
+                <td>{{ object.metadata.copyright }}</td>
+            </tr>
+            {% endif %}
+        </table>
+    </div>
+
     <div>
         <div class="box overflow-x-scroll">
             <h3 class="text-2xl">Sizes</h3>

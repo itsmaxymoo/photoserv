@@ -47,11 +47,52 @@ def gen_size(photo, size):
 
 
 # Function parse_exif_date. Returns datetime object or None
-def parse_exif_date(date_str):
+def parse_exif_date(date_str) -> datetime | None:
     try:
         return datetime.strptime(date_str, "%Y:%m:%d %H:%M:%S")
     except (ValueError, TypeError):
         return None
+
+
+def parse_exif_flash(flash_value) -> bool | None:
+    if flash_value is None:
+        return None
+    try:
+        flash_value = int(flash_value)
+    except (TypeError, ValueError):
+        return None
+
+    FLASH_MAP = {
+        0x0:  "No Flash",
+        0x1:  "Fired",
+        0x5:  "Fired, Return not detected",
+        0x7:  "Fired, Return detected",
+        0x8:  "On, Did not fire",
+        0x9:  "On, Fired",
+        0xd:  "On, Return not detected",
+        0xf:  "On, Return detected",
+        0x10: "Off, Did not fire",
+        0x14: "Off, Did not fire, Return not detected",
+        0x18: "Auto, Did not fire",
+        0x19: "Auto, Fired",
+        0x1d: "Auto, Fired, Return not detected",
+        0x1f: "Auto, Fired, Return detected",
+        0x20: "No flash function",
+        0x30: "Off, No flash function",
+        0x41: "Fired, Red-eye reduction",
+        0x45: "Fired, Red-eye reduction, Return not detected",
+        0x47: "Fired, Red-eye reduction, Return detected",
+        0x49: "On, Red-eye reduction",
+        0x4d: "On, Red-eye reduction, Return not detected",
+        0x4f: "On, Red-eye reduction, Return detected",
+        0x50: "Off, Red-eye reduction",
+        0x58: "Auto, Did not fire, Red-eye reduction",
+        0x59: "Auto, Fired, Red-eye reduction",
+        0x5d: "Auto, Fired, Red-eye reduction, Return not detected",
+        0x5f: "Auto, Fired, Red-eye reduction, Return detected",
+    }
+
+    return "Fired" in FLASH_MAP.get(flash_value, "")
 
 
 @shared_task
@@ -125,8 +166,10 @@ def generate_photo_metadata(photo_id):
         metadata.aperture = metadata_dict.get("EXIF:FNumber")
         metadata.shutter_speed = metadata_dict.get("EXIF:ExposureTime")
         metadata.iso = metadata_dict.get("EXIF:ISO")
+
         metadata.exposure_program = metadata_dict.get("EXIF:ExposureProgram")
         metadata.exposure_compensation = metadata_dict.get("EXIF:ExposureCompensation")
+        metadata.flash_did_fire = parse_exif_flash(metadata_dict.get("EXIF:Flash"))
 
         metadata.copyright = metadata_dict.get("EXIF:Copyright")
 

@@ -1,6 +1,8 @@
 import django_tables2 as tables
 from .models import *
 
+# Include CSS Classes: pagination
+
 class PhotoTable(tables.Table):
     id = tables.Column(linkify=True)
     title = tables.Column(linkify=True)
