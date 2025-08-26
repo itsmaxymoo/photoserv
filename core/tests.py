@@ -1,3 +1,164 @@
+from unittest import mock
 from django.test import TestCase
+from django.core.exceptions import ValidationError
+from .models import *
 
-# Create your tests here.
+
+class PhotoModelTests(TestCase):
+    def setUp(self):
+        self.photo = Photo.objects.create(
+            title="Test Photo",
+            description="A test photo",
+            raw_image="test.jpg",
+        )
+
+    def test_str_returns_title(self):
+        self.assertEqual(str(self.photo), "Test Photo")
+
+    def test_get_absolute_url(self):
+        url = self.photo.get_absolute_url()
+        self.assertIn(str(self.photo.pk), url)
+
+    @mock.patch("core.tasks.generate_sizes_for_photo.delay_on_commit")
+    @mock.patch("core.tasks.generate_photo_metadata.delay_on_commit")
+    def test_save_triggers_tasks_on_create(self, mock_metadata, mock_sizes):
+        p = Photo(title="Another", raw_image="raw.jpg")
+        p.save()
+        self.assertTrue(mock_sizes.called)
+        self.assertTrue(mock_metadata.called)
+
+    @mock.patch("core.tasks.delete_files.delay_on_commit")
+    def test_delete_triggers_delete_files(self, mock_delete):
+        self.photo.delete()
+        self.assertTrue(mock_delete.called)
+
+    def test_assign_albums_adds_and_removes(self):
+        album1 = Album.objects.create(title="Album1", description="d")
+        album2 = Album.objects.create(title="Album2", description="d")
+
+        # assign album1
+        self.photo.assign_albums([album1])
+        self.assertTrue(PhotoInAlbum.objects.filter(photo=self.photo, album=album1).exists())
+
+        # replace with album2
+        self.photo.assign_albums([album2])
+        self.assertFalse(PhotoInAlbum.objects.filter(photo=self.photo, album=album1).exists())
+        self.assertTrue(PhotoInAlbum.objects.filter(photo=self.photo, album=album2).exists())
+
+
+class PhotoMetadataTests(TestCase):
+    def test_str_includes_photo(self):
+        photo = Photo.objects.create(title="MetaPhoto", raw_image="raw.jpg")
+        metadata = PhotoMetadata.objects.create(photo=photo, camera_make="Canon")
+        self.assertIn("MetaPhoto", str(metadata))
+
+
+class TagTests(TestCase):
+    def setUp(self):
+        self.tag = Tag.objects.create(name="nature")
+
+    def test_str_returns_name(self):
+        self.assertEqual(str(self.tag), "nature")
+
+    def test_get_absolute_url(self):
+        url = self.tag.get_absolute_url()
+        self.assertIn(str(self.tag.pk), url)
+
+    def test_clean_rejects_invalid_characters(self):
+        t = Tag(name="bad;tag")
+        with self.assertRaises(ValidationError):
+            t.clean()
+
+    def test_name_is_normalized_on_save(self):
+        t = Tag.objects.create(name="  Nature  ")
+        self.assertEqual(t.name, "nature")
+
+    def test_merging_tags_moves_photo_tags(self):
+        photo = Photo.objects.create(title="P", raw_image="r.jpg")
+        t1 = Tag.objects.create(name="tree")
+        t2 = Tag.objects.create(name="forest")
+        PhotoTag.objects.create(photo=photo, tag=t1)
+
+        # Rename t1 -> "forest", should merge into t2
+        t1.name = "forest"
+        merged = t1.save()
+        self.assertEqual(PhotoTag.objects.filter(photo=photo, tag=t2).count(), 1)
+        self.assertFalse(Tag.objects.filter(pk=t1.pk).exists())
+
+
+class PhotoTagTests(TestCase):
+    def test_str_returns_tag_name(self):
+        photo = Photo.objects.create(title="T", raw_image="r.jpg")
+        tag = Tag.objects.create(name="taggy")
+        pt = PhotoTag.objects.create(photo=photo, tag=tag)
+        self.assertEqual(str(pt), "taggy")
+
+    def test_unique_constraint(self):
+        photo = Photo.objects.create(title="T", raw_image="r.jpg")
+        tag = Tag.objects.create(name="uniq")
+        PhotoTag.objects.create(photo=photo, tag=tag)
+        with self.assertRaises(Exception):
+            PhotoTag.objects.create(photo=photo, tag=tag)
+
+
+class AlbumTests(TestCase):
+    def setUp(self):
+        self.album = Album.objects.create(title="Holiday", description="Trip")
+
+    def test_str_returns_title(self):
+        self.assertEqual(str(self.album), "Holiday")
+
+    def test_get_absolute_url(self):
+        url = self.album.get_absolute_url()
+        self.assertIn(str(self.album.pk), url)
+
+    def test_get_ordered_photos_manual_order(self):
+        photo1 = Photo.objects.create(title="P1", raw_image="1.jpg")
+        photo2 = Photo.objects.create(title="P2", raw_image="2.jpg")
+        PhotoInAlbum.objects.create(album=self.album, photo=photo1, order=2)
+        PhotoInAlbum.objects.create(album=self.album, photo=photo2, order=1)
+
+        self.album.sort_method = Album.DefaultSortMethod.MANUAL
+        ordered = list(self.album.get_ordered_photos())
+        self.assertEqual(ordered[0], photo2)
+
+
+class PhotoInAlbumTests(TestCase):
+    def test_str_shows_album_and_photo(self):
+        album = Album.objects.create(title="A", description="d")
+        photo = Photo.objects.create(title="P", raw_image="r.jpg")
+        pia = PhotoInAlbum.objects.create(album=album, photo=photo, order=1)
+        self.assertIn("A -> P", str(pia))
+
+
+class SizeTests(TestCase):
+    def setUp(self):
+        self.size = Size.objects.create(slug="medium", max_dimension=800, can_edit=True)
+
+    def test_str_representation(self):
+        self.assertEqual(str(self.size), "medium (800px)")
+
+    def test_cannot_delete_builtin(self):
+        builtin = Size.objects.create(slug="builtin", max_dimension=100, builtin=True, can_edit=False)
+        with self.assertRaises(ValidationError):
+            builtin.delete()
+
+    @mock.patch("core.tasks.generate_photo_sizes_for_size.delay_on_commit")
+    def test_save_triggers_task(self, mock_generate):
+        self.size.save()
+        self.assertTrue(mock_generate.called)
+
+
+class PhotoSizeTests(TestCase):
+    def test_str_representation(self):
+        photo = Photo.objects.create(title="Photo", raw_image="r.jpg")
+        size = Size.objects.create(slug="small", max_dimension=400)
+        ps = PhotoSize.objects.create(photo=photo, size=size, image="resized.jpg")
+        self.assertIn("Photo - small", str(ps))
+
+    def test_unique_constraint(self):
+        photo = Photo.objects.create(title="Photo", raw_image="r.jpg")
+        size = Size.objects.create(slug="small", max_dimension=400)
+        PhotoSize.objects.create(photo=photo, size=size, image="resized.jpg")
+        with self.assertRaises(Exception):
+            PhotoSize.objects.create(photo=photo, size=size, image="resized2.jpg")

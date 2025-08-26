@@ -157,7 +157,7 @@ class PhotoTag(models.Model):
         ordering = ["tag__name"]
 
     def __str__(self):
-        return self.tag
+        return str(self.tag)
 
 
 class Album(models.Model):
