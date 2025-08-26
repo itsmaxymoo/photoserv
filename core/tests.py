@@ -130,6 +130,54 @@ class PhotoInAlbumTests(TestCase):
         pia = PhotoInAlbum.objects.create(album=album, photo=photo, order=1)
         self.assertIn("A -> P", str(pia))
 
+    def test_assign_albums_reorders_and_replaces(self):
+        album = Album.objects.create(title="My Album", description="desc")
+
+        # initial photos
+        p1 = Photo.objects.create(title="P1", raw_image="1.jpg")
+        p2 = Photo.objects.create(title="P2", raw_image="2.jpg")
+        p3 = Photo.objects.create(title="P3", raw_image="3.jpg")
+
+        # First assignment: add all three to the album
+        for p in (p1, p2, p3):
+            p.assign_albums([album])
+        self.assertEqual(PhotoInAlbum.objects.filter(album=album).count(), 3)
+
+        # New photo
+        p4 = Photo.objects.create(title="P4", raw_image="4.jpg")
+
+        # Remove p2 explicitly
+        p2.assign_albums([])
+
+        # Ensure p1, p3, p4 are assigned
+        for p in (p1, p3, p4):
+            p.assign_albums([album])
+
+        # Desired new order
+        new_order = [p3, p1, p4]
+
+        # Reorder explicitly
+        PhotoInAlbum.objects.filter(album=album, photo=p3).update(order=1)
+        PhotoInAlbum.objects.filter(album=album, photo=p1).update(order=2)
+        PhotoInAlbum.objects.filter(album=album, photo=p4).update(order=3)
+
+        qs = PhotoInAlbum.objects.filter(album=album).order_by("order")
+
+        # Ensure count is 3
+        self.assertEqual(qs.count(), 3)
+
+        # Ensure correct set of photos in album
+        self.assertEqual(set(qs.values_list("photo", flat=True)), {p1.id, p3.id, p4.id})
+
+        # Ensure order matches [p3, p1, p4]
+        expected = [p.id for p in new_order]
+        actual = list(qs.values_list("photo", flat=True))
+        self.assertEqual(expected, actual)
+
+        # Ensure no gaps or duplicates in order
+        orders = list(qs.values_list("order", flat=True))
+        self.assertEqual(orders, list(range(1, len(new_order) + 1)))
+
 
 class SizeTests(TestCase):
     def setUp(self):
