@@ -46,6 +46,8 @@ INSTALLED_APPS = [
     "django_tables2",
     "crispy_forms",
     "crispy_daisyui",
+
+    "rest_framework",
 ]
 
 MIDDLEWARE = [
@@ -147,3 +149,13 @@ STATICFILES_DIRS = ('static',)
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# --- REST Framework Configuration ---
+
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ]
+}

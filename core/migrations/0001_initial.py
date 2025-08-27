@@ -40,7 +40,7 @@ class Migration(migrations.Migration):
             name='Album',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('public_id', models.UUIDField(db_index=True, default=uuid.uuid4, editable=False, unique=True)),
+                ('uuid', models.UUIDField(db_index=True, default=uuid.uuid4, editable=False, unique=True)),
                 ('title', models.CharField(max_length=255, unique=True)),
                 ('description', models.TextField(max_length=4096)),
                 ('sort_method', models.CharField(choices=[('CREATED', 'Created/Taken'), ('PUBLISHED', 'Published/Uploaded'), ('MANUAL', 'Manual'), ('RANDOM', 'Random')], default='PUBLISHED', max_length=10)),
@@ -51,7 +51,7 @@ class Migration(migrations.Migration):
             name='Photo',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('public_id', models.UUIDField(db_index=True, default=uuid.uuid4, editable=False, unique=True)),
+                ('uuid', models.UUIDField(db_index=True, default=uuid.uuid4, editable=False, unique=True)),
                 ('title', models.CharField(max_length=255)),
                 ('description', models.TextField(blank=True, default='', max_length=4096)),
                 ('raw_image', models.ImageField(upload_to=core.models.Photo.get_image_file_path)),
@@ -77,7 +77,7 @@ class Migration(migrations.Migration):
             name='Tag',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('public_id', models.UUIDField(db_index=True, default=uuid.uuid4, editable=False, unique=True)),
+                ('uuid', models.UUIDField(db_index=True, default=uuid.uuid4, editable=False, unique=True)),
                 ('name', models.CharField(max_length=128)),
             ],
             options={

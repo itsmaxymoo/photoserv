@@ -16,7 +16,7 @@ class Photo(models.Model):
         new_filename = f"{random_str}-{kebab_title}{ext}"
         return os.path.join(CONTENT_RAW_PHOTOS_PATH, new_filename)
     
-    public_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
 
     title = models.CharField(max_length=255)
     description = models.TextField(max_length=4096, default="", blank=True)
@@ -100,7 +100,7 @@ class PhotoMetadata(models.Model):
 
 
 class Tag(models.Model):
-    public_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
     name = models.CharField(max_length=128)  # the tag text
 
     class Meta:
@@ -167,7 +167,7 @@ class Album(models.Model):
         MANUAL = "MANUAL", "Manual"
         RANDOM = "RANDOM", "Random"
 
-    public_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
 
     title = models.CharField(max_length=255, unique=True)
     description = models.TextField(max_length=4096)
