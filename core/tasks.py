@@ -9,6 +9,27 @@ from datetime import datetime
 import exiftool
 
 
+# Metadata tag constants
+METADATA_EXIF_DATETIME_ORIGINAL = "EXIF:DateTimeOriginal"
+METADATA_XMP_RATING = "XMP:Rating"
+
+METADATA_EXIF_MAKE = "EXIF:Make"
+METADATA_EXIF_MODEL = "EXIF:Model"
+METADATA_COMPOSITE_LENS_ID = "Composite:LensID"
+
+METADATA_EXIF_FOCAL_LENGTH = "EXIF:FocalLength"
+METADATA_EXIF_FOCAL_LENGTH_35MM = "Composite:FocalLength35efl"
+METADATA_EXIF_APERTURE = "EXIF:FNumber"
+METADATA_EXIF_SHUTTER_SPEED = "EXIF:ExposureTime"
+METADATA_EXIF_ISO = "EXIF:ISO"
+
+METADATA_EXIF_EXPOSURE_PROGRAM = "EXIF:ExposureProgram"
+METADATA_EXIF_EXPOSURE_COMPENSATION = "EXIF:ExposureCompensation"
+METADATA_EXIF_FLASH = "EXIF:Flash"
+
+METADATA_EXIF_COPYRIGHT = "EXIF:Copyright"
+
+
 def gen_size(photo, size):
     photo.raw_image.open()  # ensure file is ready
     with Image.open(photo.raw_image) as img:
@@ -52,47 +73,6 @@ def parse_exif_date(date_str) -> datetime | None:
         return datetime.strptime(date_str, "%Y:%m:%d %H:%M:%S")
     except (ValueError, TypeError):
         return None
-
-
-def parse_exif_flash(flash_value) -> bool | None:
-    if flash_value is None:
-        return None
-    try:
-        flash_value = int(flash_value)
-    except (TypeError, ValueError):
-        return None
-
-    FLASH_MAP = {
-        0x0:  "No Flash",
-        0x1:  "Fired",
-        0x5:  "Fired, Return not detected",
-        0x7:  "Fired, Return detected",
-        0x8:  "On, Did not fire",
-        0x9:  "On, Fired",
-        0xd:  "On, Return not detected",
-        0xf:  "On, Return detected",
-        0x10: "Off, Did not fire",
-        0x14: "Off, Did not fire, Return not detected",
-        0x18: "Auto, Did not fire",
-        0x19: "Auto, Fired",
-        0x1d: "Auto, Fired, Return not detected",
-        0x1f: "Auto, Fired, Return detected",
-        0x20: "No flash function",
-        0x30: "Off, No flash function",
-        0x41: "Fired, Red-eye reduction",
-        0x45: "Fired, Red-eye reduction, Return not detected",
-        0x47: "Fired, Red-eye reduction, Return detected",
-        0x49: "On, Red-eye reduction",
-        0x4d: "On, Red-eye reduction, Return not detected",
-        0x4f: "On, Red-eye reduction, Return detected",
-        0x50: "Off, Red-eye reduction",
-        0x58: "Auto, Did not fire, Red-eye reduction",
-        0x59: "Auto, Fired, Red-eye reduction",
-        0x5d: "Auto, Fired, Red-eye reduction, Return not detected",
-        0x5f: "Auto, Fired, Red-eye reduction, Return detected",
-    }
-
-    return "Fired" in FLASH_MAP.get(flash_value, "")
 
 
 @shared_task
@@ -141,8 +121,23 @@ def generate_photo_metadata(photo_id):
     photo.raw_image.open()  # ensure file is ready
     temp_file_path = photo.raw_image.path
 
-    with exiftool.ExifToolHelper() as et:
-        metadata_list = et.get_metadata(temp_file_path)
+    with exiftool.ExifToolHelper(common_args=["-G"]) as et:
+        metadata_list = et.get_metadata(temp_file_path, [
+            f"-{METADATA_EXIF_DATETIME_ORIGINAL}",
+            f"-{METADATA_XMP_RATING}",
+            f"-{METADATA_EXIF_MAKE}",
+            f"-{METADATA_EXIF_MODEL}",
+            f"-{METADATA_COMPOSITE_LENS_ID}",
+            f"-{METADATA_EXIF_FOCAL_LENGTH}#",
+            f"-{METADATA_EXIF_FOCAL_LENGTH_35MM}#",
+            f"-{METADATA_EXIF_APERTURE}#",
+            f"-{METADATA_EXIF_SHUTTER_SPEED}#",
+            f"-{METADATA_EXIF_ISO}#",
+            f"-{METADATA_EXIF_EXPOSURE_PROGRAM}",
+            f"-{METADATA_EXIF_EXPOSURE_COMPENSATION}",
+            f"-{METADATA_EXIF_FLASH}",
+            f"-{METADATA_EXIF_COPYRIGHT}"
+        ])
         if not metadata_list:
             return f"No metadata found for photo id {photo.id}."
 
@@ -154,24 +149,24 @@ def generate_photo_metadata(photo_id):
         metadata, created = models.PhotoMetadata.objects.get_or_create(photo=photo)
 
         # Extract relevant metadata
-        metadata.capture_date = parse_exif_date(metadata_dict.get("EXIF:DateTimeOriginal"))
-        metadata.rating = metadata_dict.get("XMP:Rating")
+        metadata.capture_date = parse_exif_date(metadata_dict.get(METADATA_EXIF_DATETIME_ORIGINAL))
+        metadata.rating = metadata_dict.get(METADATA_XMP_RATING)
 
-        metadata.camera_make = metadata_dict.get("EXIF:Make")
-        metadata.camera_model = metadata_dict.get("EXIF:Model")
-        metadata.lens_model = metadata_dict.get("Composite:LensID")
+        metadata.camera_make = metadata_dict.get(METADATA_EXIF_MAKE)
+        metadata.camera_model = metadata_dict.get(METADATA_EXIF_MODEL)
+        metadata.lens_model = metadata_dict.get(METADATA_COMPOSITE_LENS_ID)
 
-        metadata.focal_length = metadata_dict.get("EXIF:FocalLength")
-        metadata.focal_length_35mm = metadata_dict.get("EXIF:FocalLengthIn35mmFormat")
-        metadata.aperture = metadata_dict.get("EXIF:FNumber")
-        metadata.shutter_speed = metadata_dict.get("EXIF:ExposureTime")
-        metadata.iso = metadata_dict.get("EXIF:ISO")
+        metadata.focal_length = metadata_dict.get(METADATA_EXIF_FOCAL_LENGTH)
+        metadata.focal_length_35mm = metadata_dict.get(METADATA_EXIF_FOCAL_LENGTH_35MM)
+        metadata.aperture = metadata_dict.get(METADATA_EXIF_APERTURE)
+        metadata.shutter_speed = metadata_dict.get(METADATA_EXIF_SHUTTER_SPEED)
+        metadata.iso = metadata_dict.get(METADATA_EXIF_ISO)
 
-        metadata.exposure_program = metadata_dict.get("EXIF:ExposureProgram")
-        metadata.exposure_compensation = metadata_dict.get("EXIF:ExposureCompensation")
-        metadata.flash_did_fire = parse_exif_flash(metadata_dict.get("EXIF:Flash"))
+        metadata.exposure_program = metadata_dict.get(METADATA_EXIF_EXPOSURE_PROGRAM)
+        metadata.exposure_compensation = metadata_dict.get(METADATA_EXIF_EXPOSURE_COMPENSATION)
+        metadata.flash = metadata_dict.get(METADATA_EXIF_FLASH)
 
-        metadata.copyright = metadata_dict.get("EXIF:Copyright")
+        metadata.copyright = metadata_dict.get(METADATA_EXIF_COPYRIGHT)
 
         metadata.save()
 

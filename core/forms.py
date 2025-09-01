@@ -12,6 +12,10 @@ class PhotoForm(forms.ModelForm):
         label="Albums"
     )
     tags = forms.CharField(required=False, widget=forms.HiddenInput())
+    slug = forms.CharField(
+        required=False,
+        help_text="Leave blank to auto calculate"
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -22,14 +26,14 @@ class PhotoForm(forms.ModelForm):
             # pre-check albums the photo already belongs to
             self.fields['albums'].initial = self.instance.albums.all()
 
-            current_tags = [pt.tag.name for pt in self.instance.tags.all()]
+            current_tags = [pt.name for pt in self.instance.tags.all()]
             self.fields['tags'].initial = ";".join(current_tags)
             # Also add a list version for the template
             self.initial['tags_list'] = list(current_tags)
 
     class Meta:
         model = Photo
-        fields = ["title", "description", "raw_image", "albums"]
+        fields = ["title", "description", "raw_image", "slug", "albums"]
         exclude = ["last_updated"]
     
     def save(self, commit=True):
@@ -46,7 +50,7 @@ class PhotoForm(forms.ModelForm):
         tags_list = [t.strip().lower() for t in tags_str.split(";") if t.strip()]
 
         # Remove old tag entries not in new list
-        photo.tags.exclude(tag__name__in=tags_list).delete()
+        photo.tags.exclude(name__in=tags_list).delete()
 
         # Add new tags (create Tag if necessary)
         for tag_name in tags_list:
@@ -75,6 +79,11 @@ class SizeForm(forms.ModelForm):
 
 
 class AlbumForm(forms.ModelForm):
+    slug = forms.CharField(
+        required=False,
+        help_text="Leave blank to auto calculate"
+    )
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)

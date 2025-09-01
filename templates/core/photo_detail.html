@@ -32,6 +32,10 @@
                     <td>{{ object.uuid }}</td>
                 </tr>
                 <tr>
+                    <th>Slug</th>
+                    <td>{{ object.slug }}</td>
+                </tr>
+                <tr>
                     <th>Description</th>
                     <td class="whitespace-pre-wrap">{{ object.description|default:"(none)" }}</td>
                 </tr>
@@ -89,9 +93,9 @@
                         <ul class="flex flex-wrap gap-2">
                             {% for tag in object.tags.all %}
                             <li>
-                                <a href="{% url 'tag-detail' tag.tag.id %}">
+                                <a href="{% url 'tag-detail' tag.id %}">
                                     <span class="badge badge-secondary">
-                                        {{ tag.tag }}
+                                        {{ tag }}
                                     </span>
                                 </a>
                             </li>
@@ -170,7 +174,7 @@
             {% if object.metadata.exposure_program %}
             <tr>
                 <th>Exposure Program</th>
-                <td>{{ object.metadata.exposure_program | exposure_program }}</td>
+                <td>{{ object.metadata.exposure_program }}</td>
             </tr>
             {% endif %}
             {% if object.metadata.exposure_compensation %}
@@ -179,15 +183,11 @@
                 <td>{{ object.metadata.exposure_compensation }} EV</td>
             </tr>
             {% endif %}
-            {% if object.metadata.flash_did_fire is not None %}
+            {% if object.metadata.flash is not None %}
             <tr>
-                <th>Flash Fired</th>
+                <th>Flash</th>
                 <td>
-                    {% if object.metadata.flash_did_fire %}
-                    Yes
-                    {% else %}
-                    No
-                    {% endif %}
+                    {{ object.metadata.flash }}
                 </td>
             </tr>
             {% endif %}

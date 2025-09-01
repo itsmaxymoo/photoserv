@@ -6,6 +6,7 @@ from django.utils.text import slugify
 from . import CONTENT_RAW_PHOTOS_PATH, CONTENT_RESIZED_PHOTOS_PATH
 from . import tasks
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 
 class Photo(models.Model):
@@ -19,9 +20,20 @@ class Photo(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
 
     title = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=255, unique=True)
     description = models.TextField(max_length=4096, default="", blank=True)
     raw_image = models.ImageField(upload_to=get_image_file_path)
     publish_date = models.DateTimeField(auto_now=True)
+
+    tags = models.ManyToManyField(
+        "Tag",
+        through="PhotoTag",
+        related_name="photos"
+    )
+
+    def calculate_slug(self) -> str:
+        slug = f"{timezone.now().strftime('%Y-%m-%d')}-{slugify(self.title)}"
+        return slug[:self._meta.get_field('slug').max_length]
 
     def get_absolute_url(self):
         return reverse("photo-detail", kwargs={"pk": self.pk})
@@ -29,8 +41,18 @@ class Photo(models.Model):
     def get_size(self, size: str):
         return self.sizes.filter(size__slug=size).first()
     
+    def clean(self):
+        # Calculate the slug if not already set
+        slug_to_check = self.slug or self.calculate_slug()
+
+        # Check if the slug exists for a different object
+        if Photo.objects.filter(slug=slug_to_check).exclude(pk=self.pk).exists():
+            raise ValidationError(f"A photo with the slug '{slug_to_check}' already exists.")
+    
     # After saving a new photo, trigger the task to generate sizes
     def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = self.calculate_slug()
         is_new = self.pk is None
 
         super().save(*args, **kwargs)
@@ -89,9 +111,9 @@ class PhotoMetadata(models.Model):
     shutter_speed = models.FloatField(null=True, blank=True)
     iso = models.PositiveIntegerField(null=True, blank=True)
 
-    exposure_program = models.PositiveSmallIntegerField(null=True, blank=True)
+    exposure_program = models.CharField(max_length=255, null=True, blank=True)
     exposure_compensation = models.FloatField(null=True, blank=True)
-    flash_did_fire = models.BooleanField(null=True, blank=True)
+    flash = models.CharField(max_length=255, null=True, blank=True)
 
     copyright = models.CharField(max_length=512, null=True, blank=True)
 
@@ -101,7 +123,7 @@ class PhotoMetadata(models.Model):
 
 class Tag(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
-    name = models.CharField(max_length=128)  # the tag text
+    name = models.CharField(max_length=128)
 
     class Meta:
         ordering = ["name"]
@@ -149,8 +171,8 @@ class Tag(models.Model):
 
 
 class PhotoTag(models.Model):
-    photo = models.ForeignKey("Photo", on_delete=models.CASCADE, related_name="tags")
-    tag = models.ForeignKey(Tag, on_delete=models.CASCADE, related_name="photos")
+    photo = models.ForeignKey(Photo, on_delete=models.CASCADE)
+    tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
 
     class Meta:
         unique_together = ("photo", "tag")
@@ -170,7 +192,9 @@ class Album(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
 
     title = models.CharField(max_length=255, unique=True)
-    description = models.TextField(max_length=4096)
+    short_description = models.CharField(max_length=255, blank=True, default="")
+    description = models.TextField(max_length=4096, blank=True, default="")
+    slug = models.SlugField(max_length=255, unique=True)
     sort_method = models.CharField(
         max_length=10,
         choices=DefaultSortMethod.choices,
@@ -202,6 +226,27 @@ class Album(models.Model):
             order_by = f'-{order_by}'
 
         return qs.order_by(order_by)
+    
+    def calculate_slug(self) -> str:
+        return slugify(f"{self.title}")[:255]
+    
+    def clean(self):
+        # Calculate the slug if not already set
+        slug_to_check = self.slug or self.calculate_slug()
+
+        # Check if the slug exists for a different object
+        if Album.objects.filter(slug=slug_to_check).exclude(pk=self.pk).exists():
+            raise ValidationError(f"An album with the slug '{slug_to_check}' already exists.")
+    
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = self.calculate_slug()
+        if not self.short_description and self.description:
+            if len(self.description) > 100:
+                self.short_description = self.description[:97] + "..."
+            else:
+                self.short_description = self.description
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title

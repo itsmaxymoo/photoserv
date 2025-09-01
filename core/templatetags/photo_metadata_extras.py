@@ -18,23 +18,3 @@ def shutter_speed(value):
     else:
         denominator = round(1 / value)
         return f"1/{denominator}s"
-
-
-@register.filter
-def exposure_program(value):
-    if not value:
-        return None
-
-    mapping = {
-        0: "Not Defined",
-        1: "Manual",
-        2: "Program",
-        3: "Aperture priority",
-        4: "Shutter speed priority",
-        5: "Creative (Slow speed)",
-        6: "Action (High speed)",
-        7: "Portrait",
-        8: "Landscape",
-        9: "Bulb",
-    }
-    return mapping.get(value, "Unknown")

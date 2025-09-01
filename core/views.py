@@ -206,7 +206,7 @@ class TagDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        photos = Photo.objects.filter(tags__tag=self.object).distinct()
+        photos = Photo.objects.filter(tags=self.object).distinct()
 
         table = PhotoListTable(photos)
 
@@ -220,7 +220,7 @@ class TagUpdateView(TagMixin, UpdateView):
     template_name = "generic_crud_form.html"
 
     def get_success_url(self):
-        return reverse('tag-list')
+        return reverse('tag-detail', kwargs={'pk': self.object.pk})
 
 
 class TagDeleteView(TagMixin, DeleteView):

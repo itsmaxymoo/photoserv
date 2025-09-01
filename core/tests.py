@@ -46,6 +46,35 @@ class PhotoModelTests(TestCase):
         self.assertTrue(PhotoInAlbum.objects.filter(photo=self.photo, album=album2).exists())
 
 
+class PhotoSlugTests(TestCase):
+    def test_photo_created_without_slug(self):
+        # Create a photo without specifying a slug
+        photo = Photo.objects.create(title="Photo Without Slug", raw_image="image.jpg")
+        self.assertIsNotNone(photo.slug)
+        self.assertTrue(photo.slug)
+
+    def test_photo_can_be_updated(self):
+        # Create and update a photo
+        photo = Photo.objects.create(title="Initial Title", raw_image="image.jpg")
+        photo.title = "Updated Title"
+        photo.save()
+        self.assertEqual(photo.title, "Updated Title")
+
+    def test_photo_created_with_specific_slug(self):
+        # Create a photo with a specific slug
+        photo = Photo.objects.create(title="Photo With Slug", raw_image="image.jpg", slug="custom-slug")
+        self.assertEqual(photo.slug, "custom-slug")
+
+    def test_duplicate_slug_raises_validation_error(self):
+        # Create a photo with a specific slug
+        Photo.objects.create(title="First Photo", raw_image="image1.jpg", slug="duplicate-slug")
+        
+        # Attempt to create another photo with the same slug
+        with self.assertRaises(ValidationError):
+            photo = Photo(title="Second Photo", raw_image="image2.jpg", slug="duplicate-slug")
+            photo.full_clean()  # Trigger validation
+
+
 class PhotoMetadataTests(TestCase):
     def test_str_includes_photo(self):
         photo = Photo.objects.create(title="MetaPhoto", raw_image="raw.jpg")
@@ -121,6 +150,35 @@ class AlbumTests(TestCase):
         self.album.sort_method = Album.DefaultSortMethod.MANUAL
         ordered = list(self.album.get_ordered_photos())
         self.assertEqual(ordered[0], photo2)
+
+
+class AlbumSlugTests(TestCase):
+    def test_album_created_without_slug(self):
+        # Create an album without specifying a slug
+        album = Album.objects.create(title="Album Without Slug", description="A test album")
+        self.assertIsNotNone(album.slug)
+        self.assertTrue(album.slug)
+
+    def test_album_can_be_updated(self):
+        # Create and update an album
+        album = Album.objects.create(title="Initial Title", description="A test album")
+        album.title = "Updated Title"
+        album.save()
+        self.assertEqual(album.title, "Updated Title")
+
+    def test_album_created_with_specific_slug(self):
+        # Create an album with a specific slug
+        album = Album.objects.create(title="Album With Slug", description="A test album", slug="custom-slug")
+        self.assertEqual(album.slug, "custom-slug")
+
+    def test_duplicate_slug_raises_validation_error(self):
+        # Create an album with a specific slug
+        Album.objects.create(title="First Album", description="A test album", slug="duplicate-slug")
+        
+        # Attempt to create another album with the same slug
+        with self.assertRaises(ValidationError):
+            album = Album(title="Second Album", description="Another test album", slug="duplicate-slug")
+            album.full_clean()  # Trigger validation
 
 
 class PhotoInAlbumTests(TestCase):
