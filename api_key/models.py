@@ -3,6 +3,7 @@ from django.contrib.auth.hashers import make_password, check_password
 import secrets
 from django.utils import timezone
 from datetime import timedelta
+from django.urls import reverse
 
 
 def default_expiration() -> timezone:
@@ -10,14 +11,15 @@ def default_expiration() -> timezone:
 
 
 class APIKey(models.Model):
-    name = models.CharField(max_length=128)
-    description = models.CharField(max_length=512, blank=True, null=True)
+    name = models.CharField(max_length=128, unique=True)
     hash = models.CharField(max_length=128, unique=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     expires_on = models.DateTimeField(default=default_expiration)
-    read_only = models.BooleanField(default=True)
 
+    def get_absolute_url(self):
+        return reverse("api-key-edit", kwargs={"pk": self.pk})
+    
     def is_expired(self) -> bool:
         return timezone.now() >= self.expires_on
 
@@ -33,4 +35,7 @@ class APIKey(models.Model):
         return secret_key
 
     def check_key(self, raw_key: str) -> bool:
-        return not self.is_expired() and check_password(raw_key, self.hash)
+        return self.is_active and not self.is_expired() and check_password(raw_key, self.hash)
+
+    def __str__(self):
+        return f"API Key: {self.name}"

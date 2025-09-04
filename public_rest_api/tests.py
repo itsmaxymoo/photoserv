@@ -2,7 +2,8 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 from rest_framework import status
 from django.core.files.uploadedfile import SimpleUploadedFile
-from core.models import Photo, Size, Album, Tag, PhotoTag, PhotoMetadata, PhotoInAlbum, PhotoSize
+from core.models import *
+from api_key.models import APIKey
 import io
 from PIL import Image
 
@@ -49,6 +50,10 @@ class APISerializerTestCase(TestCase):
         PhotoTag.objects.create(photo=self.photo, tag=self.tag1)
         PhotoTag.objects.create(photo=self.photo, tag=self.tag2)
 
+        # --- Create API Key ---
+        self.api_key = APIKey.create_key("public_rest_api test key")
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.api_key}")
+
     # --- Size Tests ---
     def test_sizes_exist(self):
         sizes = Size.objects.all()
@@ -75,6 +80,20 @@ class APISerializerTestCase(TestCase):
         self.assertTrue(tags.exists())
         self.assertIn(self.tag1, tags)
         self.assertIn(self.tag2, tags)
+    
+    # --- Authentication API test ---
+    def test_public_api_authentication_required(self):
+        url = f"/api/photos/{self.photo.uuid}/"
+        response = APIClient().get(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+    
+    def test_public_api_authentication_correct(self):
+        url = f"/api/photos/{self.photo.uuid}/"
+        api = APIClient()
+        api.credentials(HTTP_AUTHORIZATION=f"Bearer {self.api_key}-NOTHAHA")
+        response = api.get(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
 
     # --- Photo detail API test ---
     def test_photo_detail_returns_tag_and_album_summaries(self):

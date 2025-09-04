@@ -1,0 +1,16 @@
+{% extends "generic_crud_list.html" %}
+
+{% block content %}
+
+{% if new_api_key %}
+
+<div class="alert alert-success">
+    New API Key: <code>{{ new_api_key }}</code><br />
+    This will only be shown once!
+</div>
+
+{% endif %}
+
+{{ block.super }}
+
+{% endblock %}

@@ -3,15 +3,21 @@ from core.models import Photo, Size
 from .serializers import *
 from django.http import FileResponse, Http404
 from rest_framework.generics import GenericAPIView
+from api_key.authentication import APIKeyAuthentication
+from api_key.permissions import HasAPIKey
 
 
 class SizeViewSet(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = [APIKeyAuthentication]
+    permission_classes = [HasAPIKey]
     serializer_class = SizeSerializer
     lookup_field = 'slug'
     queryset = Size.objects.all()
 
 
 class PhotoViewSet(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = [APIKeyAuthentication]
+    permission_classes = [HasAPIKey]
     lookup_field = 'uuid'
     queryset = Photo.objects.all()
 
@@ -22,6 +28,8 @@ class PhotoViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class PhotoImageAPIView(GenericAPIView):
+    authentication_classes = [APIKeyAuthentication]
+    permission_classes = [HasAPIKey]
     queryset = Photo.objects.all()
     lookup_field = "uuid"
 
@@ -36,6 +44,8 @@ class PhotoImageAPIView(GenericAPIView):
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = [APIKeyAuthentication]
+    permission_classes = [HasAPIKey]
     lookup_field = 'uuid'
     queryset = Tag.objects.all()
 
@@ -46,6 +56,8 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class AlbumViewSet(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = [APIKeyAuthentication]
+    permission_classes = [HasAPIKey]
     lookup_field = 'uuid'
     queryset = Album.objects.all()
 

@@ -18,9 +18,11 @@ from django.contrib import admin
 from django.urls import path, include
 from core.urls import urlpatterns as core_urls
 from public_rest_api.urls import urlpatterns as api_urls
+from api_key.urls import urlpatterns as api_key_urls
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/", include(api_urls)),
-    path("", include(core_urls))
+    path("", include(core_urls)),
+    path("", include(api_key_urls))
 ]
