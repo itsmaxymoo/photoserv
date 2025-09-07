@@ -23,6 +23,7 @@
                 </a>
             </div>
             <div class="navbar-end">
+                {% block navbar_end %}
                 <a href="{% url 'photo-list' %}" class="btn btn-ghost">
                     Photos
                 </a>
@@ -34,27 +35,32 @@
                 </a>
 
                 <div class="dropdown dropdown-end" x-data="{ openNavMenu: false }">
-                    <button class="btn btn-ghost" @click="openNavMenu = !openNavMenu" :aria-expanded="openNavMenu.toString()"
-                        aria-controls="dropdown-menu">
+                    <button class="btn btn-ghost" @click="openNavMenu = !openNavMenu"
+                        :aria-expanded="openNavMenu.toString()" aria-controls="dropdown-menu">
                         Settings
                         <svg class="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
                     </button>
 
-                    <ul id="dropdown-menu"
-                        class="list-none dropdown-content menu min-w-30 bg-base-100 shadow-sm" x-show="openNavMenu"
-                        x-transition @click.outside="openNavMenu = false">
-                        
+                    <ul id="dropdown-menu" class="list-none dropdown-content menu min-w-30 bg-base-100 shadow-sm"
+                        x-show="openNavMenu" x-transition @click.outside="openNavMenu = false">
+
                         <li>
                             <a href="{% url 'size-list' %}">Sizes</a>
                         </li>
                         <li>
                             <a href="{% url 'api-key-list' %}">API Keys</a>
                         </li>
+                        <li>
+                            <form method="post" action="{% url 'logout' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="cursor-pointer">Log Out</button>
+                            </form>
+                        </li>
                     </ul>
                 </div>
-
+                {% endblock %}
             </div>
         </div>
     </header>

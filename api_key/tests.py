@@ -13,7 +13,7 @@ from .authentication import APIKeyAuthentication
 from .permissions import HasAPIKey
 
 
-# ---- Virtual protected view ----
+# ---- Virtual api view ----
 class ProtectedView(APIView):
     authentication_classes = [APIKeyAuthentication]
     permission_classes = [HasAPIKey]
@@ -24,7 +24,7 @@ class ProtectedView(APIView):
 
 
 urlpatterns = [
-    path("protected/", ProtectedView.as_view(), name="protected"),
+    path("api/", ProtectedView.as_view(), name="api"),
 ]
 
 
@@ -37,13 +37,13 @@ class APIKeyAuthTests(TestCase):
         self.raw_key = APIKey.create_key("test-key")
 
     def test_access_without_key_fails(self):
-        response = self.client.get("/protected/")
+        response = self.client.get("/api/")
         self.assertEqual(response.status_code, 401)
         self.assertIn("detail", response.json())
 
     def test_access_with_valid_key_succeeds(self):
         response = self.client.get(
-            "/protected/",
+            "/api/",
             HTTP_AUTHORIZATION=f"Bearer {self.raw_key}"
         )
         self.assertEqual(response.status_code, 200)
@@ -56,7 +56,7 @@ class APIKeyAuthTests(TestCase):
         key_obj.save()
 
         response = self.client.get(
-            "/protected/",
+            "/api/",
             HTTP_AUTHORIZATION=f"Bearer {self.raw_key}"
         )
         self.assertEqual(response.status_code, 401)
@@ -64,7 +64,7 @@ class APIKeyAuthTests(TestCase):
 
     def test_access_with_malformed_header_fails(self):
         response = self.client.get(
-            "/protected/",
+            "/api/",
             HTTP_AUTHORIZATION="NotBearer sometoken"
         )
         self.assertEqual(response.status_code, 401)
@@ -72,7 +72,7 @@ class APIKeyAuthTests(TestCase):
 
     def test_access_with_wrong_key_fails(self):
         response = self.client.get(
-            "/protected/",
+            "/api/",
             HTTP_AUTHORIZATION="Bearer notarealkey"
         )
         self.assertEqual(response.status_code, 401)
@@ -80,7 +80,7 @@ class APIKeyAuthTests(TestCase):
 
     def test_access_with_extra_spaces_fails(self):
         response = self.client.get(
-            "/protected/",
+            "/api/",
             HTTP_AUTHORIZATION="Bearer    " + self.raw_key
         )
         self.assertEqual(response.status_code, 401)
@@ -99,21 +99,21 @@ class APIKeyAuthTests(TestCase):
         
         # First key still works
         response1 = self.client.get(
-            "/protected/",
+            "/api/",
             HTTP_AUTHORIZATION=f"Bearer {self.raw_key}"
         )
         self.assertEqual(response1.status_code, 200)
 
         # Second key works too
         response2 = self.client.get(
-            "/protected/",
+            "/api/",
             HTTP_AUTHORIZATION=f"Bearer {raw_key2}"
         )
         self.assertEqual(response2.status_code, 200)
 
     def test_empty_authorization_header_fails(self):
         response = self.client.get(
-            "/protected/",
+            "/api/",
             HTTP_AUTHORIZATION=""
         )
         self.assertEqual(response.status_code, 401)
