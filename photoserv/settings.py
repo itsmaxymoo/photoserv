@@ -35,8 +35,11 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    "core.apps.CoreConfig",
-    "api_key.apps.ApiKeyConfig",
+    "core",
+    "api_key",
+    "public_rest_api",
+    "iam",
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -157,6 +160,10 @@ REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+        'api_key.permissions.HasAPIKey'
     ]
 }
+
+# --- IAM Config
+
+AUTH_USER_MODEL = "iam.User"
