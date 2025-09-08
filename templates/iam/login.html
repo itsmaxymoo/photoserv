@@ -16,6 +16,7 @@ Login to Photoserv</title>
     </div>
     {% endif %}
 
+    {% if SIMPLE_AUTH_ENABLED %}
     <form method="post">
         {% csrf_token %}
         {% for field in form %}
@@ -28,9 +29,12 @@ Login to Photoserv</title>
             </button>
         </div>
     </form>
+    {% endif %}
 
     {% if OIDC_AUTH_ENABLED %}
+    {% if SIMPLE_AUTH_ENABLED %}
     <div class="text-center my-4">or</div>
+    {% endif %}
 
     <div class="w-full flex items-center justify-center">
         <a href="{% url 'oidc_authentication_init' %}" class="btn btn-primary">
