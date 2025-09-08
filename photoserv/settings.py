@@ -49,6 +49,8 @@ INSTALLED_APPS = [
     "crispy_daisyui",
 
     "rest_framework",
+
+    'mozilla_django_oidc'
 ]
 
 MIDDLEWARE = [
@@ -59,6 +61,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'mozilla_django_oidc.middleware.SessionRefresh',
     "photoserv.middleware.LoginRequiredMiddleware",
 ]
 
@@ -100,26 +103,6 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
-
-# Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
@@ -166,7 +149,51 @@ REST_FRAMEWORK = {
 
 AUTH_USER_MODEL = "iam.User"
 LOGIN_URL = '/login/'
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = '/photos'
 LOGOUT_REDIRECT_URL = '/login/'
 
 SIMPLE_AUTH = (os.environ.get("SIMPLE_AUTH", "false").lower().strip() == "true")
+
+OIDC_NAME = os.environ.get("OIDC_NAME", "Single Sign On")
+OIDC_RP_CLIENT_ID = os.environ.get("OIDC_CLIENT_ID")
+OIDC_RP_CLIENT_SECRET = os.environ.get("OIDC_CLIENT_SECRET")
+
+OIDC_OP_AUTHORIZATION_ENDPOINT = os.environ.get("OIDC_AUTHORIZATION_ENDPOINT")
+OIDC_OP_TOKEN_ENDPOINT = os.environ.get("OIDC_TOKEN_ENDPOINT")
+OIDC_OP_USER_ENDPOINT = os.environ.get("OIDC_USER_ENDPOINT")
+OIDC_OP_JWKS_ENDPOINT = os.environ.get("OIDC_JWKS_ENDPOINT")
+OIDC_RP_SIGN_ALGO = os.environ.get("OIDC_SIGN_ALGO", "RS256")
+
+OIDC_ENABLED = all([
+    OIDC_RP_CLIENT_ID,
+    OIDC_RP_CLIENT_SECRET,
+    OIDC_OP_AUTHORIZATION_ENDPOINT,
+    OIDC_OP_TOKEN_ENDPOINT,
+    OIDC_OP_USER_ENDPOINT,
+    OIDC_OP_JWKS_ENDPOINT,
+])
+
+AUTH_ENABLED = SIMPLE_AUTH or OIDC_ENABLED
+
+# Password validation
+# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
+
+AUTHENTICATION_BACKENDS = [
+    'mozilla_django_oidc.auth.OIDCAuthenticationBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]

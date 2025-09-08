@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.shortcuts import redirect
-from photoserv.settings import SIMPLE_AUTH
+from photoserv.settings import AUTH_ENABLED
 
 class LoginRequiredMiddleware:
     """
@@ -20,7 +20,7 @@ class LoginRequiredMiddleware:
         path = request.path_info.lstrip("/")
 
         # Bypass conditions
-        if (not SIMPLE_AUTH) or path.startswith("api/"):
+        if (not AUTH_ENABLED) or path.startswith("api/") or path.startswith("oidc/"):
             return self.get_response(request)
 
         if not request.user.is_authenticated:

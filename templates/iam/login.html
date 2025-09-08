@@ -28,6 +28,16 @@ Login to Photoserv</title>
             </button>
         </div>
     </form>
+
+    {% if OIDC_AUTH_ENABLED %}
+    <div class="text-center my-4">or</div>
+
+    <div class="w-full flex items-center justify-center">
+        <a href="{% url 'oidc_authentication_init' %}" class="btn btn-primary">
+            {{ OIDC_PROVIDER_NAME }}
+        </a>
+    </div>
+    {% endif %}
 </div>
 
 {% endblock %}
