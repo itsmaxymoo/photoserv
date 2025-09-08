@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.shortcuts import redirect
-from django.urls import resolve
+from photoserv.settings import SIMPLE_AUTH
 
 class LoginRequiredMiddleware:
     """
@@ -17,9 +17,10 @@ class LoginRequiredMiddleware:
             self.exempt_urls += [u.lstrip("/") for u in settings.LOGIN_EXEMPT_URLS]
 
     def __call__(self, request):
-        # Exempt all API endpoints
         path = request.path_info.lstrip("/")
-        if path.startswith("api/"):
+
+        # Bypass conditions
+        if (not SIMPLE_AUTH) or path.startswith("api/"):
             return self.get_response(request)
 
         if not request.user.is_authenticated:

@@ -52,12 +52,14 @@
                         <li>
                             <a href="{% url 'api-key-list' %}">API Keys</a>
                         </li>
+                        {% if SIMPLE_AUTH_ENABLED %}
                         <li>
                             <form method="post" action="{% url 'logout' %}">
                                 {% csrf_token %}
                                 <button type="submit" class="cursor-pointer">Log Out</button>
                             </form>
                         </li>
+                        {% endif %}
                     </ul>
                 </div>
                 {% endblock %}

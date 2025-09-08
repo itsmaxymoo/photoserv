@@ -23,16 +23,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
+# --- ENV settings
 SECRET_KEY = os.environ.get("APP_KEY")
+DEBUG = (os.environ.get("DEBUG_MODE", "false").strip().lower() == "true")
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = (os.environ.get("DEBUG_MODE", "false").strip() == "true")
+# --- Application definition
 
 ALLOWED_HOSTS = []
-
-
-# Application definition
 
 INSTALLED_APPS = [
     "core",
@@ -171,3 +168,5 @@ AUTH_USER_MODEL = "iam.User"
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'
+
+SIMPLE_AUTH = (os.environ.get("SIMPLE_AUTH", "false").lower().strip() == "true")
