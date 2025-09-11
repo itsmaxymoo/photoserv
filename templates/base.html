@@ -54,6 +54,9 @@
                         </li>
                         {% if AUTH_ENABLED %}
                         <li>
+                            <a href="{% url 'user-list' %}">Users</a>
+                        </li>
+                        <li>
                             <form method="post" action="{% url 'logout' %}">
                                 {% csrf_token %}
                                 <button type="submit" class="cursor-pointer">Log Out</button>
