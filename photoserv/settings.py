@@ -163,6 +163,7 @@ OIDC_OP_TOKEN_ENDPOINT = os.environ.get("OIDC_TOKEN_ENDPOINT")
 OIDC_OP_USER_ENDPOINT = os.environ.get("OIDC_USER_ENDPOINT")
 OIDC_OP_JWKS_ENDPOINT = os.environ.get("OIDC_JWKS_ENDPOINT")
 OIDC_RP_SIGN_ALGO = os.environ.get("OIDC_SIGN_ALGO", "RS256")
+OIDC_RP_SCOPES = "openid email profile"
 
 OIDC_ENABLED = all([
     OIDC_RP_CLIENT_ID,
@@ -194,6 +195,6 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 AUTHENTICATION_BACKENDS = [
-    'mozilla_django_oidc.auth.OIDCAuthenticationBackend',
+    'iam.auth.OIDCAuthenticationBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]

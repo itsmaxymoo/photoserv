@@ -20,7 +20,7 @@ class LoginRequiredMiddleware:
         path = request.path_info.lstrip("/")
 
         # Bypass conditions
-        if (not AUTH_ENABLED) or path.startswith("api/") or path.startswith("oidc/"):
+        if (not AUTH_ENABLED) or path.startswith("api/") or path.startswith("login/"):
             return self.get_response(request)
 
         if not request.user.is_authenticated:

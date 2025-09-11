@@ -14,7 +14,7 @@
     <script src="{% static 'js/bundle.js' %}" defer></script>
 </head>
 
-<body>
+<body class="min-h-screen flex flex-col">
     <header>
         <div class="navbar p-4 bg-base-200 shadow-sm">
             <div class="navbar-start">
@@ -66,9 +66,21 @@
             </div>
         </div>
     </header>
-    <main class="p-4 max-w-6xl mx-auto">
-        <div class="grid grid-cols-1 gap-y-4">{% block content %} {% endblock %}</div>
+    <main class="flex-grow p-4 w-full">
+        <div class="max-w-6xl mx-auto grid grid-cols-1 gap-y-4">{% block content %} {% endblock %}</div>
     </main>
+
+    <footer class="p-4 text-center">
+        <p>
+            Photoserv
+        </p>
+
+        {% if user.is_authenticated %}
+        <p class="text-sm mt-1">
+            Logged in as <span class="font-medium">{{ user.username }}</span>
+        </p>
+        {% endif %}
+    </footer>
 </body>
 
 </html>
