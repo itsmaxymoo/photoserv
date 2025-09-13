@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.3](https://github.com/itsmaxymoo/photoserv/compare/v0.1.2...0.1.3) (2025-09-13)
+
+
+### Bug Fixes
+
+* add manifest ([b0d5d93](https://github.com/itsmaxymoo/photoserv/commit/b0d5d9378993068096d00180704fdd1ea37d5810))
+* remove release type from actions def ([384fd08](https://github.com/itsmaxymoo/photoserv/commit/384fd08fcaa2bd9d0bac4499535b69b9a1c8a8be))
+
 ## [0.1.2](https://github.com/itsmaxymoo/photoserv/compare/v0.1.1...v0.1.2) (2025-09-13)
 
 
