@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/itsmaxymoo/photoserv/compare/v0.1.1...v0.1.2) (2025-09-13)
+
+
+### Bug Fixes
+
+* Configure release please (file) ([c1f8b7f](https://github.com/itsmaxymoo/photoserv/commit/c1f8b7ffba83844216e372a1c1e067787751421a))
+
 ## [0.1.1](https://github.com/itsmaxymoo/photoserv/compare/v0.1.0...v0.1.1) (2025-09-13)
 
 
