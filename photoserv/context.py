@@ -1,6 +1,7 @@
 from django.conf import settings
 import core
 from photoserv import settings
+from photoserv.version import __version__ as VERSION
 
 
 def global_context(request):
@@ -11,4 +12,5 @@ def global_context(request):
         "OIDC_AUTH_ENABLED": settings.OIDC_ENABLED,
         "OIDC_PROVIDER_NAME": settings.OIDC_NAME,
         "AUTH_ENABLED": settings.AUTH_ENABLED,
+        "APP_VERSION": VERSION,
     }
