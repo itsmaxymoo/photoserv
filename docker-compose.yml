@@ -1,0 +1,50 @@
+services:
+  app:
+    image: ghcr.io/itsmaxymoo/photoserv:latest
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - "content:/content"
+      # - "db:/database" # include if using DATABASE_ENGINE=sqlite
+    depends_on:
+      - database
+      - redis
+    ports:
+      - "8000:8000"
+    networks:
+      - bridge
+
+  database:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_DB=${DATABASE_NAME}
+    volumes:
+      - db:/var/lib/postgresql/data # comment this out if using sqlite
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-d", "${DATABASE_NAME}", "-U", "${DATABASE_USER}"]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
+    networks:
+      - bridge
+  
+  redis:
+    image: redis:8
+    restart: unless-stopped
+    volumes:
+      - redis:/data
+    networks:
+      - bridge
+
+networks:
+  bridge:
+    driver: bridge
+
+volumes:
+  db: {}
+  redis: {}
+  content: {}

@@ -17,10 +17,40 @@ for their publicly published photos.
 * Define multiple sizes for your photos to be available in.
 * OIDC and simple auth optional.
 
+## Configuration
+
+Configure the environment variables; `cp example.env .env`
+
+```env
+# openssl rand -hex 64
+APP_KEY=""
+
+DEBUG_MODE=false # always false in production
+
+DATABASE_ENGINE=postgres # postgres or sqlite
+DATABASE_USER=photoserv
+DATABASE_PASSWORD=photoserv
+DATABASE_NAME=photoserv
+DATABASE_HOST=database
+DATABASE_PORT=5432
+
+REDIS_HOST=redis
+REDIS_PORT=6379
+
+ALLOWED_HOSTS=127.0.0.1,localhost
+
+SIMPLE_AUTH=True
+
+OIDC_NAME=Single Sign On Button Label
+OIDC_CLIENT_ID=
+OIDC_CLIENT_SECRET=
+OIDC_AUTHORIZATION_ENDPOINT=
+OIDC_TOKEN_ENDPOINT=
+OIDC_USER_ENDPOINT=
+OIDC_JWKS_ENDPOINT=
+OIDC_SIGN_ALGO=RS256 # optional
+```
+
 ## Installation
 
 * `docker compose up -d`
-
-## Configuration
-
-//
