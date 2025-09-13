@@ -8,7 +8,15 @@ services:
     ports:
       - "4545:5432" # for inspecting in internal applications
     volumes:
-      - ./db:/var/lib/postgresql/data
+      - db:/var/lib/postgresql/data
+  
+  redis:
+    image: redis:8
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis:/data
 
 volumes:
-  database: {}
+  db: {}
+  redis: {}

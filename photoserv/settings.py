@@ -26,10 +26,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # --- ENV settings
 SECRET_KEY = os.environ.get("APP_KEY")
 DEBUG = (os.environ.get("DEBUG_MODE", "false").strip().lower() == "true")
+IS_CONTAINER = os.environ.get("PHOTOSERV_IS_CONTAINER", "false").lower().strip() == "true"
 
 # --- Application definition
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS","127.0.0.1").split(",")
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 INSTALLED_APPS = [
     "core",
@@ -97,11 +105,34 @@ CRISPY_TEMPLATE_PACK = "daisyui"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
+DATABASE_USER = os.getenv("DATABASE_USER", "photoserv")
+DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD", "photoserv")
+DATABASE_NAME = os.getenv("DATABASE_NAME", "photoserv")
+DATABASE_HOST = os.getenv("DATABASE_HOST", "database")
+DATABASE_PORT = int(os.getenv("DATABASE_PORT", "5432"))
+DB_ENGINE = os.getenv("DATABASE_ENGINE", "postgres")
+
+DB_CONFIG_MAP = {
+    "postgres": {
+         'ENGINE': 'django.db.backends.postgresql',
+         'NAME': os.getenv('DATABASE_NAME', DATABASE_NAME),
+         'USER': os.getenv('DATABASE_USERNAME', DATABASE_USER),
+         'PASSWORD': os.getenv('DATABASE_PASSWORD', DATABASE_PASSWORD),
+         'HOST': os.getenv('DATABASE_HOST', DATABASE_HOST),
+         'PORT': os.getenv('DATABASE_PORT', DATABASE_PORT),
+     },
+
+    "sqlite": {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': str(BASE_DIR if not IS_CONTAINER else "/database") + '/db.sqlite3',
     }
+}
+
+if DB_ENGINE not in DB_CONFIG_MAP.keys():
+    raise ValueError("DATABASE_ENGINE must be in " + str(list(DB_CONFIG_MAP.keys())))
+
+DATABASES = {
+    'default': DB_CONFIG_MAP[DB_ENGINE]
 }
 
 # Internationalization
@@ -117,18 +148,28 @@ USE_TZ = True
 
 
 # --- Celery Configuration ---
+REDIS_HOST = os.getenv("REDIS_HOST", "redis")
+REDIS_PORT = os.getenv("REDIS_PORT", "6379")
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
-CELERY_TASK_ALWAYS_EAGER = DEBUG
+CELERY_ALWAYS_EAGER = DEBUG
+CELERY_BROKER_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/0"
 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_ROOT = ''
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 STATIC_URL = '/static/'
 STATICFILES_DIRS = ('static',)
+
+# Uploads
+
+if IS_CONTAINER:
+    MEDIA_ROOT = '/content'
+else:
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'content')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -149,7 +190,7 @@ REST_FRAMEWORK = {
 
 AUTH_USER_MODEL = "iam.User"
 LOGIN_URL = '/login/'
-LOGIN_REDIRECT_URL = '/photos'
+LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'
 
 SIMPLE_AUTH = (os.environ.get("SIMPLE_AUTH", "false").lower().strip() == "true")

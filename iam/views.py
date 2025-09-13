@@ -18,7 +18,7 @@ class LoginView(auth_views.LoginView):
 
         # Both disabled -> redirect to /
         if not oidc_enabled and not simple_auth:
-            return redirect("/")
+            return redirect(reverse("home"))
 
         # Only OIDC enabled -> redirect to OIDC login
         if oidc_enabled and not simple_auth:

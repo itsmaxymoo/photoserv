@@ -112,6 +112,12 @@
     <div class="box overflow-x-scroll">
         <h3 class="text-2xl">Metadata</h3>
 
+        {% if not object.metadata %}
+            <p class="p-4 text-center">
+                Metadata is being generated. Try refreshing the page.
+            </p>
+        {% endif %}
+
         <table class="table table-zebra">
             <colgroup>
                 <col class="w-min whitespace-nowrap" />
@@ -183,7 +189,7 @@
                 <td>{{ object.metadata.exposure_compensation }} EV</td>
             </tr>
             {% endif %}
-            {% if object.metadata.flash is not None %}
+            {% if object.metadata.flash %}
             <tr>
                 <th>Flash</th>
                 <td>
