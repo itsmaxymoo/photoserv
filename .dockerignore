@@ -4,6 +4,7 @@ docs/
 example.env
 docker-compose*.yml
 Dockerfile
+.github
 
 # --- Gitignore:
 
