@@ -51,8 +51,8 @@ OIDC_JWKS_ENDPOINT=
 OIDC_SIGN_ALGO=RS256 # optional
 ```
 
-OIDC Callback URL: `<your-photoserv-root>/login/oidc/callback`  
-Example: `https://photoserv.maxloiacono.com/login/oidc/callback`
+OIDC Callback URL: `<your-photoserv-root>/login/oidc/callback/`  
+Example: `https://photoserv.maxloiacono.com/login/oidc/callback/`
 
 ## Installation
 
