@@ -134,7 +134,7 @@ def generate_photo_metadata(photo_id):
             f"-{METADATA_EXIF_SHUTTER_SPEED}#",
             f"-{METADATA_EXIF_ISO}#",
             f"-{METADATA_EXIF_EXPOSURE_PROGRAM}",
-            f"-{METADATA_EXIF_EXPOSURE_COMPENSATION}",
+            f"-{METADATA_EXIF_EXPOSURE_COMPENSATION}#",
             f"-{METADATA_EXIF_FLASH}",
             f"-{METADATA_EXIF_COPYRIGHT}"
         ])
