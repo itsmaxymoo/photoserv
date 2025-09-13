@@ -1,0 +1,4 @@
+<a href="{% url 'photo-detail' record.pk %}">
+    <img src="{% url 'photo-image' record.pk UI_THUMBNAIL_SMALL %}" alt="{{ record.title }}"
+        class="max-w-16 max-h-16 shadow" loading="lazy" />
+</a>

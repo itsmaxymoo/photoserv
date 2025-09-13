@@ -133,3 +133,68 @@ class APISerializerTestCase(TestCase):
         # Verify photos list includes our photo
         photo_uuids = [photo['uuid'] for photo in data.get('photos', [])]
         self.assertIn(str(self.photo.uuid), photo_uuids)
+
+
+class APISizeDetailTestCase(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+        # Create API Key
+        self.api_key = APIKey.create_key("size_test_key")
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.api_key}")
+
+        # Create a test photo
+        self.photo = Photo.objects.create(
+            title="Test Photo for Sizes",
+            raw_image=create_test_image_file()
+        )
+
+        # Original size for photo attachment
+        self.size_original = Size.objects.get(slug="original")
+        self.photo_size = PhotoSize.objects.create(
+            photo=self.photo,
+            size=self.size_original,
+            image=create_test_image_file("original.jpg")
+        )
+
+    def test_private_size_not_listed_or_accessible(self):
+        # Create a private size
+        private_size = Size.objects.create(
+            slug="private_size",
+            max_dimension=200,
+            square_crop=False,
+            private=True
+        )
+        PhotoSize.objects.create(photo=self.photo, size=private_size, image=create_test_image_file("private.jpg"))
+
+        # 1. Ensure private size does not show up in /api/sizes
+        response = self.client.get("/api/sizes/")
+        self.assertEqual(response.status_code, 200)
+        size_slugs = [s['slug'] for s in response.json()]
+        self.assertNotIn(private_size.slug, size_slugs)
+
+        # 2. Ensure accessing photo size returns 404
+        url = f"/api/photos/{self.photo.uuid}/sizes/{private_size.slug}/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_public_size_listed_and_accessible(self):
+        # Create a public size
+        public_size = Size.objects.create(
+            slug="public_size",
+            max_dimension=300,
+            square_crop=True,
+            private=False
+        )
+        PhotoSize.objects.create(photo=self.photo, size=public_size, image=create_test_image_file("public.jpg"))
+
+        # 1. Ensure public size shows up in /api/sizes
+        response = self.client.get("/api/sizes/")
+        self.assertEqual(response.status_code, 200)
+        size_slugs = [s['slug'] for s in response.json()]
+        self.assertIn(public_size.slug, size_slugs)
+
+        # 2. Ensure accessing photo size works
+        url = f"/api/photos/{self.photo.uuid}/sizes/{public_size.slug}/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)

@@ -4,7 +4,7 @@
 
     <a href="{% url 'photo-detail' row.record.id %}">
         <div class="box">
-            <img src="{% url 'photo-image' row.record.id UI_THUMBNAIL_SIZE %}" alt="{{ row.record.title }}"
+            <img src="{% url 'photo-image' row.record.id UI_THUMBNAIL_LARGE %}" alt="{{ row.record.title }}"
                 class="shadow mx-auto mb-2" />
             <h4 class="text-md text-center font-semibold pb-0 mb-0">{{ row.record.title }}</h4>
         </div>

@@ -12,7 +12,7 @@ class SizeViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [HasAPIKey]
     serializer_class = SizeSerializer
     lookup_field = 'slug'
-    queryset = Size.objects.all()
+    queryset = Size.objects.filter(private=False)
 
 
 class PhotoViewSet(viewsets.ReadOnlyModelViewSet):
@@ -37,7 +37,7 @@ class PhotoImageAPIView(GenericAPIView):
         photo = self.get_object()  # GenericAPIView uses queryset + lookup_field
         photo_size = photo.get_size(size)
 
-        if not photo_size or not hasattr(photo_size.image, "open"):
+        if not photo_size or not hasattr(photo_size.image, "open") or photo_size.size.private:
             raise Http404("Requested size not found.")
 
         return FileResponse(photo_size.image.open("rb"), content_type="image/jpeg")

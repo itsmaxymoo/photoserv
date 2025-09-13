@@ -183,7 +183,10 @@ REST_FRAMEWORK = {
     # or allow read-only access for unauthenticated users.
     'DEFAULT_PERMISSION_CLASSES': [
         'api_key.permissions.HasAPIKey'
-    ]
+    ],
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',  # Only JSON, no HTML
+    ),
 }
 
 # --- IAM Config

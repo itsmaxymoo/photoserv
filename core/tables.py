@@ -5,13 +5,18 @@ from .models import *
 
 class PhotoTable(tables.Table):
     id = tables.Column(linkify=True)
+    thumbnail = tables.TemplateColumn(
+        template_name="core/partials/photo_small_thumbnail.html",
+        verbose_name="Thumbnail",
+        orderable=False,
+    )
     title = tables.Column(linkify=True)
     description = tables.Column()
     publish_date = tables.Column()
 
     class Meta:
         model = Photo
-        fields = ("id", "title", "description", "publish_date")
+        fields = ("id", "thumbnail", "title", "description", "publish_date")
         order_by = ("-publish_date",)
 
 
@@ -35,7 +40,7 @@ class SizeTable(tables.Table):
 
     class Meta:
         model = Size
-        fields = ("slug", "comment", "max_dimension", "square_crop")
+        fields = ("slug", "comment", "max_dimension", "square_crop", "private")
 
 
 class AlbumTable(tables.Table):

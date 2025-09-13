@@ -275,6 +275,7 @@ class Size(models.Model):
     square_crop = models.BooleanField(default=False)
     builtin = models.BooleanField(default=False)
     can_edit = models.BooleanField(default=True)
+    private = models.BooleanField(default=False, help_text="Hide this from the public API?")
 
     def clean(self):
         # Prevent modifications to builtin sizes
