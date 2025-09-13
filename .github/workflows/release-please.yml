@@ -18,3 +18,4 @@ jobs:
         with:
           token: ${{ secrets.PAT }}
           release-type: python
+          include-v-in-tag: false
