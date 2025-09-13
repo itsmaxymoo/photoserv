@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.5](https://github.com/itsmaxymoo/photoserv/compare/0.1.4...0.1.5) (2025-09-13)
+
+
+### Bug Fixes
+
+* Document OIDC callback URL ([58aaa04](https://github.com/itsmaxymoo/photoserv/commit/58aaa040a1300ffd4a515804e2818211225ca517))
+* retrieve EV comp as float ([aba6c48](https://github.com/itsmaxymoo/photoserv/commit/aba6c481703c26221ca08317182d284624c22a40))
+
 ## [0.1.4](https://github.com/itsmaxymoo/photoserv/compare/0.1.3...0.1.4) (2025-09-13)
 
 
