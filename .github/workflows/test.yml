@@ -14,6 +14,7 @@ jobs:
 
     env:
       DATABASE_ENGINE: sqlite
+      APP_KEY: test
       DJANGO_SETTINGS_MODULE: photoserv.settings  # replace with your settings module
       PYTHONUNBUFFERED: 1
 
