@@ -40,7 +40,7 @@ class SizeTable(tables.Table):
 
     class Meta:
         model = Size
-        fields = ("slug", "comment", "max_dimension", "square_crop", "private")
+        fields = ("slug", "comment", "max_dimension", "square_crop", "public")
 
 
 class AlbumTable(tables.Table):

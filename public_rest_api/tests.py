@@ -163,7 +163,7 @@ class APISizeDetailTestCase(TestCase):
             slug="private_size",
             max_dimension=200,
             square_crop=False,
-            private=True
+            public=False
         )
         PhotoSize.objects.create(photo=self.photo, size=private_size, image=create_test_image_file("private.jpg"))
 
@@ -184,7 +184,7 @@ class APISizeDetailTestCase(TestCase):
             slug="public_size",
             max_dimension=300,
             square_crop=True,
-            private=False
+            public=True
         )
         PhotoSize.objects.create(photo=self.photo, size=public_size, image=create_test_image_file("public.jpg"))
 

@@ -16,7 +16,7 @@ def create_builtin_sizes(apps, schema_editor):
         square_crop=False,
         builtin=True,
         can_edit=False,
-        private=True,
+        public=False,
     )
 
     Size.objects.create(
@@ -26,7 +26,7 @@ def create_builtin_sizes(apps, schema_editor):
         square_crop=False,
         builtin=True,
         can_edit=True,
-        private=True,
+        public=False,
     )
 
     Size.objects.create(
@@ -36,7 +36,7 @@ def create_builtin_sizes(apps, schema_editor):
         square_crop=True,
         builtin=True,
         can_edit=True,
-        private=True,
+        public=False,
     )
 
 
@@ -83,7 +83,7 @@ class Migration(migrations.Migration):
                 ('square_crop', models.BooleanField(default=False)),
                 ('builtin', models.BooleanField(default=False)),
                 ('can_edit', models.BooleanField(default=True)),
-                ('private', models.BooleanField(default=False, help_text='Hide this from the public API?')),
+                ('public', models.BooleanField(default=True, help_text='Allow in the public API?')),
             ],
             options={
                 'ordering': ['max_dimension'],

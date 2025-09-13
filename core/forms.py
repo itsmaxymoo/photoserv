@@ -67,7 +67,7 @@ class PhotoForm(forms.ModelForm):
 class SizeForm(forms.ModelForm):
     class Meta:
         model = Size
-        fields = ["slug", "comment", "max_dimension", "square_crop", "private"]
+        fields = ["slug", "comment", "max_dimension", "square_crop", "public"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
