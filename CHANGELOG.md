@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.4](https://github.com/itsmaxymoo/photoserv/compare/0.1.3...0.1.4) (2025-09-13)
+
+
+### Bug Fixes
+
+* Run migrations in docker container ([5803676](https://github.com/itsmaxymoo/photoserv/commit/5803676facfa3266dbbb3884111dce6f5e3c42f0))
+
 ## [0.1.3](https://github.com/itsmaxymoo/photoserv/compare/v0.1.2...0.1.3) (2025-09-13)
 
 
