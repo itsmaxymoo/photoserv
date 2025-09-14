@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.6](https://github.com/itsmaxymoo/photoserv/compare/0.1.5...0.1.6) (2025-09-14)
+
+
+### Bug Fixes
+
+* Add timezone support ([a070dd7](https://github.com/itsmaxymoo/photoserv/commit/a070dd783075e734af324d251303f79f3c262211))
+* Increase the default resolution of built-in sizes. ([88ddd0c](https://github.com/itsmaxymoo/photoserv/commit/88ddd0cb70c229c1d0ccec84212bb766ac849cfa))
+
 ## [0.1.5](https://github.com/itsmaxymoo/photoserv/compare/0.1.4...0.1.5) (2025-09-13)
 
 
