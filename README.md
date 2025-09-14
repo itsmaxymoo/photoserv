@@ -27,6 +27,8 @@ APP_KEY=""
 
 DEBUG_MODE=false # always false in production
 
+TIME_ZONE=America/New_York
+
 DATABASE_ENGINE=postgres # postgres or sqlite
 DATABASE_USER=photoserv
 DATABASE_PASSWORD=photoserv
