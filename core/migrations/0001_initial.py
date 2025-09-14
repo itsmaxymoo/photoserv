@@ -22,7 +22,7 @@ def create_builtin_sizes(apps, schema_editor):
     Size.objects.create(
         slug=UI_THUMBNAIL_LARGE,
         comment="Photo & album detail pages",
-        max_dimension=256,
+        max_dimension=512,
         square_crop=False,
         builtin=True,
         can_edit=True,
@@ -32,7 +32,7 @@ def create_builtin_sizes(apps, schema_editor):
     Size.objects.create(
         slug=UI_THUMBNAIL_SMALL,
         comment="Compact preview",
-        max_dimension=64,
+        max_dimension=128,
         square_crop=True,
         builtin=True,
         can_edit=True,
