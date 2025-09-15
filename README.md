@@ -59,3 +59,15 @@ Example: `https://photoserv.maxloiacono.com/login/oidc/callback/`
 ## Installation
 
 * `docker compose up -d`
+
+## Roadmap
+
+1. Better documentation
+2. Mobile layout
+3. Hide photos from public API until ready
+4. Consistency checker
+5. API documentation
+6. Security/traefik documentation
+7. 1.0 release
+8. 1.1: Webhooks
+9. 1.2: Social integration
