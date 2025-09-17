@@ -69,6 +69,7 @@ Example: `https://photoserv.maxloiacono.com/login/oidc/callback/`
 5. API documentation
 6. Security/traefik documentation
 7. Album Parents
-8. 1.0 release
-9. 1.1: Webhooks
-10. 1.2: Social integration
+8. Jobs overview
+9. 1.0 release
+10. 1.1: Webhooks
+11. 1.2: Social integration
