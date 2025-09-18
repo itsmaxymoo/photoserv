@@ -70,6 +70,7 @@ Example: `https://photoserv.maxloiacono.com/login/oidc/callback/`
 6. Security/traefik documentation
 7. Album Parents
 8. Jobs overview
+8.5. Separate worker container
 9. 1.0 release
 10. 1.1: Webhooks
 11. 1.2: Social integration
