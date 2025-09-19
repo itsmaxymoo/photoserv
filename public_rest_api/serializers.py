@@ -22,7 +22,7 @@ class AlbumSerializer(serializers.ModelSerializer):
         fields = ["uuid", "title", "slug", "short_description", "description", "sort_method", "sort_descending", "photos"]
 
     def get_photos(self, obj):
-        return PhotoSummarySerializer(obj.get_ordered_photos(), many=True).data
+        return PhotoSummarySerializer(obj.get_ordered_photos(ready_only=True), many=True).data
 
 
 class TagSummarySerializer(serializers.ModelSerializer):

@@ -63,14 +63,14 @@ Example: `https://photoserv.maxloiacono.com/login/oidc/callback/`
 ## Roadmap
 
 1. Better documentation
-2. Mobile layout
-3. Hide photos from public API until ready
+2. ~~Mobile layout~~
+3. ~~Hide photos from public API until ready~~
 4. Consistency checker
 5. API documentation
 6. Security/traefik documentation
 7. Album Parents
 8. Jobs overview
-8.5. Separate worker container
-9. 1.0 release
-10. 1.1: Webhooks
-11. 1.2: Social integration
+9. API response metadata
+10. 1.0 release
+11. 1.1: Webhooks
+12. 1.2: Social integration

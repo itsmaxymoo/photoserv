@@ -13,6 +13,9 @@
         Photo #{{ object.id }}:
     </span>
     {{ object }}
+    {% if not object.ready %}
+    &nbsp;<div class="badge badge-xl badge-warning">Processing</div>
+    {% endif %}
 </h2>
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -113,9 +116,9 @@
         <h3 class="text-2xl">Metadata</h3>
 
         {% if not object.metadata %}
-            <p class="p-4 text-center">
-                Metadata is being generated. Try refreshing the page.
-            </p>
+        <p class="p-4 text-center">
+            Metadata is being generated. Try refreshing the page.
+        </p>
         {% endif %}
 
         <table class="table table-zebra">
@@ -215,13 +218,17 @@
                     <col class="w-min whitespace-nowrap" />
                     <col class="w-full" />
                 </colgroup>
-                {% for size in object.sizes.all %}
+                {% for size, photo_size in sizes %}
                 <tr>
                     <th>{{ size.slug }}</th>
                     <td>
-                        <a href="{% url 'photo-image' object.pk size.size.slug %}" download>
-                            {{ size.size }}
+                        {% if photo_size %}
+                        <a href="{% url 'photo-image' object.pk size.slug %}" download>
+                            {{ size.slug }}
                         </a>
+                        {% else %}
+                        <span>(pending)</span>
+                        {% endif %}
                     </td>
                 </tr>
                 {% endfor %}

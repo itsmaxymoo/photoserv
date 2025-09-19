@@ -16,23 +16,18 @@
 
 <body class="min-h-screen flex flex-col">
     <header>
-        <div class="navbar p-4 bg-base-200 shadow-sm">
-            <div class="navbar-start">
+        <div class="navbar p-4 bg-base-200 shadow-sm flex-col md:flex-row md:justify-between">
+            <div class="navbar-start flex justify-center md:justify-start">
                 <a href="{% url 'home' %}">
                     <h1 class="text-xl">Photoserv</h1>
                 </a>
             </div>
-            <div class="navbar-end">
+
+            <div class="navbar-end mt-2 md:mt-0 w-full md:w-half justify-center md:justify-end">
                 {% block navbar_end %}
-                <a href="{% url 'photo-list' %}" class="btn btn-ghost">
-                    Photos
-                </a>
-                <a href="{% url 'album-list' %}" class="btn btn-ghost">
-                    Albums
-                </a>
-                <a href="{% url 'tag-list' %}" class="btn btn-ghost">
-                    Tags
-                </a>
+                <a href="{% url 'photo-list' %}" class="btn btn-ghost">Photos</a>
+                <a href="{% url 'album-list' %}" class="btn btn-ghost">Albums</a>
+                <a href="{% url 'tag-list' %}" class="btn btn-ghost">Tags</a>
 
                 <div class="dropdown dropdown-end" x-data="{ openNavMenu: false }">
                     <button class="btn btn-ghost" @click="openNavMenu = !openNavMenu"
@@ -46,16 +41,10 @@
                     <ul id="dropdown-menu" class="list-none dropdown-content menu min-w-30 bg-base-100 shadow-sm"
                         x-show="openNavMenu" x-transition @click.outside="openNavMenu = false">
 
-                        <li>
-                            <a href="{% url 'size-list' %}">Sizes</a>
-                        </li>
-                        <li>
-                            <a href="{% url 'api-key-list' %}">API Keys</a>
-                        </li>
+                        <li><a href="{% url 'size-list' %}">Sizes</a></li>
+                        <li><a href="{% url 'api-key-list' %}">API Keys</a></li>
                         {% if AUTH_ENABLED %}
-                        <li>
-                            <a href="{% url 'user-list' %}">Users</a>
-                        </li>
+                        <li><a href="{% url 'user-list' %}">Users</a></li>
                         <li>
                             <form method="post" action="{% url 'logout' %}">
                                 {% csrf_token %}

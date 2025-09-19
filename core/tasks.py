@@ -88,6 +88,8 @@ def generate_sizes_for_photo(photo_id):
             continue  # Skip if already exists
 
         gen_size(photo, size)
+    
+    return f"Sizes generated for photo id {photo.id}."
 
 
 @shared_task
@@ -171,3 +173,11 @@ def generate_photo_metadata(photo_id):
         metadata.save()
 
         return f"Metadata generated for photo id {photo.id}."
+
+
+@shared_task
+def mark_photo_ready(photo_id):
+    photo = models.Photo.objects.get(pk=photo_id)
+    photo.update_ready()
+
+    return f"Photo id {photo.id} marked as ready."

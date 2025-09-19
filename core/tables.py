@@ -11,8 +11,17 @@ class PhotoTable(tables.Table):
         orderable=False,
     )
     title = tables.Column(linkify=True)
-    description = tables.Column()
+    description = tables.Column(attrs={
+        "td": {"class": "hidden md:table-cell"},
+        "th": {"class": "hidden md:table-cell"}
+    })
     publish_date = tables.Column()
+
+    def render_description(self, value):
+        # Limit to 240 characters and add ellipsis if longer
+        if len(value) > 240:
+            return value[:240] + "..."
+        return value
 
     class Meta:
         model = Photo

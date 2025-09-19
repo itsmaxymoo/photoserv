@@ -58,7 +58,9 @@ INSTALLED_APPS = [
 
     "rest_framework",
 
-    'mozilla_django_oidc'
+    'mozilla_django_oidc',
+
+    "django_celery_results",
 ]
 
 MIDDLEWARE = [
@@ -95,7 +97,7 @@ WSGI_APPLICATION = 'photoserv.wsgi.application'
 
 # Templating Plugin Config
 DJANGO_TABLES2_TABLE_ATTRS = {
-    "class": "table table-zebra"
+    "class": "table table-zebra",
 }
 
 # Crispy Forms Config
@@ -153,8 +155,8 @@ REDIS_PORT = os.getenv("REDIS_PORT", "6379")
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
-CELERY_ALWAYS_EAGER = DEBUG
 CELERY_BROKER_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/0"
+CELERY_RESULT_BACKEND = "django-db"
 
 
 # Static files (CSS, JavaScript, Images)

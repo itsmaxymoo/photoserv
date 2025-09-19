@@ -25,6 +25,15 @@ class PhotoListView(PhotoMixin, SingleTableView):
 class PhotoDetailView(DetailView):
     model = Photo
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        all_sizes = Size.objects.all().order_by('max_dimension')
+        photo_sizes = {ps.size_id: ps for ps in self.object.sizes.all()}
+        context['sizes'] = [
+            (size, photo_sizes.get(size.id)) for size in all_sizes
+        ]
+        return context
+
 
 class PhotoImageView(DetailView):
     model = Photo
