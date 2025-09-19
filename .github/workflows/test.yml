@@ -12,6 +12,13 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    services:
+      redis:
+        image: redis:latest
+        ports:
+          - 6379:6379
+
+
     env:
       DATABASE_ENGINE: sqlite
       APP_KEY: test
