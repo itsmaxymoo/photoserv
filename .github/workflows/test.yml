@@ -24,6 +24,8 @@ jobs:
       APP_KEY: test
       DJANGO_SETTINGS_MODULE: photoserv.settings  # replace with your settings module
       PYTHONUNBUFFERED: 1
+      REDIS_HOST: localhost
+      REDIS_PORT: 6379
 
     steps:
       - name: Checkout code
