@@ -26,6 +26,7 @@ jobs:
       PYTHONUNBUFFERED: 1
       REDIS_HOST: localhost
       REDIS_PORT: 6379
+      DEBUG: true
 
     steps:
       - name: Checkout code
