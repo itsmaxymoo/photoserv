@@ -19,13 +19,19 @@ class PhotoModelTests(TestCase):
         url = self.photo.get_absolute_url()
         self.assertIn(str(self.photo.pk), url)
 
-    @mock.patch("core.tasks.generate_sizes_for_photo.delay_on_commit")
-    @mock.patch("core.tasks.generate_photo_metadata.delay_on_commit")
-    def test_save_triggers_tasks_on_create(self, mock_metadata, mock_sizes):
+    @mock.patch("core.models.chord")
+    def test_save_triggers_tasks_on_create(self, mock_chord):
+        mock_chord_instance = mock.Mock()
+        mock_chord.return_value = mock_chord_instance
+
         p = Photo(title="Another", raw_image="raw.jpg")
         p.save()
-        self.assertTrue(mock_sizes.called)
-        self.assertTrue(mock_metadata.called)
+
+        # Ensure chord() was called
+        self.assertTrue(mock_chord.called)
+
+        # Ensure delay() was called on the chord
+        self.assertTrue(mock_chord_instance.delay.called)
 
     @mock.patch("core.tasks.delete_files.delay_on_commit")
     def test_delete_triggers_delete_files(self, mock_delete):
