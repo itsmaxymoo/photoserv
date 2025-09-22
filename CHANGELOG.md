@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.7](https://github.com/itsmaxymoo/photoserv/compare/0.1.6...0.1.7) (2025-09-22)
+
+
+### Bug Fixes
+
+* DIsplay the status of size generation on the photo detail page ([72a4b06](https://github.com/itsmaxymoo/photoserv/commit/72a4b0652e93e89cc3cc97a645df25625519761c))
+* Make layout better on mobile devices ([72a4b06](https://github.com/itsmaxymoo/photoserv/commit/72a4b0652e93e89cc3cc97a645df25625519761c))
+
 ## [0.1.6](https://github.com/itsmaxymoo/photoserv/compare/0.1.5...0.1.6) (2025-09-14)
 
 
