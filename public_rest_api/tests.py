@@ -30,12 +30,6 @@ class APISerializerTestCase(TestCase):
         self.photo = Photo.objects.create(
             title="Test Photo",
             raw_image=create_test_image_file(),
-            ready=True
-        )
-
-        self.not_ready_photo = Photo.objects.create(
-            title="Test Photo 2",
-            raw_image=create_test_image_file()
         )
 
         # Attach a PhotoSize for the original size
@@ -49,7 +43,6 @@ class APISerializerTestCase(TestCase):
         self.album1 = Album.objects.create(title="Album One", description="Test album 1")
         self.album2 = Album.objects.create(title="Album Two", description="Test album 2")
         self.photo.assign_albums([self.album1, self.album2])
-        self.not_ready_photo.assign_albums([self.album1])
 
         # --- Create Tags ---
         self.tag1 = Tag.objects.create(name="sunset")
@@ -119,17 +112,6 @@ class APISerializerTestCase(TestCase):
         self.assertIn(str(self.album1.uuid), album_uuids)
         self.assertIn(str(self.album2.uuid), album_uuids)
     
-    def test_not_ready_photo_detail(self):
-        url = f"/api/photos/{self.not_ready_photo.uuid}/"
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-        url = f"/api/photos/"
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        data = str(response.json())
-        assert str(self.not_ready_photo.uuid) not in data
-
     # --- Album detail API test ---
     def test_album_detail_returns_ordered_photos(self):
         url = f"/api/albums/{self.album1.uuid}/"
@@ -140,7 +122,6 @@ class APISerializerTestCase(TestCase):
         # Album detail should include photos
         photo_uuids = [photo['uuid'] for photo in data.get('photos', [])]
         self.assertIn(str(self.photo.uuid), photo_uuids)
-        self.assertNotIn(str(self.not_ready_photo.uuid), photo_uuids)
 
     # --- Tag detail API test ---
     def test_tag_detail_returns_related_photos(self):

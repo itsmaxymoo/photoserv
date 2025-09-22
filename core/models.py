@@ -1,4 +1,4 @@
-from django.db import models, transaction
+from django.db import models
 import os
 import uuid
 from django.urls import reverse
@@ -7,7 +7,6 @@ from . import CONTENT_RAW_PHOTOS_PATH, CONTENT_RESIZED_PHOTOS_PATH
 from . import tasks
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from celery import chord
 
 
 class Photo(models.Model):
@@ -31,17 +30,6 @@ class Photo(models.Model):
         through="PhotoTag",
         related_name="photos"
     )
-
-    ready = models.BooleanField(default=False, db_index=True)
-
-    def update_ready(self) -> None:
-        has_metadata = PhotoMetadata.objects.filter(photo=self).exists()
-        has_all_sizes = all(
-            PhotoSize.objects.filter(photo=self, size=size).exists()
-            for size in Size.objects.all()
-        )
-        self.ready = has_metadata and has_all_sizes
-        self.save(update_fields=["ready"])
 
     def calculate_slug(self) -> str:
         slug = f"{timezone.now().strftime('%Y-%m-%d')}-{slugify(self.title)}"
@@ -76,13 +64,8 @@ class Photo(models.Model):
                 original_size = None
 
             # Generate other sizes via Celery task
-            chord(
-                [
-                    tasks.generate_sizes_for_photo.s(self.id),
-                    tasks.generate_photo_metadata.s(self.id)
-                ],
-                tasks.mark_photo_ready.si(self.id)
-            ).delay()
+            tasks.generate_sizes_for_photo.delay_on_commit(self.id),
+            tasks.generate_photo_metadata.delay_on_commit(self.id)
     
     def assign_albums(self, albums):
         # Remove unselected
@@ -225,11 +208,8 @@ class Album(models.Model):
         verbose_name="Photos"
     )
 
-    def get_ordered_photos(self, ready_only=False):
+    def get_ordered_photos(self):
         qs = self._photos.all()
-
-        if ready_only:
-            qs = qs.filter(ready=True)
 
         if self.sort_method == self.DefaultSortMethod.MANUAL:
             order_by = "photoinalbum__order"
