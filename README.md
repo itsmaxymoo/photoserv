@@ -64,7 +64,7 @@ Example: `https://photoserv.maxloiacono.com/login/oidc/callback/`
 
 1. Better documentation
 2. ~~Mobile layout~~
-3. ~~Hide photos from public API until ready~~
+3. Add feature to hide photos from the UI
 4. Consistency checker
 5. API documentation
 6. Security/traefik documentation
