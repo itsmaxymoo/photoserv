@@ -71,6 +71,7 @@ Example: `https://photoserv.maxloiacono.com/login/oidc/callback/`
 7. Album Parents
 8. Jobs overview
 9. API response metadata
-10. 1.0 release
-11. 1.1: Webhooks
-12. 1.2: Social integration
+10. EV comp filter
+11. 1.0 release
+12. 1.1: Webhooks
+13. 1.2: Social integration
