@@ -10,5 +10,6 @@ router.register(r'albums', AlbumViewSet, basename='album')
 
 urlpatterns = [
     path("", include((router.urls, "api"), namespace="api")),
-    path("photos/<uuid:uuid>/sizes/<slug:size>/", PhotoImageAPIView.as_view(), name="photo-image")
+    path("photos/<uuid:uuid>/sizes/<slug:size>/", PhotoImageAPIView.as_view(), name="photo-image"),
+    path("health/", SiteHealthAPIView.as_view(), name="site-health"),
 ]

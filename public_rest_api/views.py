@@ -5,6 +5,8 @@ from django.http import FileResponse, Http404
 from rest_framework.generics import GenericAPIView
 from api_key.authentication import APIKeyAuthentication
 from api_key.permissions import HasAPIKey
+from rest_framework.response import Response
+from .models import *
 
 
 class SizeViewSet(viewsets.ReadOnlyModelViewSet):
@@ -65,3 +67,37 @@ class AlbumViewSet(viewsets.ReadOnlyModelViewSet):
         if self.action == 'list':
             return AlbumSummarySerializer
         return AlbumSerializer
+
+
+class SiteHealthAPIView(GenericAPIView):
+    authentication_classes = [APIKeyAuthentication]
+    permission_classes = [HasAPIKey]
+
+    def get(self, request, *args, **kwargs):
+        from core.models import Photo, PhotoSize
+
+        total_photos = Photo.objects.count()
+        total_sizes = Size.objects.count()
+
+        expected_sizes = total_photos * total_sizes
+        actual_sizes = PhotoSize.objects.count()
+        pending_sizes = expected_sizes - actual_sizes
+
+        photos_with_all_sizes = (
+            Photo.objects.annotate(size_count=models.Count("sizes"))
+            .filter(size_count=total_sizes)
+            .count()
+        )
+
+        photos_pending_sizes = total_photos - photos_with_all_sizes
+        pending_metadata = Photo.objects.filter(metadata__isnull=True).count()
+
+        site_health = SiteHealth(
+            total_photos=total_photos,
+            photos_pending_sizes=photos_pending_sizes,
+            pending_sizes=pending_sizes,
+            pending_metadata=pending_metadata,
+        )
+
+        serializer = SiteHealthSerializer(site_health)
+        return Response(serializer.data)

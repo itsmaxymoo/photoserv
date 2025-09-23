@@ -62,3 +62,10 @@ class SizeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Size
         fields = ["slug", "max_dimension", "square_crop"]
+
+
+class SiteHealthSerializer(serializers.Serializer):
+    total_photos = serializers.IntegerField()
+    photos_pending_sizes = serializers.IntegerField()
+    pending_sizes = serializers.IntegerField()
+    pending_metadata = serializers.IntegerField()

@@ -46,6 +46,24 @@ class PhotoModelTests(TestCase):
         self.photo.assign_albums([album2])
         self.assertFalse(PhotoInAlbum.objects.filter(photo=self.photo, album=album1).exists())
         self.assertTrue(PhotoInAlbum.objects.filter(photo=self.photo, album=album2).exists())
+    
+    def test_photo_health(self):
+        # Initially, photo.health.* is false
+        self.assertFalse(self.photo.health.metadata)
+        self.assertFalse(self.photo.health.all_sizes)
+
+        # Add metadata
+        PhotoMetadata.objects.create(photo=self.photo, camera_make="Canon")
+        self.photo.refresh_from_db()
+        self.assertTrue(self.photo.health.metadata)
+        self.assertFalse(self.photo.health.all_sizes)
+
+        # Add sizes
+        for size in Size.objects.all():
+            PhotoSize.objects.create(photo=self.photo, size=size, image=f"{size.slug}.jpg")
+        self.photo.refresh_from_db()
+        self.assertTrue(self.photo.health.metadata)
+        self.assertTrue(self.photo.health.all_sizes)
 
 
 class PhotoSlugTests(TestCase):

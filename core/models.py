@@ -31,6 +31,12 @@ class Photo(models.Model):
         related_name="photos"
     )
 
+    @property
+    def health(self) -> "PhotoHealth":
+        all_sizes = all(self.sizes.filter(size=size).exists() for size in Size.objects.all())
+        metadata = PhotoMetadata.objects.filter(photo=self).exists()
+        return PhotoHealth(all_sizes=all_sizes, metadata=metadata)
+
     def calculate_slug(self) -> str:
         slug = f"{timezone.now().strftime('%Y-%m-%d')}-{slugify(self.title)}"
         return slug[:self._meta.get_field('slug').max_length]
@@ -92,6 +98,12 @@ class Photo(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class PhotoHealth:
+    def __init__(self, all_sizes: bool, metadata: bool):
+        self.all_sizes = all_sizes
+        self.metadata = metadata
 
 
 class PhotoMetadata(models.Model):

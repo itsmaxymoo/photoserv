@@ -198,3 +198,53 @@ class APISizeDetailTestCase(TestCase):
         url = f"/api/photos/{self.photo.uuid}/sizes/{public_size.slug}/"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
+
+
+class APISiteHealthTestCase(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+        # Create API Key
+        self.api_key = APIKey.create_key("size_test_key")
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.api_key}")
+
+        # Ensure a clean slate for sizes
+        Size.objects.all().delete()
+        
+        # Set up sizes
+        self.size_small = Size.objects.create(slug="small", max_dimension=200)
+        self.size_large = Size.objects.create(slug="large", max_dimension=800)
+
+        # Create photos
+        self.photo1 = Photo.objects.create(title="Photo 1", slug="photo-1", raw_image="dummy1.jpg")
+        self.photo2 = Photo.objects.create(title="Photo 2", slug="photo-2", raw_image="dummy2.jpg")
+        self.photo3 = Photo.objects.create(title="Photo 3", slug="photo-3", raw_image="dummy3.jpg")
+
+        # Photo 1: has all sizes + metadata
+        PhotoSize.objects.create(photo=self.photo1, size=self.size_small, image="small1.jpg")
+        PhotoSize.objects.create(photo=self.photo1, size=self.size_large, image="large1.jpg")
+        PhotoMetadata.objects.create(photo=self.photo1)
+
+        # Photo 2: missing one size, has metadata
+        PhotoSize.objects.create(photo=self.photo2, size=self.size_small, image="small2.jpg")
+        PhotoMetadata.objects.create(photo=self.photo2)
+
+        # Photo 3: missing all sizes and metadata
+
+    def test_site_health_endpoint(self):
+        response = self.client.get("/api/health/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        data = response.json()
+
+        # Expected values:
+        # total_photos = 3
+        # total_sizes = 2 -> expected PhotoSize = 3*2 = 6
+        # actual PhotoSize = 3
+        # pending_sizes = 6 - 3 = 3
+        # photos_pending_sizes = 2 (photo2 missing large, photo3 missing both)
+        # pending_metadata = 1 (photo3 has no metadata)
+        self.assertEqual(data["total_photos"], 3)
+        self.assertEqual(data["pending_sizes"], 3)
+        self.assertEqual(data["photos_pending_sizes"], 2)
+        self.assertEqual(data["pending_metadata"], 1)
