@@ -70,7 +70,7 @@ Example: `https://photoserv.maxloiacono.com/login/oidc/callback/`
 6. Security/traefik documentation
 7. Album Parents
 8. Jobs overview
-9. API response metadata
+9. ~~API response metadata~~
 10. EV comp filter
 11. 1.0 release
 12. 1.1: Webhooks
