@@ -183,10 +183,10 @@
                 <td>{{ object.metadata.exposure_program }}</td>
             </tr>
             {% endif %}
-            {% if object.metadata.exposure_compensation %}
+            {% if object.metadata and object.metadata.exposure_compensation is not None %}
             <tr>
                 <th>Exposure Compensation</th>
-                <td>{{ object.metadata.exposure_compensation }} EV</td>
+                <td>{{ object.metadata.exposure_compensation | exposure_compensation }}</td>
             </tr>
             {% endif %}
             {% if object.metadata.flash %}
