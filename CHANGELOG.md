@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.2.0](https://github.com/itsmaxymoo/photoserv/compare/0.1.7...0.2.0) (2025-09-26)
+
+
+### Features
+
+* Add mechanism to hide photos from the public API ([c662f22](https://github.com/itsmaxymoo/photoserv/commit/c662f224464637340eba431d36e87199fbe2b9a1))
+* Add support for album parent-child relationship ([c662f22](https://github.com/itsmaxymoo/photoserv/commit/c662f224464637340eba431d36e87199fbe2b9a1))
+* Use Postgres 18 by default ([c662f22](https://github.com/itsmaxymoo/photoserv/commit/c662f224464637340eba431d36e87199fbe2b9a1))
+
+
+### Bug Fixes
+
+* Add /api/health endpoint ([21b0f50](https://github.com/itsmaxymoo/photoserv/commit/21b0f5017d1290fafb1dae8d89c8f4a48551cee7))
+* Better EV display in UI ([156e9c0](https://github.com/itsmaxymoo/photoserv/commit/156e9c06704d260219bdfbe3e74d883c677dfb6e))
+* Postgres health check throwing root user error ([c662f22](https://github.com/itsmaxymoo/photoserv/commit/c662f224464637340eba431d36e87199fbe2b9a1))
+
 ## [0.1.7](https://github.com/itsmaxymoo/photoserv/compare/0.1.6...0.1.7) (2025-09-22)
 
 
