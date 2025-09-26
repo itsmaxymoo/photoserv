@@ -33,7 +33,7 @@ class PhotoForm(forms.ModelForm):
 
     class Meta:
         model = Photo
-        fields = ["title", "description", "raw_image", "slug", "albums"]
+        fields = ["title", "description", "raw_image", "slug", "hidden", "albums"]
         exclude = ["last_updated"]
     
     def save(self, commit=True):
@@ -84,14 +84,24 @@ class AlbumForm(forms.ModelForm):
         required=False,
         help_text="Leave blank to auto calculate"
     )
+    parent = forms.ModelChoiceField(
+        queryset=Album.objects.none(),
+        required=False,
+        label="Parent Album"
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
+        # Exclude current album from parent choices
+        if self.instance and self.instance.pk:
+            self.fields['parent'].queryset = Album.objects.exclude(pk=self.instance.pk)
+        else:
+            self.fields['parent'].queryset = Album.objects.all()
 
     class Meta:
         model = Album
-        exclude = ["_photos"]
+        exclude = ["_photos", "children"]
 
 
 class TagForm(forms.ModelForm):

@@ -64,14 +64,14 @@ Example: `https://photoserv.maxloiacono.com/login/oidc/callback/`
 
 1. Better documentation
 2. ~~Mobile layout~~
-3. Add feature to hide photos from the UI
+3. ~~Add feature to hide photos from the UI~~
 4. Consistency checker
 5. API documentation
 6. Security/traefik documentation
-7. Album Parents
+7. ~~Album Parents~~
 8. Jobs overview
 9. ~~API response metadata~~
-10. EV comp filter
+10. ~~EV comp filter~~
 11. 1.0 release
 12. 1.1: Webhooks
 13. 1.2: Social integration

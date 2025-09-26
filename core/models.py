@@ -24,6 +24,7 @@ class Photo(models.Model):
     description = models.TextField(max_length=4096, default="", blank=True)
     raw_image = models.ImageField(upload_to=get_image_file_path)
     publish_date = models.DateTimeField(auto_now=True)
+    hidden = models.BooleanField(default=False, help_text="Hide from public API")
 
     tags = models.ManyToManyField(
         "Tag",
@@ -219,9 +220,13 @@ class Album(models.Model):
         related_name="albums",
         verbose_name="Photos"
     )
+    parent = models.ForeignKey("Album", on_delete=models.SET_NULL, null=True, blank=True, related_name="children")
 
-    def get_ordered_photos(self):
+    def get_ordered_photos(self, public_only: bool = False):
         qs = self._photos.all()
+
+        if public_only:
+            qs = qs.filter(hidden=False)
 
         if self.sort_method == self.DefaultSortMethod.MANUAL:
             order_by = "photoinalbum__order"
@@ -249,6 +254,14 @@ class Album(models.Model):
         # Check if the slug exists for a different object
         if Album.objects.filter(slug=slug_to_check).exclude(pk=self.pk).exists():
             raise ValidationError(f"An album with the slug '{slug_to_check}' already exists.")
+        
+        # Ensure parent does not create a cyclic relationship
+        if self.parent:
+            ancestor = self.parent
+            while ancestor:
+                if ancestor == self:
+                    raise ValidationError("An album cannot be its own ancestor.")
+                ancestor = ancestor.parent
     
     def save(self, *args, **kwargs):
         if not self.slug:

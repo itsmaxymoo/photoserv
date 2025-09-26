@@ -41,6 +41,30 @@ Album: {{ object }}
                     <th>Sort Mode</th>
                     <td>{{ object.get_sort_method_display }}</td>
                 </tr>
+                <tr>
+                    <th>Parent Album</th>
+                    <td>
+                        {% if object.parent %}
+                        <a href="{% url 'album-detail' object.parent.pk %}">{{ object.parent }}</a>
+                        {% else %}
+                        (none)
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th>Child Albums</th>
+                    <td>
+                        {% if object.children.count > 0 %}
+                        <ul class="list-disc list-inside">
+                            {% for child in object.children.all %}
+                            <li><a href="{% url 'album-detail' child.pk %}">{{ child }}</a></li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        (none)
+                        {% endif %}
+                    </td>
+                </tr>
             </table>
         </div>
     </div>

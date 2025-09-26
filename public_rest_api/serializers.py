@@ -5,7 +5,7 @@ from rest_framework import serializers
 class PhotoMetadataSerializer(serializers.ModelSerializer):
     class Meta:
         model = PhotoMetadata
-        exclude = ['id', 'photo']
+        exclude = ['id', 'photo', 'hidden']
 
 
 class AlbumSummarySerializer(serializers.ModelSerializer):
@@ -16,13 +16,23 @@ class AlbumSummarySerializer(serializers.ModelSerializer):
 
 class AlbumSerializer(serializers.ModelSerializer):
     photos = serializers.SerializerMethodField()
+    parent = serializers.SerializerMethodField()
+    children = serializers.SerializerMethodField()
 
     class Meta:
         model = Album
-        fields = ["uuid", "title", "slug", "short_description", "description", "sort_method", "sort_descending", "photos"]
+        fields = ["uuid", "title", "slug", "short_description", "description", "sort_method", "sort_descending", "photos", "parent", "children"]
 
     def get_photos(self, obj):
-        return PhotoSummarySerializer(obj.get_ordered_photos(), many=True).data
+        return PhotoSummarySerializer(obj.get_ordered_photos(public_only=True), many=True).data
+    
+    def get_parent(self, obj):
+        if obj.parent:
+            return AlbumSummarySerializer(obj.parent).data
+        return None
+    
+    def get_children(self, obj):
+        return AlbumSummarySerializer(obj.children.all(), many=True).data
 
 
 class TagSummarySerializer(serializers.ModelSerializer):

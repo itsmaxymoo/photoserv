@@ -16,6 +16,7 @@ class PhotoTable(tables.Table):
         "th": {"class": "hidden md:table-cell"}
     })
     publish_date = tables.Column()
+    public = tables.BooleanColumn(accessor="not hidden")
 
     def render_description(self, value):
         # Limit to 240 characters and add ellipsis if longer
@@ -25,7 +26,7 @@ class PhotoTable(tables.Table):
 
     class Meta:
         model = Photo
-        fields = ("id", "thumbnail", "title", "description", "publish_date")
+        fields = ("id", "thumbnail", "title", "description", "publish_date", "public")
         order_by = ("-publish_date",)
 
 

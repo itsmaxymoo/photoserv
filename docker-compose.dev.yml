@@ -1,6 +1,6 @@
 services:
   database:
-    image: postgres:17-alpine
+    image: postgres:18-alpine
     environment:
       - POSTGRES_USER=${DATABASE_USER}
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
@@ -8,7 +8,7 @@ services:
     ports:
       - "4545:5432" # for inspecting in internal applications
     volumes:
-      - db:/var/lib/postgresql/data
+      - db:/var/lib/postgresql
   
   redis:
     image: redis:8

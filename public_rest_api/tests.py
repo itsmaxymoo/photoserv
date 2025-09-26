@@ -74,6 +74,30 @@ class APISerializerTestCase(TestCase):
         self.assertIn(self.album1, albums)
         self.assertIn(self.album2, albums)
 
+    def test_album_hierarchy(self):
+        # Create parent-child relationship
+        self.album2.parent = self.album1
+        self.album2.save()
+
+        # 1. Album contains reference to parent
+        url = f"/api/albums/{self.album2.uuid}/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+        self.assertIn("parent", data)
+        self.assertIsNotNone(data["parent"])
+        self.assertEqual(data["parent"]["uuid"], str(self.album1.uuid))
+
+        # 2. Album contains children
+        url = f"/api/albums/{self.album1.uuid}/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+        self.assertIn("children", data)
+        children = data["children"] if isinstance(data["children"], list) else []
+        child_uuids = [child["uuid"] for child in children]
+        self.assertIn(str(self.album2.uuid), child_uuids)
+
     # --- Tag Tests ---
     def test_tags_exist(self):
         tags = Tag.objects.all()
@@ -133,6 +157,31 @@ class APISerializerTestCase(TestCase):
         # Verify photos list includes our photo
         photo_uuids = [photo['uuid'] for photo in data.get('photos', [])]
         self.assertIn(str(self.photo.uuid), photo_uuids)
+    
+    # --- Test hidden photos are excluded from public API ---
+    def test_hidden_photos_excluded_from_public_api(self):
+        # Hide the photo
+        self.photo.hidden = True
+        self.photo.save()
+
+        # Check photo list does not include hidden photo
+        response = self.client.get("/api/photos/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        photo_uuids = [photo['uuid'] for photo in response.json()]
+        self.assertNotIn(str(self.photo.uuid), photo_uuids)
+
+        # Check photo detail returns 404
+        url = f"/api/photos/{self.photo.uuid}/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        # Test with album
+        url = f"/api/albums/{self.album1.uuid}/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+        photo_uuids = [photo['uuid'] for photo in data.get('photos', [])]
+        self.assertNotIn(str(self.photo.uuid), photo_uuids)
 
 
 class APISizeDetailTestCase(TestCase):

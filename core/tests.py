@@ -170,6 +170,17 @@ class AlbumTests(TestCase):
         self.album.sort_method = Album.DefaultSortMethod.MANUAL
         ordered = list(self.album.get_ordered_photos())
         self.assertEqual(ordered[0], photo2)
+    
+    def test_album_parents(self):
+        parent = Album.objects.create(title="Parent", description="Parent album")
+        child = Album.objects.create(title="Child", description="Child album", parent=parent)
+        self.assertEqual(child.parent, parent)
+        self.assertIn(child, parent.children.all())
+
+        # Test cyclic relationship prevention
+        with self.assertRaises(ValidationError):
+            parent.parent = child
+            parent.full_clean()
 
 
 class AlbumSlugTests(TestCase):

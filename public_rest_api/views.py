@@ -21,7 +21,7 @@ class PhotoViewSet(viewsets.ReadOnlyModelViewSet):
     authentication_classes = [APIKeyAuthentication]
     permission_classes = [HasAPIKey]
     lookup_field = 'uuid'
-    queryset = Photo.objects.all()
+    queryset = Photo.objects.filter(hidden=False)
 
     def get_serializer_class(self):
         if self.action == 'list':

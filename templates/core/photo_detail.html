@@ -63,6 +63,16 @@
                         {% endif %}
                     </td>
                 </tr>
+                <tr>
+                    <th>Hidden</th>
+                    <td>
+                        {% if object.hidden %}
+                        Yes
+                        {% else %}
+                        No
+                        {% endif %}
+                    </td>
+                </tr>
                 {% if object.albums %}
                 <tr>
                     <th>
