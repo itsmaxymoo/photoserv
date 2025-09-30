@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from dotenv import load_dotenv
+from .version import __version__ as APP_VERSION
 import os
 
 load_dotenv()
@@ -57,6 +58,7 @@ INSTALLED_APPS = [
     "crispy_daisyui",
 
     "rest_framework",
+    "drf_spectacular",
 
     'mozilla_django_oidc',
 
@@ -190,6 +192,29 @@ REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',  # Only JSON, no HTML
     ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Photoserv API',
+    'DESCRIPTION': 'Public API for your Photoserv instance.',
+    'VERSION': APP_VERSION,
+    'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True,
+    'TAGS': [],
+    'EXTENSIONS_TO_SCHEMA_FUNCTION': lambda generator, request, public: {
+        'x-speakeasy-retries': {
+            'strategy': 'backoff',
+            'backoff': {
+                'initialInterval': 500,
+                'maxInterval': 60000,
+                'maxElapsedTime': 3600000,
+                'exponent': 1.5,
+            },
+            'statusCodes': ['5XX'],
+            'retryConnectionErrors': True,
+        }
+    }
 }
 
 # --- IAM Config

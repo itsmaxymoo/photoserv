@@ -1,5 +1,7 @@
 {% extends "generic_crud_list.html" %}
 
+{% block title %}Public API{% endblock %}
+
 {% block content %}
 
 {% if new_api_key %}
@@ -12,5 +14,11 @@
 {% endif %}
 
 {{ block.super }}
+
+<div class="flex justify-center my-4">
+    <a href="{% url 'swagger' %}" class="btn btn-primary" target="_blank" rel="noopener">
+        API Explorer (Swagger)
+    </a>
+</div>
 
 {% endblock %}

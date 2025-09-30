@@ -42,7 +42,7 @@
                         x-show="openNavMenu" x-transition @click.outside="openNavMenu = false">
 
                         <li><a href="{% url 'size-list' %}">Sizes</a></li>
-                        <li><a href="{% url 'api-key-list' %}">API Keys</a></li>
+                        <li><a href="{% url 'api-key-list' %}">Public API</a></li>
                         {% if AUTH_ENABLED %}
                         <li><a href="{% url 'user-list' %}">Users</a></li>
                         <li>

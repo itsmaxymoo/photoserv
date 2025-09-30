@@ -3,9 +3,8 @@
 Photoserv is an application for photographers, artists, or similar who want a system to act as a single source of truth
 for their publicly published photos.
 
-| | |
-| --- | --- |
 | ![Photo detail](docs/screenshots/photo_detail.png) | ![Album detail](docs/screenshots/album_detail.png) |
+| --- | --- |
 | ![Size list](docs/screenshots/size_list.png) | ![API Key list](docs/screenshots/api_key_list.png) |
 
 ## Features
@@ -14,8 +13,13 @@ for their publicly published photos.
 * Extract metadata from photos for consumption in other systems.
 * Exposes a REST api for applications and integrations to interact with your data.
     * For example, a photo portfolio website in Astro.js can consume this.
+    * Swagger API browser included.
 * Define multiple sizes for your photos to be available in.
 * OIDC and simple auth optional.
+
+## Installation
+
+* `docker compose up -d`
 
 ## Configuration
 
@@ -56,9 +60,13 @@ OIDC_SIGN_ALGO=RS256 # optional
 OIDC Callback URL: `<your-photoserv-root>/login/oidc/callback/`  
 Example: `https://photoserv.maxloiacono.com/login/oidc/callback/`
 
-## Installation
+## API Documentation
 
-* `docker compose up -d`
+Once set up, visit `https://<your-instance/swagger` for an interactive Swagger API browser.
+
+> [!NOTE]
+> You will have to create an API key from within Photoserv (`Settings > Public API`) before
+using Swagger.
 
 ## Roadmap
 
@@ -66,12 +74,13 @@ Example: `https://photoserv.maxloiacono.com/login/oidc/callback/`
 2. ~~Mobile layout~~
 3. ~~Add feature to hide photos from the UI~~
 4. Consistency checker
-5. API documentation
+5. ~~API documentation~~
 6. Security/traefik documentation
 7. ~~Album Parents~~
 8. Jobs overview
 9. ~~API response metadata~~
 10. ~~EV comp filter~~
-11. 1.0 release
-12. 1.1: Webhooks
-13. 1.2: Social integration
+11. Photo formset
+12. 1.0 release
+13. 1.1: Webhooks
+14. 1.2: Social integration

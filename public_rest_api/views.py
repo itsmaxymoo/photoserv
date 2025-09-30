@@ -72,6 +72,7 @@ class AlbumViewSet(viewsets.ReadOnlyModelViewSet):
 class SiteHealthAPIView(GenericAPIView):
     authentication_classes = [APIKeyAuthentication]
     permission_classes = [HasAPIKey]
+    serializer_class = SiteHealthSerializer
 
     def get(self, request, *args, **kwargs):
         from core.models import Photo, PhotoSize
