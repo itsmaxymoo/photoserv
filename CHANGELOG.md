@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/itsmaxymoo/photoserv/compare/0.2.0...0.3.0) (2025-09-30)
+
+
+### Features
+
+* Add Swagger based API explorer. ([7b92879](https://github.com/itsmaxymoo/photoserv/commit/7b92879b6f3d7780d4e172f22c8cf6b0ca44ec3a))
+
 ## [0.2.0](https://github.com/itsmaxymoo/photoserv/compare/0.1.7...0.2.0) (2025-09-26)
 
 
