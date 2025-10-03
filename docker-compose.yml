@@ -9,8 +9,8 @@ services:
     depends_on:
       - database
       - redis
-    ports:
-      - "8000:8000"
+    # ports:
+    #   - "8000:8000"
     networks:
       - bridge
 
