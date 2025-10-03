@@ -2,6 +2,12 @@
 
 {% extends "django_tables2/table.html" %}
 
+{% block table %}
+<div class="overflow-x-scroll">
+    {{ block.super }}
+</div>
+{% endblock %}
+
 {% block pagination %}
     {% include "django_tables2/pagination.html" with page=page table=table %}
 {% endblock %}
