@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "api_key",
     "public_rest_api",
     "iam",
+    "job_overview",
 
     'django.contrib.admin',
     'django.contrib.auth',
@@ -160,6 +161,7 @@ CELERY_ALWAYS_EAGER = DEBUG
 CELERY_TASK_TIME_LIMIT = 30 * 60
 CELERY_BROKER_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/0"
 CELERY_RESULT_BACKEND = "django-db"
+CELERY_RESULT_EXTENDED = True
 
 
 # Static files (CSS, JavaScript, Images)

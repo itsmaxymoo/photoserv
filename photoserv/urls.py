@@ -21,6 +21,7 @@ from public_rest_api.urls import urlpatterns as api_urls
 from api_key.urls import urlpatterns as api_key_urls
 from iam.urls import urlpatterns as iam_urls
 from home.urls import urlpatterns as home_urls
+from job_overview.urls import urlpatterns as job_overview_urls
 from drf_spectacular.views import SpectacularSwaggerView, SpectacularJSONAPIView
 from .settings import DEBUG
 
@@ -30,6 +31,7 @@ urlpatterns = [
     path("", include(api_key_urls)),
     path("", include(iam_urls)),
     path("", include(home_urls)),
+    path("", include(job_overview_urls)),
     path("swagger/", SpectacularSwaggerView.as_view(url_name="api-schema"), name="swagger"),
     path("swagger/schema/", SpectacularJSONAPIView.as_view(), name="api-schema"),
 ]
