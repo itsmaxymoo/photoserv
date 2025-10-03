@@ -9,6 +9,10 @@ Editing {{ object|default:object_type_name }}
 
 {% block content %}
 
+<!-- Tailwind Compiler: clearablefileinput file-input-bordered focus:ring file-input focus:outline-none
+textarea textarea-bordered w-full textarea focus:ring focus:outline-none 
+-->
+
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
 
