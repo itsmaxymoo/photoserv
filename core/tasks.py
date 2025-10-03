@@ -111,9 +111,10 @@ def delete_files(files):
     for path in files:
         try:
             os.remove(path)
-            return f"Deleted {path}."
         except FileNotFoundError:
             pass
+    
+    return f"Deleted {len(files)} files."
 
 
 @shared_task
