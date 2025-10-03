@@ -1,4 +1,6 @@
 from django.urls import reverse
+from django.shortcuts import render, redirect
+from django.views import View
 from django.views.generic import DetailView, CreateView, UpdateView, DeleteView
 from django_tables2.views import SingleTableView
 from django.db.models import Count
@@ -57,6 +59,21 @@ class PhotoCreateView(PhotoMixin, CreateView):
 
     def get_success_url(self):
         return reverse('photo-detail', kwargs={'pk': self.object.pk})
+
+
+class PhotoCreateMultipleView(PhotoMixin, View):
+    template_name = "core/photo_formset.html"
+
+    def get(self, request, *args, **kwargs):
+        formset = PhotoFormSet(queryset=Photo.objects.none())  # empty forms
+        return render(request, self.template_name, {"formset": formset})
+
+    def post(self, request, *args, **kwargs):
+        formset = PhotoFormSet(request.POST, request.FILES, queryset=Photo.objects.none())
+        if formset.is_valid():
+            formset.save()
+            return redirect(reverse("photo-list"))
+        return render(request, self.template_name, {"formset": formset})
 
 
 class PhotoUpdateView(PhotoMixin, UpdateView):

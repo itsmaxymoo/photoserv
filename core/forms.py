@@ -1,6 +1,6 @@
 from django import forms
+from django.forms import modelformset_factory
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Field
 from .models import *
 
 
@@ -62,6 +62,30 @@ class PhotoForm(forms.ModelForm):
 
 
         return photo
+
+
+class CondensedPhotoForm(PhotoForm):
+    description = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 1, "class": "min-h-0"})
+    )
+
+    class Meta(PhotoForm.Meta):
+        fields = ["title", "description", "raw_image", "hidden", "albums"]
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Remove the slug field inherited from PhotoForm
+        if "slug" in self.fields:
+            del self.fields["slug"]
+
+
+PhotoFormSet = forms.modelformset_factory(
+    Photo,
+    form=CondensedPhotoForm,
+    extra=2,
+    can_delete=False
+)
 
 
 class SizeForm(forms.ModelForm):

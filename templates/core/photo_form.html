@@ -36,54 +36,7 @@ Editing {{ object|default:object_type_name }}
             {% endfor %}
         </div>
 
-        <!-- TAGS HERE -->
-        <div x-data="tagsInput()" class="space-y-2">
-            <label class="block font-medium mb-1">Tags</label>
-
-            <div class="flex flex-wrap gap-2">
-                <!-- Existing tags displayed as badges -->
-                <template x-for="(tag, index) in tags" :key="index">
-                    <div class="badge badge-secondary flex items-center gap-1">
-                        <span x-text="tag"></span>
-                        <button type="button" @click="removeTag(index)" class="ml-1">×</button>
-                    </div>
-                </template>
-
-                <!-- Input box -->
-                <input type="text" placeholder="Add tag + press enter" class="input input-sm max-w-48"
-                    x-model="newTag" @keydown.enter.prevent="addTag()" />
-            </div>
-
-            <!-- Hidden input to submit tags as semicolon-separated string -->
-            <input type="hidden" name="tags" :value="tags.join(';')">
-        </div>
-
-        <script>
-            function tagsInput() {
-                return {
-                    tags: [
-                        {% if form.initial.tags_list %}
-                            {% for tag in form.initial.tags_list %}
-                                "{{ tag|escapejs }}"{% if not forloop.last %},{% endif %}
-                            {% endfor %}
-                        {% endif %}
-                    ],
-                    newTag: '',
-                    addTag() {
-                        let tag = this.newTag.trim().replace(/[;\n\r]/g, '');
-                        if (tag && !this.tags.includes(tag)) {
-                            this.tags.push(tag);
-                        }
-                        this.newTag = '';
-                    },
-                    removeTag(index) {
-                        this.tags.splice(index, 1);
-                    }
-                }
-            }
-        </script>
-
-
+        {% include './partials/tag_input.html' %}
 
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
             <div>

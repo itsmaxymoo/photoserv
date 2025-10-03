@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% load crispy_forms_tags %}
+{% load daisyui_filters %}
+
+{% block title %}
+Create Multiple {{ object_type_name_plural|default:"Photos" }}
+{% endblock %}
+
+{% block content %}
+
+<!-- Tailwind compiler: min-h-0 -->
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    {{ formset.management_form }}
+
+    <div class="grid grid-cols-1 gap-4">
+        <div>
+            <h2>Editing Multiple {{ object_type_name_plural|default:"Photos" }}</h2>
+        </div>
+
+        {% if edit_disclaimer is not None %}
+        <div>
+            <p>
+                <strong>Note:</strong> {{ edit_disclaimer }}
+            </p>
+        </div>
+        {% endif %}
+
+        {% if formset.non_form_errors %}
+        <div class="alert alert-error" id="form-errors">
+            {{ formset.non_form_errors }}
+        </div>
+        {% endif %}
+
+        <!-- Loop through each form in the formset -->
+        {% for form in formset.forms %}
+        <div class="box">
+            {% if form.non_field_errors %}
+            <div class="alert alert-error mb-2">
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+
+            <div>
+                {% for field in form %}
+                    {{ field|as_crispy_field }}
+                {% endfor %}
+            </div>
+
+            {% include './partials/tag_input.html' with tags_field=form.tags %}
+        </div>
+        {% endfor %}
+
+        <div class="flex flex-col sm:flex-row gap-4 justify-center mt-4">
+            <div>
+                <a href="{% url 'photo-list' %}" class="btn btn-secondary btn">
+                    Cancel
+                </a>
+            </div>
+            <div>
+                <button type="submit" class="btn btn-primary btn">
+                    Save All
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+{% endblock %}
