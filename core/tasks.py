@@ -102,6 +102,8 @@ def generate_photo_sizes_for_size(size_id):
     photos = models.Photo.objects.all()
     for photo in photos:
         generate_sizes_for_photo.delay(photo.id)
+    
+    return f"Size generation tasks queued for size id {size.id}."
 
 
 @shared_task
@@ -109,6 +111,7 @@ def delete_files(files):
     for path in files:
         try:
             os.remove(path)
+            return f"Deleted {path}."
         except FileNotFoundError:
             pass
 
