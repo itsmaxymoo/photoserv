@@ -35,24 +35,87 @@ Create Multiple {{ object_type_name_plural|default:"Photos" }}
         </div>
         {% endif %}
 
-        <!-- Loop through each form in the formset -->
-        {% for form in formset.forms %}
-        <div class="box">
-            {% if form.non_field_errors %}
-            <div class="alert alert-error mb-2">
-                {{ form.non_field_errors }}
-            </div>
-            {% endif %}
+        <div x-data="{
+            i: {{ formset.forms|length }},
+            addForm(scroll = true) {
+                const template = document.getElementById('photo-form-template');
+                const clone = template.content.cloneNode(true);
 
-            <div>
-                {% for field in form %}
-                    {{ field|as_crispy_field }}
-                {% endfor %}
+                // Recursively replace __prefix__ in all id attributes
+                function replacePrefix(node, index) {
+                if (node.nodeType === Node.ELEMENT_NODE) {
+                    if (node.id && node.id.includes('__prefix__')) {
+                    node.id = node.id.replace(/__prefix__/g, index);
+                    }
+                    // Also replace in 'for' attributes for labels
+                    if (node.htmlFor && node.htmlFor.includes('__prefix__')) {
+                    node.htmlFor = node.htmlFor.replace(/__prefix__/g, index);
+                    }
+                    // Also replace in name attributes
+                    if (node.name && node.name.includes('__prefix__')) {
+                    node.name = node.name.replace(/__prefix__/g, index);
+                    }
+                }
+                node.childNodes.forEach(child => replacePrefix(child, index));
+                }
+                replacePrefix(clone, this.i);
+
+                const formsContainer = document.getElementById('forms');
+                formsContainer.appendChild(clone);
+                if (scroll) {
+                    const lastForm = formsContainer.lastElementChild;
+                if (lastForm) {
+                    lastForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                }
+                this.i++;
+
+                document.getElementById('id_form-TOTAL_FORMS').value = this.i;
+            }
+            }"
+            x-init="{{ formset.forms|length }} == 0 ? addForm(false) : ''"
+        >
+            <template id="photo-form-template">
+                <div class="box mb-4">
+                    {% if formset.empty_form.non_field_errors %}
+                    <div class="alert alert-error mb-2">
+                        {{ formset.empty_form.non_field_errors }}
+                    </div>
+                    {% endif %}
+
+                    <div>
+                    {{ formset.empty_form|crispy }}
+                    </div>
+
+                    {% include './partials/tag_input.html' with tags_field=formset.empty_form.tags form_input_name="form-__prefix__-tags" %}
+                </div>
+            </template>
+
+            <div id="forms">
+                {% for form in formset.forms %}
+                <div class="box mb-4">
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-error mb-2">
+                        {{ form.non_field_errors }}
+                    </div>
+                    {% endif %}
+
+                    <div>
+                        {{ form|crispy }}
+                    </div>
+
+                    {% include './partials/tag_input.html' with tags_field=form.tags form_input_name=form.prefix|add:"-tags" %}
+                </div>
+            {% endfor %}
             </div>
 
-            {% include './partials/tag_input.html' with tags_field=form.tags %}
+            <div class="flex justify-center">
+                <button type="button" class="btn btn-secondary" id="add-form-button"
+                    @click="addForm()">
+                    + New
+                </button>
+            </div>
         </div>
-        {% endfor %}
 
         <div class="flex flex-col sm:flex-row gap-4 justify-center mt-4">
             <div>

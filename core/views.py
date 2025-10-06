@@ -16,6 +16,7 @@ class PhotoMixin(CRUDGenericMixin):
     object_type_name = "Photo"
     object_type_name_plural = "Photos"
     object_url_name_slug = "photo"
+    formset_support = True
 
 
 class PhotoListView(PhotoMixin, SingleTableView):

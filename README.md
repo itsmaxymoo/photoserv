@@ -137,7 +137,7 @@ Assume:
 8. ~~Jobs overview~~
 9. ~~API response metadata~~
 10. ~~EV comp filter~~
-11. Photo formset
+11. ~~Photo formset~~
 12. 1.0 release
 13. 1.1: Webhooks
 14. 1.2: Social integration

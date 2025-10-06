@@ -17,7 +17,7 @@
     </div>
 
     <!-- Hidden input to submit tags as semicolon-separated string -->
-    <input type="hidden" name="tags" :value="tags.join(';')">
+    <input type="hidden" name="{{ form_input_name|default:'tags' }}" :value="tags.join(';')">
 </div>
 
 <script>

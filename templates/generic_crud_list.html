@@ -8,9 +8,16 @@
     <h2>{{ object_type_name_plural }}</h2>
 
     {% if can_directly_create %}
-    <a href="{% url object_url_name_slug|add:'-create' %}" class="btn btn-primary">
-        Create
-    </a>
+        <div>
+            {% if formset_support %}
+            <a href="{% url object_url_name_slug|add:'-create-multiple' %}" class="btn btn-primary">
+                Create Multiple
+            </a>
+            {% endif %}
+            <a href="{% url object_url_name_slug|add:'-create' %}" class="btn btn-primary">
+                Create
+            </a>
+        </div>
     {% endif %}
 </div>
 

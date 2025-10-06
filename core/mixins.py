@@ -15,5 +15,6 @@ class CRUDGenericMixin:
         context["no_object_detail_page"] = self.no_object_detail_page == True if hasattr(self, 'no_object_detail_page') else False
         context["edit_disclaimer"] = self.edit_disclaimer
         context["can_directly_create"] = self.can_directly_create
+        context["formset_support"] = self.formset_support if hasattr(self, 'formset_support') else False
 
         return context

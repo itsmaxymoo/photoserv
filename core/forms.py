@@ -83,7 +83,7 @@ class CondensedPhotoForm(PhotoForm):
 PhotoFormSet = forms.modelformset_factory(
     Photo,
     form=CondensedPhotoForm,
-    extra=2,
+    extra=0,
     can_delete=False
 )
 
