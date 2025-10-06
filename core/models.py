@@ -33,6 +33,10 @@ class Photo(models.Model):
     )
 
     @property
+    def public(self):
+        return not self.hidden
+
+    @property
     def health(self) -> "PhotoHealth":
         all_sizes = all(self.sizes.filter(size=size).exists() for size in Size.objects.all())
         metadata = PhotoMetadata.objects.filter(photo=self).exists()

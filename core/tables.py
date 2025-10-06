@@ -16,7 +16,7 @@ class PhotoTable(tables.Table):
         "th": {"class": "hidden md:table-cell"}
     })
     publish_date = tables.Column()
-    public = tables.BooleanColumn(accessor="not hidden")
+    public = tables.BooleanColumn()
 
     def render_description(self, value):
         # Limit to 240 characters and add ellipsis if longer
