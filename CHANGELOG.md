@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.4.0](https://github.com/itsmaxymoo/photoserv/compare/0.3.0...0.4.0) (2025-10-06)
+
+
+### Features
+
+* Better documentation ([5503424](https://github.com/itsmaxymoo/photoserv/commit/550342439bd485bf416f3a108f6fcea949fdd771))
+* Create multiple photos at once ([3407f91](https://github.com/itsmaxymoo/photoserv/commit/3407f918cd962d30e43435bd3de5d251c2e1a9eb))
+* Jobs overview ([d208deb](https://github.com/itsmaxymoo/photoserv/commit/d208debe805a00df7e4a56881c6f645a6e0ecefa))
+
+
+### Bug Fixes
+
+* All images falsely displayed as not public ([be5b6e8](https://github.com/itsmaxymoo/photoserv/commit/be5b6e8778f72a4ba5c8fc58f35b7d36c08acacc))
+* Borders and styling missing for some form elements ([e6a7e30](https://github.com/itsmaxymoo/photoserv/commit/e6a7e302464610d543331b661788de3627559b35))
+* Make sure all core tasks return a message ([3de33e5](https://github.com/itsmaxymoo/photoserv/commit/3de33e5d7822f18dd7c3adf30651dc4c5a3b92fb))
+* Pagination no longer scrolls away when tables overflow horizontally ([997a5d5](https://github.com/itsmaxymoo/photoserv/commit/997a5d5bc4f4ba652021af4345a8e116d4223a88))
+
 ## [0.3.0](https://github.com/itsmaxymoo/photoserv/compare/0.2.0...0.3.0) (2025-09-30)
 
 
