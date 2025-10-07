@@ -138,6 +138,7 @@ Assume:
 9. ~~API response metadata~~
 10. ~~EV comp filter~~
 11. ~~Photo formset~~
-12. 1.0 release
-13. 1.1: Webhooks
-14. 1.2: Social integration
+12. Split app and worker into two containers
+13. 1.0 release
+14. 1.1: Webhooks
+15. 1.2: Social integration
