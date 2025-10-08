@@ -235,7 +235,7 @@ class Album(models.Model):
         if self.sort_method == self.DefaultSortMethod.MANUAL:
             order_by = "photoinalbum__order"
         elif self.sort_method == self.DefaultSortMethod.CREATED:
-            order_by = "exif__capture_date"
+            order_by = "metadata__capture_date"
         elif self.sort_method == self.DefaultSortMethod.PUBLISHED:
             order_by = "publish_date"
         elif self.sort_method == self.DefaultSortMethod.RANDOM:
