@@ -48,7 +48,7 @@ Editing {{ object|default:object_type_name }}
                         class="rounded flex items-center justify-between space-x-2 even:bg-base-200 p-2 hover:cursor-move">
                         <div class="flex items-center space-x-2">
                             <div class="w-32 h-32 flex items-center mr-4">
-                                <img src="{% url 'photo-image' photo.id 'photoserv_ui_thumbnail' %}"
+                                <img src="{% url 'photo-image' photo.id 'photoserv_ui_large' %}"
                                     alt="{{ photo.title }}" class="max-w-full object-cover shadow">
                             </div>
                             <span class="text-xl">{{ photo.title }}</span>
