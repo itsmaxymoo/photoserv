@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.1](https://github.com/itsmaxymoo/photoserv/compare/0.4.0...0.4.1) (2025-10-08)
+
+
+### Bug Fixes
+
+* Display images on album order page ([a70fbe6](https://github.com/itsmaxymoo/photoserv/commit/a70fbe6b9586ec4328eb644ccb4e20d3a6e712e9))
+* Various styling issues ([50f61aa](https://github.com/itsmaxymoo/photoserv/commit/50f61aacc9e9d2b055f72a8b8d0bf1fe7c33df89))
+
 ## [0.4.0](https://github.com/itsmaxymoo/photoserv/compare/0.3.0...0.4.0) (2025-10-06)
 
 
