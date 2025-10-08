@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.2](https://github.com/itsmaxymoo/photoserv/compare/0.4.1...0.4.2) (2025-10-08)
+
+
+### Bug Fixes
+
+* Album trying to access invalid Photo property ([656f6ff](https://github.com/itsmaxymoo/photoserv/commit/656f6ffbe08f1c669e56b4f7611b3160403b2fa7))
+* Styles not persisting from dev to container context ([0ed68c4](https://github.com/itsmaxymoo/photoserv/commit/0ed68c4510c305c1745805855b4bedfb40c975e8))
+
 ## [0.4.1](https://github.com/itsmaxymoo/photoserv/compare/0.4.0...0.4.1) (2025-10-08)
 
 
