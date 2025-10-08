@@ -81,7 +81,7 @@
 
                     <td>
                         {% if object.albums.all %}
-                        <ul>
+                        <ul class="list-disc list-inside">
                             {% for album in object.albums.all %}
                             <li>
                                 <a href="{{ album.get_absolute_url }}" class="link link-hover">
