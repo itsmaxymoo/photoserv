@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.5.0](https://github.com/itsmaxymoo/photoserv/compare/0.4.2...0.5.0) (2025-10-10)
+
+
+### Features
+
+* Consistency checker ([02b983f](https://github.com/itsmaxymoo/photoserv/commit/02b983f64606135471e69b5ef559bc74a9ae10cc))
+
+
+### Bug Fixes
+
+* Photo sizes not deleted when photo deleted ([aad5770](https://github.com/itsmaxymoo/photoserv/commit/aad5770920273f20deea2da7d8e14c11e11a804b))
+
 ## [0.4.2](https://github.com/itsmaxymoo/photoserv/compare/0.4.1...0.4.2) (2025-10-08)
 
 
