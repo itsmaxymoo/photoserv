@@ -7,6 +7,8 @@ import os
 from PIL.ExifTags import TAGS as ExifTags
 from datetime import datetime
 import exiftool
+from . import CONTENT_RESIZED_PHOTOS_PATH
+from django.conf import settings
 
 
 # Metadata tag constants
@@ -87,7 +89,10 @@ def generate_sizes_for_photo(photo_id):
         if models.PhotoSize.objects.filter(photo=photo, size=size).exists():
             continue  # Skip if already exists
 
-        gen_size(photo, size)
+        try:
+            gen_size(photo, size)
+        except FileNotFoundError:
+            return f"Raw image file for photo id {photo.id} not found."
     
     return f"Sizes generated for photo id {photo.id}."
 
@@ -177,3 +182,54 @@ def generate_photo_metadata(photo_id):
         metadata.save()
 
         return f"Metadata generated for photo id {photo.id}."
+
+
+@shared_task
+def consistency():
+    issues = 0
+
+    # Filesystem
+    # --- Build full paths under MEDIA_ROOT ---
+    resized_photos_dir = os.path.join(settings.MEDIA_ROOT, CONTENT_RESIZED_PHOTOS_PATH)
+
+    # Ensure directories exist
+    os.makedirs(resized_photos_dir, exist_ok=True)
+
+    # Photo Sizes
+    # 1. Ensure every photo size's image file exists
+    photo_sizes = models.PhotoSize.objects.all()
+    for photo_size in photo_sizes:
+        if not photo_size.image or not os.path.isfile(photo_size.image.path):
+            issues += 1
+            photo_size.delete()
+
+    # Photo Objects
+    photos = models.Photo.objects.all()
+    for photo in photos:
+        # 1. Ensure every photo has metadata
+        if not hasattr(photo, 'metadata'):
+            issues += 1
+            generate_photo_metadata.delay(photo.id)
+
+        # 3. Ensure every photo has sizes
+        sizes = models.Size.objects.all()
+        photo_sizes = models.PhotoSize.objects.filter(photo=photo)
+        if photo_sizes.count() < sizes.count():
+            issues += 1
+            generate_sizes_for_photo.delay(photo.id)
+
+    # Filesystem
+    # 1. Delete stray resized photos
+    resized_photos = models.PhotoSize.objects.values_list('image', flat=True)
+    delete_files_list = []
+    for disk_file in os.listdir(resized_photos_dir):
+        rel_path = os.path.join(CONTENT_RESIZED_PHOTOS_PATH, disk_file)
+        abs_path = os.path.join(resized_photos_dir, disk_file)
+        if rel_path not in resized_photos:
+            issues += 1
+            delete_files_list.append(abs_path)
+
+    if len(delete_files_list) > 0:
+        delete_files.delay(delete_files_list)
+
+    return f"Identified and queued fixes for {issues} issues." if issues > 0 else "No issues found."

@@ -163,6 +163,13 @@ CELERY_BROKER_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/0"
 CELERY_RESULT_BACKEND = "django-db"
 CELERY_RESULT_EXTENDED = True
 
+CELERY_BEAT_SCHEDULE = {
+    'run-consistency': {
+        'task': 'core.tasks.consistency',
+        'schedule': 60.0 * 60 * 24,
+    },
+}
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/

@@ -130,7 +130,7 @@ Assume:
 1. ~~Better documentation~~
 2. ~~Mobile layout~~
 3. ~~Add feature to hide photos from the UI~~
-4. Consistency checker
+4. ~~Consistency checker~~
 5. ~~API documentation~~
 6. ~~Security/traefik documentation~~
 7. ~~Album Parents~~
@@ -138,7 +138,7 @@ Assume:
 9. ~~API response metadata~~
 10. ~~EV comp filter~~
 11. ~~Photo formset~~
-12. Split app and worker into two containers
+12. ~~Split app and worker into two containers~~ Should we though?
 13. 1.0 release
 14. 1.1: Webhooks
 15. 1.2: Social integration
