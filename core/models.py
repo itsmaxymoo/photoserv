@@ -93,7 +93,7 @@ class Photo(models.Model):
     
     def delete(self, *args, **kwargs):
         # Delete all sizes associated with this photo
-        size_files = list(self.sizes.values_list('image', flat=True))
+        size_files = [s.image.path for s in self.sizes.all() if s.image]
         size_files.append(self.raw_image.path)
 
         if size_files:
