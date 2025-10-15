@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/itsmaxymoo/photoserv/compare/0.5.0...0.5.1) (2025-10-15)
+
+
+### Bug Fixes
+
+* 404 error when merging tags ([8c4d037](https://github.com/itsmaxymoo/photoserv/commit/8c4d037d1ee97702c686389652c5dde605eda032))
+
 ## [0.5.0](https://github.com/itsmaxymoo/photoserv/compare/0.4.2...0.5.0) (2025-10-10)
 
 
