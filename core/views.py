@@ -248,11 +248,10 @@ class TagUpdateView(TagMixin, UpdateView):
     template_name = "generic_crud_form.html"
 
     def get_success_url(self):
-        # tag-detail may not exist if the tag was renamed and merged into another tag
-        try:
-            return reverse('tag-detail', kwargs={'pk': self.object.pk})
-        except NoReverseMatch:
+        # If the tag was merged (and deleted), redirect to tag list
+        if not Tag.objects.filter(pk=self.object.pk).exists():
             return reverse('tag-list')
+        return reverse('tag-detail', kwargs={'pk': self.object.pk})
 
 
 class TagDeleteView(TagMixin, DeleteView):

@@ -2,6 +2,9 @@ from unittest import mock
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from .models import *
+from .views import TagUpdateView
+from django.core.exceptions import ObjectDoesNotExist
+from django.urls import reverse
 
 
 class PhotoModelTests(TestCase):
@@ -148,6 +151,31 @@ class PhotoTagTests(TestCase):
         PhotoTag.objects.create(photo=photo, tag=tag)
         with self.assertRaises(Exception):
             PhotoTag.objects.create(photo=photo, tag=tag)
+    
+    def test_renaming_tag2_to_tag1_then_get_url_points_to_tag_list(self):
+        photo = Photo.objects.create(title="P", raw_image="r.jpg")
+        tag1 = Tag.objects.create(name="tag1")
+        tag2 = Tag.objects.create(name="tag2")
+
+        PhotoTag.objects.create(photo=photo, tag=tag1)
+        PhotoTag.objects.create(photo=photo, tag=tag2)
+
+        # Rename tag2 to tag1 — triggers merge (tag2 will be deleted)
+        tag2.name = "tag1"
+        tag2.save()
+
+        # After merge, tag2 should be gone
+        with self.assertRaises(ObjectDoesNotExist):
+            Tag.objects.get(pk=tag2.pk)
+
+        # Simulate the view's get_success_url() behavior
+        # If the tag was merged and deleted, we should be redirected to tag-list
+        view = TagUpdateView()
+        view.object = tag2  # mimic what the view would have before deletion
+        url = view.get_success_url()
+
+        expected = reverse("tag-list")
+        self.assertEqual(url, expected)
 
 
 class AlbumTests(TestCase):
