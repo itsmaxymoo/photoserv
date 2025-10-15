@@ -9,6 +9,7 @@ from .forms import *
 from .tables import *
 from .mixins import CRUDGenericMixin
 from django.http import FileResponse, Http404
+from django.urls import NoReverseMatch
 
 #region Photo
 
@@ -247,7 +248,11 @@ class TagUpdateView(TagMixin, UpdateView):
     template_name = "generic_crud_form.html"
 
     def get_success_url(self):
-        return reverse('tag-detail', kwargs={'pk': self.object.pk})
+        # tag-detail may not exist if the tag was renamed and merged into another tag
+        try:
+            return reverse('tag-detail', kwargs={'pk': self.object.pk})
+        except NoReverseMatch:
+            return reverse('tag-list')
 
 
 class TagDeleteView(TagMixin, DeleteView):
