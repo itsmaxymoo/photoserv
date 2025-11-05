@@ -243,6 +243,10 @@ class APISizeDetailTestCase(TestCase):
         size_slugs = [s['slug'] for s in response.json()]
         self.assertIn(public_size.slug, size_slugs)
 
+        # 1.5. Ensure UUID is present in size listing
+        size_uuids = [s['uuid'] for s in response.json()]
+        self.assertIn(str(public_size.uuid), size_uuids)
+
         # 2. Ensure accessing photo size works
         url = f"/api/photos/{self.photo.uuid}/sizes/{public_size.slug}/"
         response = self.client.get(url)

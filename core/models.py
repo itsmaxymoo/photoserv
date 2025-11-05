@@ -9,15 +9,31 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 
-class Photo(models.Model):
+class PublicEntity(models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        now = timezone.now()
+        # Always update updated_at to current time
+        self.updated_at = now
+        # Persist timestamp changes
+        super().save(update_fields=["created_at", "updated_at"])
+
+    class Meta:
+        abstract = True
+
+
+class Photo(PublicEntity):
     def get_image_file_path(instance, filename):
         ext = os.path.splitext(filename)[1]
         random_str = uuid.uuid4().hex[:8]
         kebab_title = slugify(instance.title)
         new_filename = f"{random_str}-{kebab_title}{ext}"
         return os.path.join(CONTENT_RAW_PHOTOS_PATH, new_filename)
-    
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
 
     title = models.CharField(max_length=255)
     slug = models.SlugField(max_length=255, unique=True)
@@ -111,7 +127,7 @@ class PhotoHealth:
         self.metadata = metadata
 
 
-class PhotoMetadata(models.Model):
+class PhotoMetadata(PublicEntity):
     photo = models.OneToOneField(Photo, on_delete=models.CASCADE, related_name="metadata", unique=True)
 
     capture_date = models.DateTimeField(null=True, blank=True)
@@ -138,8 +154,7 @@ class PhotoMetadata(models.Model):
         return f"Metadata for {str(self.photo)}"
 
 
-class Tag(models.Model):
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
+class Tag(PublicEntity):
     name = models.CharField(max_length=128)
 
     class Meta:
@@ -176,7 +191,7 @@ class Tag(models.Model):
 
                 # finally, delete the old tag
                 old.delete()
-                return existing
+                return existing.save(*args, **kwargs)
         # Normal creation or no name change
         return super().save(*args, **kwargs)
 
@@ -199,14 +214,12 @@ class PhotoTag(models.Model):
         return str(self.tag)
 
 
-class Album(models.Model):
+class Album(PublicEntity):
     class DefaultSortMethod(models.TextChoices):
         CREATED = "CREATED", "Created/Taken"
         PUBLISHED = "PUBLISHED", "Published/Uploaded"
         MANUAL = "MANUAL", "Manual"
         RANDOM = "RANDOM", "Random"
-
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
 
     title = models.CharField(max_length=255, unique=True)
     short_description = models.CharField(max_length=255, blank=True, default="")
@@ -297,7 +310,7 @@ class PhotoInAlbum(models.Model):
         return f"{self.album.title} -> {self.photo.title}"
 
 
-class Size(models.Model):
+class Size(PublicEntity):
     slug = models.CharField(max_length=32, unique=True)
     comment = models.CharField(max_length=255, blank=True, null=True)
     max_dimension = models.PositiveIntegerField()

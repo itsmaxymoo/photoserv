@@ -5,6 +5,9 @@ from .models import *
 from .views import TagUpdateView
 from django.core.exceptions import ObjectDoesNotExist
 from django.urls import reverse
+from django.db.migrations.executor import MigrationExecutor
+from django.db import connection
+from django.apps import apps
 
 
 class PhotoModelTests(TestCase):
@@ -327,3 +330,89 @@ class PhotoSizeTests(TestCase):
         PhotoSize.objects.create(photo=photo, size=size, image="resized.jpg")
         with self.assertRaises(Exception):
             PhotoSize.objects.create(photo=photo, size=size, image="resized2.jpg")
+
+
+class CommonEntityTests(TestCase):
+    def test_created_at_and_updated_at(self):
+        album = Album.objects.create(title="Album", description="desc")
+        self.assertIsNotNone(album.created_at)
+        self.assertIsNotNone(album.updated_at)
+
+        old_updated_at = album.updated_at
+        album.title = "New Title"
+        album.save()
+        self.assertGreater(album.updated_at, old_updated_at)
+    
+    def test_uuid_field_exists(self):
+        photo_meta = PhotoMetadata.objects.create(photo=Photo.objects.create(title="P", raw_image="r.jpg"))
+        self.assertIsNotNone(photo_meta.uuid)
+
+
+class TestMigrations(TestCase):
+
+    @property
+    def app(self):
+        return apps.get_containing_app_config(type(self).__module__).name
+
+    migrate_from = None
+    migrate_to = None
+
+    def setUp(self):
+        assert self.migrate_from and self.migrate_to, \
+            "TestCase '{}' must define migrate_from and migrate_to properties".format(type(self).__name__)
+        self.migrate_from = [(self.app, self.migrate_from)]
+        self.migrate_to = [(self.app, self.migrate_to)]
+        executor = MigrationExecutor(connection)
+        old_apps = executor.loader.project_state(self.migrate_from).apps
+
+        # Reverse to the original migration
+        executor.migrate(self.migrate_from)
+
+        self.setUpBeforeMigration(old_apps)
+
+        # Run the migration to test
+        executor = MigrationExecutor(connection)
+        executor.loader.build_graph()  # reload.
+        executor.migrate(self.migrate_to)
+
+        self.apps = executor.loader.project_state(self.migrate_to).apps
+
+    def setUpBeforeMigration(self, apps):
+        pass
+
+
+class TestMigration0003(TestMigrations):
+    migrate_from = "0002_album_parent_photo_hidden"
+    migrate_to = "0003_core_entity_common_base"
+
+    def setUpBeforeMigration(self, apps):
+        # Use old apps registry to create multiple pre-migration Size objects
+        SizeOld = apps.get_model("core", "Size")
+
+        self.sizes = []
+        for i in range(5):
+            size = SizeOld.objects.create(
+                slug=f"size-{i}",
+                max_dimension=100 * (i + 1),
+                can_edit=True,
+            )
+            self.sizes.append(size)
+
+    def test_size_uuids_populated_and_unique_after_migration(self):
+        # Use post-migration apps registry
+        SizeNew = self.apps.get_model("core", "Size")
+
+        uuids = set()
+        for old_size in self.sizes:
+            size_after = SizeNew.objects.get(pk=old_size.pk)
+            
+            # Assert UUID exists
+            self.assertTrue(hasattr(size_after, "uuid"))
+            self.assertIsNotNone(size_after.uuid)
+            
+            # Assert UUID is unique
+            self.assertNotIn(size_after.uuid, uuids)
+            uuids.add(size_after.uuid)
+
+        # Extra check: all UUIDs are unique
+        self.assertEqual(len(uuids), len(self.sizes))

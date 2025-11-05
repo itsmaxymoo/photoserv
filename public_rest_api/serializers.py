@@ -34,7 +34,7 @@ class AlbumSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Album
-        fields = ["uuid", "title", "slug", "short_description", "description", "sort_method", "sort_descending", "photos", "parent", "children"]
+        fields = ["uuid", "title", "slug", "short_description", "description", "sort_method", "sort_descending", "photos", "parent", "children", "created_at", "updated_at"]
 
     @extend_schema_field(PhotoSummarySerializer(many=True))
     def get_photos(self, obj):
@@ -76,7 +76,7 @@ class PhotoSerializer(serializers.ModelSerializer):
 class SizeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Size
-        fields = ["slug", "max_dimension", "square_crop"]
+        fields = ["uuid", "slug", "max_dimension", "square_crop", "created_at", "updated_at"]
 
 
 class SiteHealthSerializer(serializers.Serializer):

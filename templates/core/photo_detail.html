@@ -115,6 +115,15 @@
                         (No tags)
                         {% endif %}
                     </td>
+                </tr>
+                                <tr>
+                    <th>Created</th>
+                    <td>{{ object.created_at | date:"Y-m-d H:i" }}</td>
+                </tr>
+                <tr>
+                    <th>Updated</th>
+                    <td>{{ object.updated_at | date:"Y-m-d H:i" }}</td>
+                </tr>
             </table>
         </div>
     </div>
