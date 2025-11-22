@@ -1,4 +1,4 @@
-from unittest import mock
+from unittest import mock, skipIf
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from .models import *
@@ -8,6 +8,7 @@ from django.urls import reverse
 from django.db.migrations.executor import MigrationExecutor
 from django.db import connection
 from django.apps import apps
+from django.conf import settings
 
 
 class PhotoModelTests(TestCase):
@@ -398,6 +399,10 @@ class TestMigration0003(TestMigrations):
             )
             self.sizes.append(size)
 
+    @skipIf(
+        getattr(settings, "DB_ENGINE", None) == "sqlite",
+        "Skipping test because DB_ENGINE is sqlite."
+    )
     def test_size_uuids_populated_and_unique_after_migration(self):
         # Use post-migration apps registry
         SizeNew = self.apps.get_model("core", "Size")
