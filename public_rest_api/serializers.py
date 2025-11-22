@@ -1,6 +1,15 @@
-from core.models import Photo, Size, Album, Tag, PhotoMetadata, PhotoTag
+from core.models import Photo, Size, Album, Tag, PhotoMetadata, PhotoTag, PhotoSize
 from rest_framework import serializers
 from drf_spectacular.utils import extend_schema_field
+
+
+class PhotoSizeSerializer(serializers.ModelSerializer):
+    uuid = serializers.UUIDField(source='size.uuid', read_only=True)
+    slug = serializers.CharField(source='size.slug', read_only=True)
+
+    class Meta:
+        model = PhotoSize
+        fields = ["uuid", "slug", "height", "width", "md5"]
 
 
 class PhotoMetadataSerializer(serializers.ModelSerializer):
@@ -34,7 +43,7 @@ class AlbumSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Album
-        fields = ["uuid", "title", "slug", "short_description", "description", "sort_method", "sort_descending", "photos", "parent", "children"]
+        fields = ["uuid", "title", "slug", "short_description", "description", "sort_method", "sort_descending", "photos", "parent", "children", "created_at", "updated_at"]
 
     @extend_schema_field(PhotoSummarySerializer(many=True))
     def get_photos(self, obj):
@@ -67,6 +76,7 @@ class PhotoSerializer(serializers.ModelSerializer):
     metadata = PhotoMetadataSerializer(read_only=True)
     albums = AlbumSummarySerializer(many=True, read_only=True)
     tags = TagSummarySerializer(many=True, read_only=True)
+    sizes = PhotoSizeSerializer(many=True, read_only=True)
 
     class Meta:
         model = Photo
@@ -76,7 +86,7 @@ class PhotoSerializer(serializers.ModelSerializer):
 class SizeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Size
-        fields = ["slug", "max_dimension", "square_crop"]
+        fields = ["uuid", "slug", "max_dimension", "square_crop", "created_at", "updated_at"]
 
 
 class SiteHealthSerializer(serializers.Serializer):

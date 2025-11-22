@@ -243,10 +243,33 @@ class APISizeDetailTestCase(TestCase):
         size_slugs = [s['slug'] for s in response.json()]
         self.assertIn(public_size.slug, size_slugs)
 
+        # 1.5. Ensure UUID is present in size listing
+        size_uuids = [s['uuid'] for s in response.json()]
+        self.assertIn(str(public_size.uuid), size_uuids)
+
         # 2. Ensure accessing photo size works
         url = f"/api/photos/{self.photo.uuid}/sizes/{public_size.slug}/"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
+    
+    def test_photo_size_detail_(self):
+        # Ensure the photo detail endpoint includes info for each size: slug, uuid, height, width, md5
+        url = f"/api/photos/{self.photo.uuid}/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+
+        self.assertIn("sizes", data)
+        sizes = data["sizes"]
+        self.assertIsInstance(sizes, list)
+        self.assertGreaterEqual(len(sizes), 1)
+
+        # Verify height and width fields exist for original size
+        original_size_info = next((s for s in sizes if s["slug"] == "original"), None)
+        self.assertIsNotNone(original_size_info)
+        self.assertIn("height", original_size_info)
+        self.assertIn("width", original_size_info)
+        self.assertIn("md5", original_size_info)
 
 
 class APISiteHealthTestCase(TestCase):

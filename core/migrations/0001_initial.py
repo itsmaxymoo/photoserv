@@ -169,5 +169,5 @@ class Migration(migrations.Migration):
                 'unique_together': {('photo', 'size')},
             },
         ),
-        migrations.RunPython(create_builtin_sizes),
+        migrations.RunPython(create_builtin_sizes, reverse_code=migrations.RunPython.noop),
     ]
