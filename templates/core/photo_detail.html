@@ -226,29 +226,37 @@
     </div>
 
     <div>
-        <div class="box overflow-x-scroll">
+        <div class="box">
             <h3 class="text-2xl">Sizes</h3>
 
-            <table class="table table-zebra table-auto">
-                <colgroup>
-                    <col class="w-min whitespace-nowrap" />
-                    <col class="w-full" />
-                </colgroup>
-                {% for size, photo_size in sizes %}
-                <tr>
-                    <th>{{ size.slug }}</th>
-                    <td>
+            <div class="w-full overflow-x-scroll">
+                <table class="table table-zebra table-auto">
+                    <colgroup>
+                        <col class="w-min whitespace-nowrap" />
+                        <col class="w-min whitespace-nowrap" />
+                        <col class="w-full" />
+                    </colgroup>
+                    {% for size, photo_size in sizes %}
+                    <tr>
+                        <th>{{ size.slug }}</th>
+                        <td>
+                            {% if photo_size %}
+                            <a href="{% url 'photo-image' object.pk size.slug %}" download>
+                                {{ size.slug }}
+                            </a>
+                            {% else %}
+                            <span>(pending)</span>
+                            {% endif %}
+                        </td>
                         {% if photo_size %}
-                        <a href="{% url 'photo-image' object.pk size.slug %}" download>
-                            {{ size.slug }}
-                        </a>
-                        {% else %}
-                        <span>(pending)</span>
+                            <td>
+                                <pre><code>{{ photo_size.md5 }}</code></pre>
+                            </td>
                         {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </table>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
 
             <p class="pt-4">
                 Note: These links are not public! You must use the public API in your clients to access these images.

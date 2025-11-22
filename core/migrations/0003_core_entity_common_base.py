@@ -96,4 +96,21 @@ class Migration(migrations.Migration):
             name='uuid',
             field=models.UUIDField(db_index=True, default=uuid.uuid4, editable=False, unique=True),
         ),
+
+        # --- Photo Sizes
+        migrations.AddField(
+            model_name='photosize',
+            name='height',
+            field=models.PositiveIntegerField(null=True),
+        ),
+        migrations.AddField(
+            model_name='photosize',
+            name='md5',
+            field=models.CharField(max_length=32, null=True),
+        ),
+        migrations.AddField(
+            model_name='photosize',
+            name='width',
+            field=models.PositiveIntegerField(null=True),
+        ),
     ]

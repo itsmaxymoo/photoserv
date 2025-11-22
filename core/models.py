@@ -372,6 +372,9 @@ class PhotoSize(models.Model):
     photo = models.ForeignKey("core.Photo", on_delete=models.CASCADE, related_name="sizes")
     size = models.ForeignKey(Size, on_delete=models.CASCADE, related_name="photos")
     image = models.ImageField(upload_to=get_image_file_path)
+    height = models.PositiveIntegerField(null=True)
+    width = models.PositiveIntegerField(null=True)
+    md5 = models.CharField(max_length=32, null=True)
 
     class Meta:
         unique_together = ("photo", "size")

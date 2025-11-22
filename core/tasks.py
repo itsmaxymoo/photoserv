@@ -9,6 +9,7 @@ from datetime import datetime
 import exiftool
 from . import CONTENT_RESIZED_PHOTOS_PATH
 from django.conf import settings
+import hashlib
 
 
 # Metadata tag constants
@@ -59,7 +60,7 @@ def gen_size(photo, size):
         else:
             img.save(buffer, format='JPEG')
 
-        photo_size = models.PhotoSize(photo=photo, size=size)
+        photo_size = models.PhotoSize(photo=photo, size=size, height=img.height, width=img.width, md5=hashlib.md5(buffer.getvalue()).hexdigest())
         photo_size.image.save(
             f"{photo.id}_{size.slug}.jpg",
             ContentFile(buffer.getvalue()),
@@ -199,7 +200,11 @@ def consistency():
     # 1. Ensure every photo size's image file exists
     photo_sizes = models.PhotoSize.objects.all()
     for photo_size in photo_sizes:
-        if not photo_size.image or not os.path.isfile(photo_size.image.path):
+        if (not photo_size.image
+            or not os.path.isfile(photo_size.image.path)
+            or not photo_size.height
+            or not photo_size.width
+            or not photo_size.md5):
             issues += 1
             photo_size.delete()
 
