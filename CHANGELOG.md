@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.0](https://github.com/itsmaxymoo/photoserv/compare/0.5.1...0.6.0) (2025-11-22)
+
+
+### Features
+
+* Common entity base ([045e82e](https://github.com/itsmaxymoo/photoserv/commit/045e82e1189c7a8c4c06e72a125e472ef5ccd948))
+* Return individual picture size information in the public API ([d02d2c9](https://github.com/itsmaxymoo/photoserv/commit/d02d2c9d84386babc537e7186da4047bc0d8925a))
+
 ## [0.5.1](https://github.com/itsmaxymoo/photoserv/compare/0.5.0...0.5.1) (2025-10-15)
 
 
