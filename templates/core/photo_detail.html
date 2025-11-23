@@ -250,7 +250,7 @@
                         </td>
                         {% if photo_size %}
                             <td>
-                                <pre><code>{{ photo_size.md5 }}</code></pre>
+                                <pre><code>{{ photo_size.md5|default:"Pending MD5" }}</code></pre>
                             </td>
                         {% endif %}
                     </tr>
