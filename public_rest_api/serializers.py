@@ -15,7 +15,7 @@ class PhotoSizeSerializer(serializers.ModelSerializer):
 class PhotoMetadataSerializer(serializers.ModelSerializer):
     class Meta:
         model = PhotoMetadata
-        exclude = ['id', 'photo']
+        exclude = ['uuid', 'id', 'photo']
 
 
 class AlbumSummarySerializer(serializers.ModelSerializer):
@@ -31,9 +31,25 @@ class TagSummarySerializer(serializers.ModelSerializer):
 
 
 class PhotoSummarySerializer(serializers.ModelSerializer):
+    sizes = serializers.SerializerMethodField()
+
+    @extend_schema_field(PhotoSizeSerializer(many=True))
+    def get_sizes(self, obj):
+        request = self.context.get("request")
+
+        include_sizes = False
+        if request:
+            include_sizes = request.query_params.get("include_sizes", "").lower() in ["1", "true", "yes"]
+
+        if not include_sizes:
+            return []
+
+        public_sizes = obj.sizes.filter(size__public=True)
+        return PhotoSizeSerializer(public_sizes, many=True).data
+
     class Meta:
         model = Photo
-        fields = ['uuid', 'title', "slug", 'publish_date']
+        fields = ["uuid", "title", "slug", "publish_date", "sizes"]
 
 
 class AlbumSerializer(serializers.ModelSerializer):
@@ -47,7 +63,7 @@ class AlbumSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(PhotoSummarySerializer(many=True))
     def get_photos(self, obj):
-        return PhotoSummarySerializer(obj.get_ordered_photos(public_only=True), many=True).data
+        return PhotoSummarySerializer(obj.get_ordered_photos(public_only=True), many=True, context=self.context).data
     
     @extend_schema_field(AlbumSummarySerializer(allow_null=True))
     def get_parent(self, obj):
@@ -69,14 +85,19 @@ class TagSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(PhotoSummarySerializer(many=True))
     def get_photos(self, obj):
-        return PhotoSummarySerializer(obj.photos.all(), many=True).data
+        return PhotoSummarySerializer(obj.photos.all(), many=True, context=self.context).data
 
 
 class PhotoSerializer(serializers.ModelSerializer):
     metadata = PhotoMetadataSerializer(read_only=True)
     albums = AlbumSummarySerializer(many=True, read_only=True)
     tags = TagSummarySerializer(many=True, read_only=True)
-    sizes = PhotoSizeSerializer(many=True, read_only=True)
+    sizes = serializers.SerializerMethodField()
+
+    @extend_schema_field(PhotoSizeSerializer(many=True))
+    def get_sizes(self, obj):
+        public_sizes = obj.sizes.filter(size__public=True)
+        return PhotoSizeSerializer(public_sizes, many=True).data
 
     class Meta:
         model = Photo

@@ -253,7 +253,20 @@ class APISizeDetailTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
     
     def test_photo_size_detail_(self):
-        # Ensure the photo detail endpoint includes info for each size: slug, uuid, height, width, md5
+        # Create a new public size
+        public_size = Size.objects.create(
+            slug="new_public_size",
+            max_dimension=400,
+            square_crop=False,
+            public=True
+        )
+        new_photo_size = PhotoSize.objects.create(
+            photo=self.photo,
+            size=public_size,
+            image=create_test_image_file("new_public.jpg"),
+        )
+
+        # Ensure the photo detail endpoint includes info for the new public size: slug, uuid, height, width, md5
         url = f"/api/photos/{self.photo.uuid}/"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
@@ -264,12 +277,12 @@ class APISizeDetailTestCase(TestCase):
         self.assertIsInstance(sizes, list)
         self.assertGreaterEqual(len(sizes), 1)
 
-        # Verify height and width fields exist for original size
-        original_size_info = next((s for s in sizes if s["slug"] == "original"), None)
-        self.assertIsNotNone(original_size_info)
-        self.assertIn("height", original_size_info)
-        self.assertIn("width", original_size_info)
-        self.assertIn("md5", original_size_info)
+        # Verify height and width fields exist for the new public size
+        new_size_info = next((s for s in sizes if s["slug"] == "new_public_size"), None)
+        self.assertIsNotNone(new_size_info)
+        self.assertIn("height", new_size_info)
+        self.assertIn("width", new_size_info)
+        self.assertIn("md5", new_size_info)
 
 
 class APISiteHealthTestCase(TestCase):
@@ -320,3 +333,91 @@ class APISiteHealthTestCase(TestCase):
         self.assertEqual(data["pending_sizes"], 3)
         self.assertEqual(data["photos_pending_sizes"], 2)
         self.assertEqual(data["pending_metadata"], 1)
+
+
+class TestIncludePhotoSummarySizes(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.api_key = APIKey.create_key("include_photo_sizes_key")
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.api_key}")
+
+        # --- Create a Photo ---
+        self.photo = Photo.objects.create(title="Test Photo", raw_image="test.jpg")
+
+        # --- Create Sizes ---
+        self.public_size = Size.objects.create(slug="public_size", public=True, max_dimension=500)
+        self.private_size = Size.objects.create(slug="private_size", public=False, max_dimension=500)
+
+        # --- Create PhotoSizes ---
+        self.photo_public_size = PhotoSize.objects.create(photo=self.photo, size=self.public_size, image="lala.jpg")
+        self.photo_private_size = PhotoSize.objects.create(photo=self.photo, size=self.private_size, image="lalap.jpg")
+
+        # --- Album ---
+        self.album = Album.objects.create(title="Test Album")
+        PhotoInAlbum.objects.create(photo=self.photo, album=self.album, order=1)
+
+        # --- Tag ---
+        self.tag = Tag.objects.create(name="Test Tag")
+        PhotoTag.objects.create(photo=self.photo, tag=self.tag)
+
+    # 1. Photo detail shows only public sizes
+    def test_photo_detail_only_includes_public_size(self):
+        url = f"/api/photos/{self.photo.uuid}/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+        size_slugs = [s["slug"] for s in data.get("sizes", [])]
+        self.assertIn(self.public_size.slug, size_slugs)
+        self.assertNotIn(self.private_size.slug, size_slugs)
+
+    # 2. /api/photos without sizes shows empty list, with include_sizes=true shows only public
+    def test_photo_list_include_sizes_query_param(self):
+        # Without include_sizes
+        response = self.client.get("/api/photos/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        for photo in response.json():
+            self.assertEqual(photo.get("sizes", []), [])
+
+        # With ?include_sizes=true
+        response = self.client.get("/api/photos/?include_sizes=true")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        for photo in response.json():
+            size_slugs = [s["slug"] for s in photo.get("sizes", [])]
+            self.assertIn(self.public_size.slug, size_slugs)
+            self.assertNotIn(self.private_size.slug, size_slugs)
+
+    # 3. Album detail with query param
+    def test_album_detail_include_sizes(self):
+        url = f"/api/albums/{self.album.uuid}/"
+
+        # Without include_sizes
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        for photo in response.json().get("photos", []):
+            self.assertEqual(photo.get("sizes", []), [])
+
+        # With ?include_sizes=true
+        response = self.client.get(f"{url}?include_sizes=true")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        for photo in response.json().get("photos", []):
+            size_slugs = [s["slug"] for s in photo.get("sizes", [])]
+            self.assertIn(self.public_size.slug, size_slugs)
+            self.assertNotIn(self.private_size.slug, size_slugs)
+
+    # 4. Tag detail with query param
+    def test_tag_detail_include_sizes(self):
+        url = f"/api/tags/{self.tag.uuid}/"
+
+        # Without include_sizes
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        for photo in response.json().get("photos", []):
+            self.assertEqual(photo.get("sizes", []), [])
+
+        # With ?include_sizes=true
+        response = self.client.get(f"{url}?include_sizes=true")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        for photo in response.json().get("photos", []):
+            size_slugs = [s["slug"] for s in photo.get("sizes", [])]
+            self.assertIn(self.public_size.slug, size_slugs)
+            self.assertNotIn(self.private_size.slug, size_slugs)

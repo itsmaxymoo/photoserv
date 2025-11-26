@@ -6,7 +6,17 @@ from rest_framework.generics import GenericAPIView
 from api_key.authentication import APIKeyAuthentication
 from api_key.permissions import HasAPIKey
 from rest_framework.response import Response
+from drf_spectacular.utils import OpenApiParameter, OpenApiTypes, extend_schema
 from .models import *
+
+
+INCLUDE_SIZES_PARAM = OpenApiParameter(
+    name='include_sizes',
+    type=OpenApiTypes.BOOL,
+    location=OpenApiParameter.QUERY,
+    description='Include photo sizes in the response (default: false)',
+    required=False,
+)
 
 
 class SizeViewSet(viewsets.ReadOnlyModelViewSet):
@@ -27,6 +37,17 @@ class PhotoViewSet(viewsets.ReadOnlyModelViewSet):
         if self.action == 'list':
             return PhotoSummarySerializer
         return PhotoSerializer
+    
+    @extend_schema(
+        parameters=[INCLUDE_SIZES_PARAM],
+        responses={200: PhotoSummarySerializer},
+    )
+    def list(self, request, *args, **kwargs):
+        """
+        List public photos.
+        Optionally include sizes with ?include_sizes=true.
+        """
+        return super().list(request, *args, **kwargs)
 
 
 class PhotoImageAPIView(GenericAPIView):
@@ -56,6 +77,17 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
             return TagSummarySerializer
         return TagSerializer
 
+    @extend_schema(
+        parameters=[INCLUDE_SIZES_PARAM],
+        responses={200: TagSerializer},
+        description="Retrieve a tag and its associated photos."
+    )
+    def retrieve(self, request, *args, **kwargs):
+        """
+        Get a tag by UUID.
+        """
+        return super().retrieve(request, *args, **kwargs)
+
 
 class AlbumViewSet(viewsets.ReadOnlyModelViewSet):
     authentication_classes = [APIKeyAuthentication]
@@ -67,6 +99,17 @@ class AlbumViewSet(viewsets.ReadOnlyModelViewSet):
         if self.action == 'list':
             return AlbumSummarySerializer
         return AlbumSerializer
+
+    @extend_schema(
+        parameters=[INCLUDE_SIZES_PARAM],
+        responses={200: AlbumSerializer},
+        description="Retrieve an album including metadata, children, and photos."
+    )
+    def retrieve(self, request, *args, **kwargs):
+        """
+        Get an album by UUID.
+        """
+        return super().retrieve(request, *args, **kwargs)
 
 
 class SiteHealthAPIView(GenericAPIView):
