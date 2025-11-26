@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.1](https://github.com/itsmaxymoo/photoserv/compare/0.6.0...0.6.1) (2025-11-26)
+
+
+### Bug Fixes
+
+* Add include_sizes query param for /photos, /albums/uuid, /tags/uuid to include photo size data in response ([05e8888](https://github.com/itsmaxymoo/photoserv/commit/05e888819a075de7eec49a02c380558d30e7f812))
+* MD5 pending text for photo sizes ([507a8ea](https://github.com/itsmaxymoo/photoserv/commit/507a8eaebc88afbd5e703c105d4016e045e7b054))
+
 ## [0.6.0](https://github.com/itsmaxymoo/photoserv/compare/0.5.1...0.6.0) (2025-11-22)
 
 
