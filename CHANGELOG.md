@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.2](https://github.com/itsmaxymoo/photoserv/compare/0.6.1...0.6.2) (2025-11-26)
+
+
+### Bug Fixes
+
+* Do not update photo publish date on edit/save ([30850a5](https://github.com/itsmaxymoo/photoserv/commit/30850a5f772c854eb9d2f67c08e1abed4cda4b10))
+
 ## [0.6.1](https://github.com/itsmaxymoo/photoserv/compare/0.6.0...0.6.1) (2025-11-26)
 
 
