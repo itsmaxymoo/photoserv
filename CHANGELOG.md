@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.4](https://github.com/photoserv/photoserv/compare/0.6.3...0.6.4) (2025-12-04)
+
+
+### Bug Fixes
+
+* Make dockerfile and CSS compiler look in the right place for Python 3.14 packages ([ba98515](https://github.com/photoserv/photoserv/commit/ba98515bbabd89f4f090fdf874177118ed72435e))
+
 ## [0.6.3](https://github.com/photoserv/photoserv/compare/0.6.2...0.6.3) (2025-12-04)
 
 
