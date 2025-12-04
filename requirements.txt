@@ -7,7 +7,7 @@ crispy-daisyui==0.7.0
 celery==5.5.3
 pyexiftool==0.5.6
 djangorestframework==3.16.1
-redis==6.4.0
+redis==7.1.0
 mozilla-django-oidc==4.0.1
 psycopg2-binary ==2.9.10
 gunicorn==23.0.0
