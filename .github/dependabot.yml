@@ -1,0 +1,28 @@
+version: 2
+updates:
+  # Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/" # location of requirements.txt
+    schedule:
+      interval: "monthly"
+    commit-message:
+      prefix: "deps(python)"
+    rebase-strategy: "auto"
+
+  # JavaScript dependencies
+  - package-ecosystem: "npm"
+    directory: "/" # location of package.json
+    schedule:
+      interval: "monthly"
+    commit-message:
+      prefix: "deps(js)"
+    rebase-strategy: "auto"
+
+  # Docker base image
+  - package-ecosystem: "docker"
+    directory: "/" # location of Dockerfile
+    schedule:
+      interval: "monthly"
+    commit-message:
+      prefix: "deps(docker)"
+    rebase-strategy: "auto"
