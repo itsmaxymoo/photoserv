@@ -49,7 +49,7 @@ RUN mkdir -p /var/run/nginx /var/log/nginx /var/lib/nginx/body \
     && chown -R photoserv:photoserv /var/run/nginx /var/log/nginx /var/lib/nginx
 
 # Copy Python deps and frontend assets
-COPY --from=builder /usr/local/lib/python3.13/site-packages/ /usr/local/lib/python3.13/site-packages/
+COPY --from=builder /usr/local/lib/python3.14/site-packages/ /usr/local/lib/python3.14/site-packages/
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
 COPY --from=builder /app/staticfiles /var/www/static
 COPY --from=builder /app/package*.json /app/

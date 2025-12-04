@@ -1,7 +1,7 @@
 @import "tailwindcss" source("../../templates");
 @import "tailwindcss" source(
-  "../../.venv/lib/python3.13/site-packages/crispy_daisyui/templates/daisyui",
-  "/usr/local/lib/python3.13/site-packages/crispy_daisyui/templates/daisyui"
+  "../../.venv/lib/python3.14/site-packages/crispy_daisyui/templates/daisyui",
+  "/usr/local/lib/python3.14/site-packages/crispy_daisyui/templates/daisyui"
 ) with (safelist: ["select", "btn", "alert", "card"]);
 
 @plugin "daisyui";
