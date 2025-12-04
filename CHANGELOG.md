@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.6.3](https://github.com/photoserv/photoserv/compare/0.6.2...0.6.3) (2025-12-04)
+
+
+### Bug Fixes
+
+* Configure Dependabot for multiple ecosystems ([d015e16](https://github.com/photoserv/photoserv/commit/d015e169ab217a1ef450b098bc535f127a0656df))
+* make publish date auto_now_add ([97acbe7](https://github.com/photoserv/photoserv/commit/97acbe7bee64fbf8e6d1329b090e83a942eb2660))
+
+
+### Dependencies
+
+* **docker:** bump python from 3.13-slim to 3.14-slim ([3213617](https://github.com/photoserv/photoserv/commit/321361749aceb511378bf386479ded4c8e249424))
+* **js:** bump @alpinejs/sort from 3.14.9 to 3.15.2 ([7f94744](https://github.com/photoserv/photoserv/commit/7f94744e67cc9f2a6ab804eb93e6ef2a053942d5))
+* **js:** bump alpinejs from 3.14.9 to 3.15.2 ([2a43528](https://github.com/photoserv/photoserv/commit/2a4352817480a502adab5a11661a04e2889a9e02))
+* **js:** bump daisyui from 5.0.50 to 5.5.8 ([e306feb](https://github.com/photoserv/photoserv/commit/e306febae653a7ceb2b7b118dd3d38387a0b6163))
+* **js:** bump esbuild from 0.25.9 to 0.27.1 ([a903319](https://github.com/photoserv/photoserv/commit/a903319d682839b23caabf77a9b07f2cea8387f5))
+* **js:** bump tailwindcss from 4.1.11 to 4.1.17 ([4a71c03](https://github.com/photoserv/photoserv/commit/4a71c032ed8e82a146585a9f743401e595ef3181))
+* **python:** bump crispy-daisyui from 0.7.0 to 0.8.0 ([cb63c59](https://github.com/photoserv/photoserv/commit/cb63c5927c50f14da5eeb7900dd51900092bcb28))
+* **python:** bump drf-spectacular from 0.28.0 to 0.29.0 ([6da7b16](https://github.com/photoserv/photoserv/commit/6da7b166484b6e523bc16097f7e0eaccf89eca7a))
+* **python:** bump psycopg2-binary from 2.9.10 to 2.9.11 ([b198dd8](https://github.com/photoserv/photoserv/commit/b198dd8fa4c69eaa88aae5c543e41aaa76e5c661))
+* **python:** bump python-dotenv from 1.1.1 to 1.2.1 ([5c29179](https://github.com/photoserv/photoserv/commit/5c29179f83f89ae96cbba579aeeca4d49fddf5d9))
+* **python:** bump redis from 6.4.0 to 7.1.0 ([bcd0178](https://github.com/photoserv/photoserv/commit/bcd01788ea3a02d0edd89eb9e6d253cb27d184df))
+
 ## [0.6.2](https://github.com/itsmaxymoo/photoserv/compare/0.6.1...0.6.2) (2025-11-26)
 
 
