@@ -70,7 +70,7 @@ class Migration(migrations.Migration):
                 ('slug', models.SlugField(max_length=255, unique=True)),
                 ('description', models.TextField(blank=True, default='', max_length=4096)),
                 ('raw_image', models.ImageField(upload_to=core.models.Photo.get_image_file_path)),
-                ('publish_date', models.DateTimeField(auto_now=True)),
+                ('publish_date', models.DateTimeField(auto_now_add=True)),
             ],
         ),
         migrations.CreateModel(
