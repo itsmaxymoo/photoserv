@@ -166,7 +166,7 @@ CELERY_RESULT_EXTENDED = True
 CELERY_BEAT_SCHEDULE = {
     'run-consistency': {
         'task': 'core.tasks.consistency',
-        'schedule': 60.0 * 60 * 24,
+        'schedule': 60.0 * 60 * 2,
     },
 }
 
