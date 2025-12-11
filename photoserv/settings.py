@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     "public_rest_api",
     "iam",
     "job_overview",
-    "integration"
+    "integration",
 
     'django.contrib.admin',
     'django.contrib.auth',

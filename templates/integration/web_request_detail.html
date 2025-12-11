@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}
+Web Request: {{ object }}
+{% endblock %}
+
+{% block content %}
+<h2 class="text-3xl inline-flex gap-2">
+    <span class="font-extralight">
+        {% include "partials/back_button.html" %}
+        Web Request:
+    </span>
+    {{ object }}
+</h2>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <!-- Left column: details -->
+    <div class="box">
+        <div class="overflow-x-scroll">
+            <table class="table table-zebra table-auto">
+                <colgroup>
+                    <col class="w-min whitespace-nowrap" />
+                    <col class="w-full" />
+                </colgroup>
+
+                <tr>
+                    <th>Nickname</th>
+                    <td>{{ object.nickname|default:"(none)" }}</td>
+                </tr>
+                <tr>
+                    <th>Active</th>
+                    <td>
+                        {% if object.active %}
+                            Yes
+                        {% else %}
+                            No
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th>URL</th>
+                    <td>{{ object.method }} <a href="{{ object.url }}" class="link text-blue-600" target="_blank">{{ object.url }}</a></td>
+                </tr>
+                <tr>
+                    <th>Headers</th>
+                    <td>
+                        {% if object.headers %}
+                            <pre class="whitespace-pre-wrap bg-base-200 p-2 rounded text-sm">{{ object.headers }}</pre>
+                        {% else %}
+                            (none)
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th>Body</th>
+                    <td>
+                        {% if object.body %}
+                            <pre class="whitespace-pre-wrap bg-base-200 p-2 rounded text-sm">{{ object.body }}</pre>
+                        {% else %}
+                            (none)
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="box">
+        <h2>Test Request</h2>
+        
+        <div class="flex justify-center">
+            <form method="post" action="{% url 'web-request-test-send' object.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary mt-4">
+                    Send Request
+                </button>
+            </form>
+        </div>
+
+        {% if messages %}
+        <div class="mt-4">
+            {% for message in messages %}
+                <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- View/Edit/Delete buttons -->
+<div class="mt-6">
+    {% include "partials/model_view_modify_buttons.html" %}
+</div>
+
+{% endblock %}
