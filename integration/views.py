@@ -70,15 +70,20 @@ class WebRequestTestSendView(View):
     """
     def post(self, request, pk):
         web_request = get_object_or_404(WebRequest, pk=pk)
-
         try:
-            response = web_request.send()
-            messages.success(
-                request,
-                f"{response.status_code}: {response.text if response.text else "(No response body)"}"
-            )
-        except requests.RequestException as e:
-            messages.error(request, f"Request failed: {e}")
+            result = web_request.run(IntegrationCaller.MANUAL)
+            if result.successful:
+                messages.success(
+                    request,
+                    f"Request succeeded. Log:\n{result.run_log}"
+                )
+            else:
+                messages.error(
+                    request,
+                    f"Request failed. Log:\n{result.run_log}"
+                )
+        except Exception as e:
+            messages.error(request, f"An error occurred while processing the request: {e}")
 
         return redirect(reverse("web-request-detail", kwargs={"pk": web_request.pk}))
 
