@@ -1,5 +1,7 @@
 <div class="flex flex-col sm:flex-row justify-center items-center gap-2">
     <a href="../" class="btn btn-neutral w-full sm:w-auto">Back</a>
-    <a href="./edit" class="btn btn-primary w-full sm:w-auto">Edit</a>
+    {% if can_edit != False %}
+        <a href="./edit" class="btn btn-primary w-full sm:w-auto">Edit</a>
+    {% endif %}
     <a href="./delete" class="btn btn-error w-full sm:w-auto">Delete</a>
 </div>

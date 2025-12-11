@@ -8,10 +8,42 @@ from .models import *
 from .forms import *
 from .tables import *
 from core.mixins import CRUDGenericMixin
+from django_tables2 import RequestConfig
 
 
 def redirect_to_home(request):
     return redirect(reverse('integration-list'))
+
+
+#region RunResult
+
+class RunResultMixin(CRUDGenericMixin):
+    object_type_name = "Integration Run Result"
+    object_url_name_slug = "integration-run-result"
+    edit_disclaimer = "These are deleted automatically after a while."
+    can_directly_create = False
+    can_edit = False
+
+
+class RunResultListView(RunResultMixin, SingleTableView):
+    model = IntegrationRunResult
+    table_class = IntegrationRunResultTable
+    template_name = "generic_crud_list.html"
+
+
+class RunResultDetailView(RunResultMixin, DetailView):
+    model = IntegrationRunResult
+    template_name = "integration/integration_run_result_detail.html"
+
+
+class RunResultDeleteView(RunResultMixin, DeleteView):
+    model = IntegrationRunResult
+    template_name = 'confirm_delete_generic.html'
+
+    def get_success_url(self):
+        return reverse('integration-list')
+
+#endregion
 
 
 #region WebRequest
@@ -29,13 +61,23 @@ class WebRequestListView(WebRequestMixin, SingleTableView):
     template_name = "generic_crud_list.html"
 
 
-class WebRequestDetailView(DetailView):
+class WebRequestDetailView(WebRequestMixin, DetailView):
     model = WebRequest
     template_name = "integration/web_request_detail.html"
 
-    # def get_context_data(self, **kwargs):
-    #     context = super().get_context_data(**kwargs)
-    #     return context
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        webrequest = self.object
+
+        # Use the run_history property from IntegrationObject
+        run_history_qs = webrequest.run_history
+
+        # Create django-tables2 table
+        table = IntegrationRunResultTable(run_history_qs)
+        RequestConfig(self.request, paginate={"per_page": 10}).configure(table)
+
+        context["run_history_table"] = table
+        return context
 
 
 class WebRequestCreateView(WebRequestMixin, CreateView):
@@ -56,7 +98,7 @@ class WebRequestUpdateView(WebRequestMixin, UpdateView):
         return reverse('web-request-detail', kwargs={'pk': self.object.pk})
 
 
-class WebRequestDeleteView(DeleteView):
+class WebRequestDeleteView(WebRequestMixin, DeleteView):
     model = WebRequest
     template_name = 'confirm_delete_generic.html'
 

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}
+Integration Run Result: {{ object }}
+{% endblock %}
+
+{% block content %}
+<h2 class="text-3xl inline-flex gap-2">
+    <span class="font-extralight">
+        {% include "partials/back_button.html" %}
+        Web Request:
+    </span>
+    {{ object }}
+</h2>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <!-- Left column: details -->
+    <div class="box">
+        <div class="overflow-x-scroll">
+            <table class="table table-zebra table-auto">
+                <colgroup>
+                    <col class="w-min whitespace-nowrap" />
+                    <col class="w-full" />
+                </colgroup>
+
+                <tr>
+                    <th>Caller</th>
+                    <td>{{ object.get_caller_display }}</td>
+                </tr>
+
+                <tr>
+                    <th>Started</th>
+                    <td>{{ object.start_timestamp }}</td>
+                </tr>
+                <tr>
+                    <th>Finished</th>
+                    <td>{{ object.end_timestamp }}</td>
+                </tr>
+                <tr>
+                    <th>Successful</th>
+                    <td>
+                        {% if object.successful %}
+                            Yes
+                        {% else %}
+                            No
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="box">
+        <h2>Log</h2>
+        
+        <div class="">
+            <pre class="whitespace-pre-wrap">{{ object.run_log }}</pre>
+        </div>
+    </div>
+</div>
+
+<!-- View/Edit/Delete buttons -->
+<div class="mt-6">
+    {% include "partials/model_view_modify_buttons.html" %}
+</div>
+
+{% endblock %}
