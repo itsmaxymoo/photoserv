@@ -349,6 +349,87 @@ class CommonEntityTests(TestCase):
         self.assertIsNotNone(photo_meta.uuid)
 
 
+class PhotoPublishStateTests(TestCase):
+    def setUp(self):
+        self.photo = Photo.objects.create(
+            title="Test Photo",
+            slug="test-photo",
+            publish_date=timezone.now(),
+            hidden=False,
+            _published=False,
+        )
+
+    @mock.patch("core.signals.photo_published.send")
+    @mock.patch("core.signals.photo_unpublished.send")
+    def test_becomes_published_updates_and_dispatches(self, mock_unpub, mock_pub):
+        """When transitioning to published: updates DB and dispatches photo_published."""
+        self.photo.hidden = False
+        self.photo._published = False
+        self.photo.publish_date = timezone.now()
+
+        self.photo.calculate_published(dispatch=True, update_model=True)
+
+        self.photo.refresh_from_db()
+        assert self.photo._published is True
+        mock_pub.assert_called_once_with(self.photo, uuid=self.photo.uuid)
+        mock_unpub.assert_not_called()
+
+    @mock.patch("core.signals.photo_published.send")
+    @mock.patch("core.signals.photo_unpublished.send")
+    def test_becomes_unpublished_updates_and_dispatches(self, mock_unpub, mock_pub):
+        """When transitioning to unpublished: updates DB and dispatches photo_unpublished."""
+        self.photo._published = True
+        self.photo.hidden = True
+        self.photo.save()
+
+        self.photo.calculate_published(dispatch=True, update_model=True)
+
+        self.photo.refresh_from_db()
+        assert self.photo._published is False
+        mock_pub.assert_not_called()
+        mock_unpub.assert_called_once_with(self.photo, uuid=self.photo.uuid)
+
+    @mock.patch("core.signals.photo_published.send")
+    @mock.patch("core.signals.photo_unpublished.send")
+    @mock.patch.object(Photo, "save")
+    def test_no_change_when_state_same(self, mock_save, mock_unpub, mock_pub):
+        """No changes → no save, no signals."""
+        self.photo._published = True
+        self.photo.hidden = False
+        self.photo.publish_date = timezone.now()
+
+        self.photo.calculate_published(dispatch=True, update_model=True)
+
+        mock_save.assert_not_called()
+        mock_pub.assert_not_called()
+        mock_unpub.assert_not_called()
+
+    @mock.patch("core.signals.photo_published.send")
+    @mock.patch.object(Photo, "save")
+    def test_no_update_model_flag_skips_save(self, mock_save, mock_pub):
+        """update_model=False skips DB save but dispatches signal."""
+        self.photo.hidden = False
+        self.photo._published = False
+
+        self.photo.calculate_published(dispatch=True, update_model=False)
+
+        mock_save.assert_not_called()
+        mock_pub.assert_called_once_with(self.photo, uuid=self.photo.uuid)
+        assert self.photo._published is False  # unchanged in-memory
+
+    @mock.patch("core.signals.photo_published.send")
+    def test_no_dispatch_flag_skips_signal(self, mock_pub):
+        """dispatch=False updates DB but skips signal dispatch."""
+        self.photo.hidden = False
+        self.photo._published = False
+
+        self.photo.calculate_published(dispatch=False, update_model=True)
+
+        self.photo.refresh_from_db()
+        assert self.photo._published is True
+        mock_pub.assert_not_called()
+
+
 class TestMigrations(TestCase):
 
     @property

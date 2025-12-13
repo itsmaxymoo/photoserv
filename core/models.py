@@ -7,6 +7,7 @@ from . import CONTENT_RAW_PHOTOS_PATH, CONTENT_RESIZED_PHOTOS_PATH
 from . import tasks
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from .signals import photo_published, photo_unpublished
 
 
 class PublicEntity(models.Model):
@@ -40,7 +41,8 @@ class Photo(PublicEntity):
     description = models.TextField(max_length=4096, default="", blank=True)
     raw_image = models.ImageField(upload_to=get_image_file_path)
     publish_date = models.DateTimeField(auto_now_add=True)
-    hidden = models.BooleanField(default=False, help_text="Hide from public API")
+    hidden = models.BooleanField(default=False, help_text="Hide from public API and/or yank from supported integrations")
+    _published = models.BooleanField(default=False, db_column="published")
 
     tags = models.ManyToManyField(
         "Tag",
@@ -49,8 +51,8 @@ class Photo(PublicEntity):
     )
 
     @property
-    def public(self):
-        return not self.hidden
+    def published(self):
+        return self._published
 
     @property
     def health(self) -> "PhotoHealth":
@@ -61,6 +63,23 @@ class Photo(PublicEntity):
     def calculate_slug(self) -> str:
         slug = f"{timezone.now().strftime('%Y-%m-%d')}-{slugify(self.title)}"
         return slug[:self._meta.get_field('slug').max_length]
+    
+    def calculate_published(self, dispatch: bool = True, update_model: bool = True) -> bool:
+        prev = self._published
+        new = not self.hidden and bool(self.publish_date and self.publish_date <= timezone.now())
+
+        if new != prev:
+            if update_model:
+                self._published = new
+                self.save()
+
+            if dispatch:
+                if new:
+                    photo_published.send(self, uuid=self.uuid)
+                else:
+                    photo_unpublished.send(self, uuid=self.uuid)
+        
+        return new
 
     def get_absolute_url(self):
         return reverse("photo-detail", kwargs={"pk": self.pk})
@@ -82,6 +101,7 @@ class Photo(PublicEntity):
             self.slug = self.calculate_slug()
         is_new = self.pk is None
 
+        self._published = self.calculate_published(update_model=False)
         super().save(*args, **kwargs)
 
         if is_new:

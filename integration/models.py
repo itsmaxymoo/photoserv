@@ -135,7 +135,7 @@ class WebRequest(IntegrationObject):
         return response
     
     def _run(self):
-        log = f"{self.method} {self.url}\n\n{self.headers.rstrip() if self.headers.rstrip() else "(no headers)"}\n\n{self.body.rstrip()}\n\n"
+        log = f"{self.method} {self.url}\n\n{self.headers.rstrip() if self.headers else "(no headers)"}\n\n{self.body.rstrip() if self.body else ""}\n\n"
 
         try:
             response = self._send()
