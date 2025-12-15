@@ -16,6 +16,7 @@ class PhotoForm(forms.ModelForm):
         required=False,
         help_text="Leave blank to auto calculate"
     )
+    hidden = forms.BooleanField(required=False, initial=False, help_text="Hide from public API and/or yank from supported integrations")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

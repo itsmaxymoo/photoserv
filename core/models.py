@@ -41,7 +41,7 @@ class Photo(PublicEntity):
     description = models.TextField(max_length=4096, default="", blank=True)
     raw_image = models.ImageField(upload_to=get_image_file_path)
     publish_date = models.DateTimeField(auto_now_add=True)
-    hidden = models.BooleanField(default=False, help_text="Hide from public API and/or yank from supported integrations")
+    hidden = models.BooleanField(default=False, help_text="Hide from public API")
     _published = models.BooleanField(default=False, db_column="published")
 
     tags = models.ManyToManyField(

@@ -24,11 +24,6 @@ class Migration(migrations.Migration):
             name='_published',
             field=models.BooleanField(db_column='published', default=False, null=True),
         ),
-        migrations.AlterField(
-            model_name='photo',
-            name='hidden',
-            field=models.BooleanField(default=False, help_text='Hide from public API and/or yank from supported integrations'),
-        ),
         migrations.RunPython(set_published_default, reverse_code=migrations.RunPython.noop),
         migrations.AlterField(
             model_name='photo',
