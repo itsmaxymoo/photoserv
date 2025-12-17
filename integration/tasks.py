@@ -77,5 +77,5 @@ def queue_web_requests(**kwargs):
 
 call_queue_web_requests = debounced_task(
     lambda *a, **k: "queue_web_requests",
-    delay=30 #settings.INTEGRATION_QUEUE_DELAY
+    delay=settings.INTEGRATION_QUEUE_DELAY
 )(queue_web_requests)
