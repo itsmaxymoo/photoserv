@@ -165,6 +165,14 @@ CELERY_RESULT_BACKEND = "django-db"
 CELERY_RESULT_EXTENDED = True
 CELERY_RESULT_EXPIRES = 604800
 
+# --- Cache Configuration (use Redis for shared cache across workers) ---
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': f'redis://{REDIS_HOST}:{REDIS_PORT}/0',
+    }
+}
+
 
 CELERY_BEAT_SCHEDULE = {
     'run-consistency': {
@@ -282,3 +290,8 @@ AUTHENTICATION_BACKENDS = [
     'iam.auth.OIDCAuthenticationBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
+
+
+# ------- Integrations
+
+INTEGRATION_QUEUE_DELAY = 60 * 10  # 10 minutes
