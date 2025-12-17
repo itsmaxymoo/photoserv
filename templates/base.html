@@ -71,7 +71,7 @@
 
         {% if user.is_authenticated %}
         <p class="text-sm mt-1">
-            Logged in as <span class="font-medium">{{ user.username }}</span>
+            Logged in as <span class="font-medium">{{ request.user.username }}</span>
         </p>
         {% endif %}
     </footer>
