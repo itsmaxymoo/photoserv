@@ -75,9 +75,9 @@ class Photo(PublicEntity):
 
             if dispatch:
                 if new:
-                    photo_published.send(self, uuid=self.uuid)
+                    photo_published.send(Photo, instance=self, uuid=self.uuid)
                 else:
-                    photo_unpublished.send(self, uuid=self.uuid)
+                    photo_unpublished.send(Photo, instance=self, uuid=self.uuid)
         
         return new
 

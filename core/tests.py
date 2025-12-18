@@ -371,7 +371,7 @@ class PhotoPublishStateTests(TestCase):
 
         self.photo.refresh_from_db()
         assert self.photo._published is True
-        mock_pub.assert_called_once_with(self.photo, uuid=self.photo.uuid)
+        mock_pub.assert_called_once_with(Photo, instance=self.photo, uuid=self.photo.uuid)
         mock_unpub.assert_not_called()
 
     @mock.patch("core.signals.photo_published.send")
@@ -387,7 +387,7 @@ class PhotoPublishStateTests(TestCase):
         self.photo.refresh_from_db()
         assert self.photo._published is False
         mock_pub.assert_not_called()
-        mock_unpub.assert_called_once_with(self.photo, uuid=self.photo.uuid)
+        mock_unpub.assert_called_once_with(Photo, instance=self.photo, uuid=self.photo.uuid)
 
     @mock.patch("core.signals.photo_published.send")
     @mock.patch("core.signals.photo_unpublished.send")
@@ -414,7 +414,7 @@ class PhotoPublishStateTests(TestCase):
         self.photo.calculate_published(dispatch=True, update_model=False)
 
         mock_save.assert_not_called()
-        mock_pub.assert_called_once_with(self.photo, uuid=self.photo.uuid)
+        mock_pub.assert_called_once_with(Photo, instance=self.photo, uuid=self.photo.uuid)
         assert self.photo._published is False  # unchanged in-memory
 
     @mock.patch("core.signals.photo_published.send")
