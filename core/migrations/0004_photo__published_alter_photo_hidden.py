@@ -2,6 +2,7 @@
 
 from django.db import migrations, models
 from django.utils import timezone
+import django.utils.timezone
 
 
 def set_published_default(apps, schema_editor):
@@ -29,5 +30,10 @@ class Migration(migrations.Migration):
             model_name='photo',
             name='_published',
             field=models.BooleanField(db_column='published', default=False),
+        ),
+        migrations.AlterField(
+            model_name='photo',
+            name='publish_date',
+            field=models.DateTimeField(blank=True, default=django.utils.timezone.now),
         ),
     ]

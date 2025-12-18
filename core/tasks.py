@@ -251,4 +251,4 @@ def publish_photos():
         if previous_published != new_published:
             changed_count += 1
 
-    return f"Number of photos published or unpublished: {changed_count}"
+    return f"{changed_count} photos published/unpublished."

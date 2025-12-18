@@ -16,7 +16,13 @@ class PhotoForm(forms.ModelForm):
         required=False,
         help_text="Leave blank to auto calculate"
     )
-    hidden = forms.BooleanField(required=False, initial=False, help_text="Hide from public API and/or yank from supported integrations")
+    hidden = forms.BooleanField(required=False, initial=False, help_text="Hide from public API and/or yank from supported integrations.")
+    publish_date = forms.DateTimeField(
+        required=False,
+        help_text="Set a specific publish date/time for the photo.",
+        widget=forms.DateTimeInput(attrs={"type": "datetime-local"}),
+        initial=forms.fields.datetime.datetime.now,
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -32,9 +38,14 @@ class PhotoForm(forms.ModelForm):
             # Also add a list version for the template
             self.initial['tags_list'] = list(current_tags)
 
+            # Disable publish_date field if photo is already published
+            if self.instance.published:
+                self.fields['publish_date'].disabled = True
+                self.fields['publish_date'].help_text = "Cannot change publish date of a published photo."
+
     class Meta:
         model = Photo
-        fields = ["title", "description", "raw_image", "slug", "hidden", "albums"]
+        fields = ["title", "description", "raw_image", "slug", "hidden", "publish_date", "albums"]
         exclude = ["last_updated"]
     
     def save(self, commit=True):
@@ -72,8 +83,8 @@ class CondensedPhotoForm(PhotoForm):
     )
 
     class Meta(PhotoForm.Meta):
-        fields = ["title", "description", "raw_image", "hidden", "albums"]
-    
+        fields = ["title", "description", "raw_image", "hidden", "publish_date", "albums"]
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Remove the slug field inherited from PhotoForm
