@@ -179,6 +179,10 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'core.tasks.consistency',
         'schedule': 60.0 * 60 * 2,
     },
+    'publish-photos': {
+        'task': 'core.tasks.publish_photos',
+        'schedule': 60.0 * 10,
+    },
 }
 
 

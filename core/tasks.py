@@ -238,3 +238,17 @@ def consistency():
         delete_files.delay(delete_files_list)
 
     return f"Identified and queued fixes for {issues} issues." if issues > 0 else "No issues found."
+
+
+@shared_task
+def publish_photos():
+    # Iterate through all photos and call calculate_and_set_published
+    photos = models.Photo.objects.all()
+    changed_count = 0
+    for photo in photos:
+        previous_published = photo.published
+        new_published = photo.calculate_and_set_published()
+        if previous_published != new_published:
+            changed_count += 1
+
+    return f"Number of photos published or unpublished: {changed_count}"

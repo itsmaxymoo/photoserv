@@ -16,13 +16,9 @@ class PublicEntity(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
+        # auto_now=True already handles updated_at automatically on each save
+        # No need to manually update and save again
         super().save(*args, **kwargs)
-
-        now = timezone.now()
-        # Always update updated_at to current time
-        self.updated_at = now
-        # Persist timestamp changes
-        super().save(update_fields=["created_at", "updated_at"])
 
     class Meta:
         abstract = True
