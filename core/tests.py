@@ -367,7 +367,7 @@ class PhotoPublishStateTests(TestCase):
         self.photo._published = False
         self.photo.publish_date = timezone.now()
 
-        self.photo.calculate_published(dispatch=True, update_model=True)
+        self.photo.calculate_and_set_published(dispatch=True, update_model=True)
 
         self.photo.refresh_from_db()
         assert self.photo._published is True
@@ -382,7 +382,7 @@ class PhotoPublishStateTests(TestCase):
         self.photo.hidden = True
         self.photo.save()
 
-        self.photo.calculate_published(dispatch=True, update_model=True)
+        self.photo.calculate_and_set_published(dispatch=True, update_model=True)
 
         self.photo.refresh_from_db()
         assert self.photo._published is False
@@ -398,7 +398,7 @@ class PhotoPublishStateTests(TestCase):
         self.photo.hidden = False
         self.photo.publish_date = timezone.now()
 
-        self.photo.calculate_published(dispatch=True, update_model=True)
+        self.photo.calculate_and_set_published(dispatch=True, update_model=True)
 
         mock_save.assert_not_called()
         mock_pub.assert_not_called()
@@ -411,7 +411,7 @@ class PhotoPublishStateTests(TestCase):
         self.photo.hidden = False
         self.photo._published = False
 
-        self.photo.calculate_published(dispatch=True, update_model=False)
+        self.photo.calculate_and_set_published(dispatch=True, update_model=False)
 
         mock_save.assert_not_called()
         mock_pub.assert_called_once_with(Photo, instance=self.photo, uuid=self.photo.uuid)
@@ -423,7 +423,7 @@ class PhotoPublishStateTests(TestCase):
         self.photo.hidden = False
         self.photo._published = False
 
-        self.photo.calculate_published(dispatch=False, update_model=True)
+        self.photo.calculate_and_set_published(dispatch=False, update_model=True)
 
         self.photo.refresh_from_db()
         assert self.photo._published is True

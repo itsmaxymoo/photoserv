@@ -64,7 +64,7 @@ class Photo(PublicEntity):
         slug = f"{timezone.now().strftime('%Y-%m-%d')}-{slugify(self.title)}"
         return slug[:self._meta.get_field('slug').max_length]
     
-    def calculate_published(self, dispatch: bool = True, update_model: bool = True) -> bool:
+    def calculate_and_set_published(self, dispatch: bool = True, update_model: bool = True) -> bool:
         prev = self._published
         new = not self.hidden and bool(self.publish_date and self.publish_date <= timezone.now())
 
@@ -101,7 +101,7 @@ class Photo(PublicEntity):
             self.slug = self.calculate_slug()
         is_new = self.pk is None
 
-        self._published = self.calculate_published(update_model=False)
+        self._published = self.calculate_and_set_published(update_model=False)
         super().save(*args, **kwargs)
 
         if is_new:
