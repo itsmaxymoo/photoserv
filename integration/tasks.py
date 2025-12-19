@@ -51,12 +51,17 @@ def debounced_task(key_generator, delay=settings.INTEGRATION_QUEUE_DELAY):
             key = key_generator(*args, **kwargs)
             counter_key = f"debounce:{key}:counter"
             
-            # Increment the counter (or initialize to 1 if doesn't exist)
+            # Set a reasonable timeout that gets refreshed on every call
+            # This prevents memory leaks while ensuring the key lives long enough
+            timeout = delay + 3600  # delay + 1 hour buffer
+            
             try:
-                new_count = cache.incr(counter_key)
+                cache.incr(counter_key)
+                # Refresh timeout on every increment - key lives as long as calls keep coming
+                cache.touch(counter_key, timeout=timeout)
             except ValueError:
                 # Key doesn't exist, create it
-                cache.set(counter_key, 1, timeout=delay + 60)
+                cache.set(counter_key, 1, timeout=timeout)
             
             # Schedule task to run after delay
             celery_task.apply_async(args=args, kwargs=kwargs, countdown=delay)
