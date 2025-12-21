@@ -186,6 +186,17 @@ def generate_photo_metadata(photo_id):
 
 
 @shared_task
+def post_photo_create(photo_id):
+    # Run these synchronously after photo creation
+    generate_photo_metadata(photo_id)
+    generate_sizes_for_photo(photo_id)
+    photo = models.Photo.objects.get(id=photo_id)
+    photo.calculate_and_set_published()
+    
+    return f"Generated sizes, metadata, and calculated publish state for photo {photo_id}."
+
+
+@shared_task
 def consistency():
     issues = 0
 
@@ -246,6 +257,8 @@ def publish_photos():
     photos = models.Photo.objects.all()
     changed_count = 0
     for photo in photos:
+        if not photo.health.all_sizes:
+            continue
         previous_published = photo.published
         new_published = photo.calculate_and_set_published()
         if previous_published != new_published:

@@ -2,14 +2,14 @@
 {% load django_tables2 %}
 
 {% block title %}
-Web Request: {{ object }}
+Python Plugin: {{ object }}
 {% endblock %}
 
 {% block content %}
 <h2 class="text-3xl inline-flex gap-2">
     <span class="font-extralight">
         {% include "partials/back_button.html" %}
-        Web Request:
+        Python Plugin:
     </span>
     {{ object }}
 </h2>
@@ -40,24 +40,59 @@ Web Request: {{ object }}
                         </td>
                     </tr>
                     <tr>
-                        <th>URL</th>
-                        <td>{{ object.method }} <a href="{{ object.url }}" class="link" target="_blank">{{ object.url }}</a></td>
-                    </tr>
-                    <tr>
-                        <th>Headers</th>
+                        <th>Valid</th>
                         <td>
-                            {% if object.headers %}
-                                <pre class="whitespace-pre-wrap bg-base-200 p-2 rounded text-sm">{{ object.headers }}</pre>
+                            {% if object.valid %}
+                                Yes
                             {% else %}
-                                (none)
+                                No
                             {% endif %}
                         </td>
                     </tr>
                     <tr>
-                        <th>Body</th>
+                        <th>Module</th>
+                        <td><code class="bg-base-200 p-1 text-sm">{{ object.module }}</code></td>
+                    </tr>
+                    {% if plugin_name %}
+                    <tr>
+                        <th>Plugin Name</th>
+                        <td>{{ plugin_name }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if plugin_version %}
+                    <tr>
+                        <th>Plugin Version</th>
+                        <td>{{ plugin_version }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if plugin_uuid %}
+                    <tr>
+                        <th>Plugin UUID</th>
+                        <td><code class="bg-base-200 p-1 rounded text-sm">{{ plugin_uuid }}</code></td>
+                    </tr>
+                    {% endif %}
+                    {% if plugin_config %}
+                    <tr>
+                        <th>Config Schema</th>
                         <td>
-                            {% if object.body %}
-                                <pre class="whitespace-pre-wrap bg-base-200 p-2 rounded text-sm">{{ object.body }}</pre>
+                            <ul class="list-none bg-base-200 p-2 rounded text-sm">
+                                {% for key, value in plugin_config.items %}
+                                    <li class="flex space-y-1">
+                                        <span class="underline decoration-dotted mr-2">{{ key }}:</span>
+                                        <span>
+                                            {{ value }}
+                                        </span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <th>Supplied Config</th>
+                        <td>
+                            {% if object.config %}
+                                <pre class="whitespace-pre-wrap bg-base-200 p-2 rounded text-sm">{{ object.config }}</pre>
                             {% else %}
                                 (none)
                             {% endif %}
@@ -68,13 +103,17 @@ Web Request: {{ object }}
         </div>
 
         <div class="box">
-            <h2>Test Request</h2>
+            <h2>Test Plugin</h2>
+            
+            <p class="text-sm mb-4">
+                This will simulate a global event dispatch for this plugin.
+            </p>
             
             <div class="flex justify-center">
-                <form method="post" action="{% url 'web-request-test-send' object.pk %}">
+                <form method="post" action="{% url 'python-plugin-test-run' object.pk %}">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-primary mt-4">
-                        Send Request
+                        Test Run
                     </button>
                 </form>
             </div>

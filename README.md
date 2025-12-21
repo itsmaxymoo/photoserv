@@ -132,6 +132,13 @@ Assume:
 
 * [Astro Loader](https://github.com/photoserv/astro-loader) - For the Astro static site generator.
 
+Python Todo:
+
+* Tests
+* Exclude publish dispatch per-integration
+* Per-photo integration params (reddit)
+* Examples
+
 ## AI Disclosure
 
 AI has been used in the capacity of an advanced autocomplete while making this project.

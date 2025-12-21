@@ -97,18 +97,14 @@ class Photo(PublicEntity):
             self.slug = self.calculate_slug()
         is_new = self.pk is None
 
-        self._published = self.calculate_and_set_published(update_model=False)
+        if not is_new:
+            # Recalculate published status on updates
+            self._published = self.calculate_and_set_published(update_model=False)
         super().save(*args, **kwargs)
 
         if is_new:
-            try:
-                original_size = Size.objects.get(slug="original")
-            except Size.DoesNotExist:
-                original_size = None
-
             # Generate other sizes via Celery task
-            tasks.generate_sizes_for_photo.delay_on_commit(self.id),
-            tasks.generate_photo_metadata.delay_on_commit(self.id)
+            tasks.post_photo_create.delay_on_commit(self.id)
     
     def assign_albums(self, albums):
         # Remove unselected

@@ -181,7 +181,11 @@ CELERY_BEAT_SCHEDULE = {
     },
     'publish-photos': {
         'task': 'core.tasks.publish_photos',
-        'schedule': 60.0 * 10,
+        'schedule': 60.0 * 10 if not DEBUG else 30.0,
+    },
+    'integration-consistency': {
+        'task': 'integration.tasks.consistency',
+        'schedule': 60.0 * 60 * 24,
     },
 }
 
@@ -299,3 +303,9 @@ AUTHENTICATION_BACKENDS = [
 # ------- Integrations
 
 INTEGRATION_QUEUE_DELAY = 60 * 10  # 10 minutes
+
+# Python plugins path
+if IS_CONTAINER:
+    PLUGINS_PATH = Path("/plugins")
+else:
+    PLUGINS_PATH = BASE_DIR / "plugins"

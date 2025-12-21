@@ -27,5 +27,19 @@ class WebRequestTable(tables.Table):
 
     class Meta:
         model = WebRequest
-        fields = ("request", "active")
+        fields = ("request", "active", "last_run_timestamp")
         order_by = ("url",)
+
+
+class PythonPluginTable(tables.Table):
+    plugin = tables.Column(accessor='id', verbose_name="Plugin", linkify=True)
+    active = tables.BooleanColumn()
+    valid = tables.BooleanColumn(accessor='valid', verbose_name="Valid")
+
+    def render_plugin(self, record):
+        return str(record)
+
+    class Meta:
+        model = PythonPlugin
+        fields = ("plugin", "valid", "active", "last_run_timestamp")
+        order_by = ("module",)

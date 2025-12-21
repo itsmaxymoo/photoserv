@@ -26,15 +26,12 @@ class PhotoModelTests(TestCase):
         url = self.photo.get_absolute_url()
         self.assertIn(str(self.photo.pk), url)
 
-    @mock.patch("core.tasks.generate_sizes_for_photo.delay_on_commit")
-    @mock.patch("core.tasks.generate_photo_metadata.delay_on_commit")
-    def test_save_triggers_tasks_on_create(self, mock_metadata, mock_sizes):
+    @mock.patch("core.tasks.post_photo_create.delay_on_commit")
+    def test_save_triggers_tasks_on_create(self, mock_post_photo_create):
         p = Photo(title="Another", raw_image="raw.jpg")
         p.save()
 
-
-        self.assertTrue(mock_sizes.called)
-        self.assertTrue(mock_metadata.called)
+        self.assertTrue(mock_post_photo_create.called)
 
     @mock.patch("core.tasks.delete_files.delay_on_commit")
     def test_delete_triggers_delete_files(self, mock_delete):
@@ -381,8 +378,6 @@ class PhotoPublishStateTests(TestCase):
         self.photo._published = True
         self.photo.hidden = True
         self.photo.save()
-
-        self.photo.calculate_and_set_published(dispatch=True, update_model=True)
 
         self.photo.refresh_from_db()
         assert self.photo._published is False
