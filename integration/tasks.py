@@ -19,7 +19,7 @@ def call_web_request(web_request_id):
 
 
 @shared_task
-def call_plugin_signal(signal_name, data=None):
+def call_plugin_signal(signal_name, data=None, plugin_ids=None):
     """
     Call plugin methods based on signal name.
     
@@ -31,9 +31,16 @@ def call_plugin_signal(signal_name, data=None):
     Args:
         signal_name: Name of the plugin method to call (e.g., 'on_photo_publish', 'on_global_change')
         data: Optional dict of serialized data to pass to the plugin method
+        plugin_ids: Optional list of plugin IDs to include. If None, calls all active plugins.
     """
-    plugins = PythonPlugin.objects.filter(active=True)
+    if plugin_ids is not None:
+        # Call only specified plugins
+        plugins = PythonPlugin.objects.filter(id__in=plugin_ids, active=True)
+    else:
+        # Call all active plugins
+        plugins = PythonPlugin.objects.filter(active=True)
     
+    called_count = 0
     for plugin in plugins:
         if not plugin.valid:
             continue
@@ -44,11 +51,12 @@ def call_plugin_signal(signal_name, data=None):
                 method_name=signal_name,
                 method_args=(data,) if data else ()
             )
+            called_count += 1
         except Exception:
             # Continue even if one plugin fails
             pass
 
-    return f"Called {signal_name} on {plugins.count()} plugins"
+    return f"Called {signal_name} on {called_count} plugins"
 
 
 def debounced_task(key_generator, delay=settings.INTEGRATION_QUEUE_DELAY):

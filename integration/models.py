@@ -38,6 +38,25 @@ class PluginStorage(models.Model):
         return f"{self.key}: {str(self.value)[:50]}"
 
 
+class PhotoPluginExclusion(models.Model):
+    """
+    Temporary exclusion of a photo from plugin dispatch.
+    Used when creating or editing photos to exclude specific plugins from notification.
+    These are automatically cleaned up after dispatch.
+    """
+    photo = models.ForeignKey('core.Photo', on_delete=models.CASCADE, related_name='plugin_exclusions')
+    plugin = models.ForeignKey('PythonPlugin', on_delete=models.CASCADE, related_name='photo_exclusions')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('photo', 'plugin')
+        verbose_name = "Photo Plugin Exclusion"
+        verbose_name_plural = "Photo Plugin Exclusions"
+
+    def __str__(self):
+        return f"Exclude {self.plugin} from {self.photo}"
+
+
 class IntegrationRunResult(models.Model):
     """
     Stores a historical record of an integration run.
