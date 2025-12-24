@@ -423,6 +423,28 @@ class PhotoPublishStateTests(TestCase):
         self.photo.refresh_from_db()
         assert self.photo._published is True
         mock_pub.assert_not_called()
+    
+    @mock.patch("core.signals.photo_unpublished.send")
+    def test_photo_deleted_dispatches_unpublished(self, mock_unpub):
+        """Deleting a published photo dispatches photo_unpublished."""
+        self.photo.hidden = False
+        self.photo._published = True
+        self.photo.save()
+
+        self.photo.delete()
+
+        mock_unpub.assert_called_once_with(Photo, instance=self.photo, uuid=self.photo.uuid)
+    
+    @mock.patch("core.signals.photo_unpublished.send")
+    def test_photo_deleted_unpublished_no_signal_if_unpublished(self, mock_unpub):
+        """Deleting an unpublished photo does not dispatch photo_unpublished."""
+        self.photo.hidden = True
+        self.photo._published = False
+        self.photo.save()
+
+        self.photo.delete()
+
+        mock_unpub.assert_not_called()
 
 
 class TestMigrations(TestCase):

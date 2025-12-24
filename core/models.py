@@ -122,10 +122,14 @@ class Photo(PublicEntity):
     def delete(self, *args, **kwargs):
         # Delete all sizes associated with this photo
         size_files = [s.image.path for s in self.sizes.all() if s.image]
-        size_files.append(self.raw_image.path)
+        if self.raw_image:
+            size_files.append(self.raw_image.path)
 
         if size_files:
             tasks.delete_files.delay_on_commit(size_files)
+
+        if self._published:
+            photo_unpublished.send(Photo, instance=self, uuid=self.uuid)
 
         super().delete(*args, **kwargs)
 
