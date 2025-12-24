@@ -191,7 +191,7 @@ def post_photo_create(photo_id):
     generate_photo_metadata(photo_id)
     generate_sizes_for_photo(photo_id)
     photo = models.Photo.objects.get(id=photo_id)
-    photo.calculate_and_set_published()
+    photo.update_published(dispatch_signals=True, update_model=True)
     
     return f"Generated sizes, metadata, and calculated publish state for photo {photo_id}."
 
@@ -259,9 +259,7 @@ def publish_photos():
     for photo in photos:
         if not photo.health.all_sizes:
             continue
-        previous_published = photo.published
-        new_published = photo.calculate_and_set_published()
-        if previous_published != new_published:
+        if photo.update_published(dispatch_signals=True, update_model=True):
             changed_count += 1
 
     return f"{changed_count} photos published/unpublished."

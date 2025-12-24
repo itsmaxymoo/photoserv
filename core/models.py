@@ -60,22 +60,25 @@ class Photo(PublicEntity):
         slug = f"{timezone.now().strftime('%Y-%m-%d')}-{slugify(self.title)}"
         return slug[:self._meta.get_field('slug').max_length]
     
-    def calculate_and_set_published(self, dispatch: bool = True, update_model: bool = True) -> bool:
-        prev = self._published
-        new = not self.hidden and bool(self.publish_date and self.publish_date <= timezone.now())
+    def calculate_published(self) -> bool:
+        return not self.hidden and bool(self.publish_date and self.publish_date <= timezone.now())
+    
+    def update_published(self, update_model: bool = False, dispatch_signals: bool = False) -> bool:
+        old = self._published
+        new = self.calculate_published()
+        changed = new != old
+        self._published = new
 
-        if new != prev:
-            if update_model:
-                self._published = new
-                self.save()
-
-            if dispatch:
-                if new:
-                    photo_published.send(Photo, instance=self, uuid=self.uuid)
-                else:
-                    photo_unpublished.send(Photo, instance=self, uuid=self.uuid)
+        if changed and dispatch_signals:
+            if new:
+                photo_published.send(Photo, instance=self, uuid=self.uuid)
+            else:
+                photo_unpublished.send(Photo, instance=self, uuid=self.uuid)
         
-        return new
+        if changed and update_model:
+            self.save()
+
+        return changed
 
     def get_absolute_url(self):
         return reverse("photo-detail", kwargs={"pk": self.pk})
@@ -92,17 +95,17 @@ class Photo(PublicEntity):
             raise ValidationError(f"A photo with the slug '{slug_to_check}' already exists.")
     
     # After saving a new photo, trigger the task to generate sizes
-    def save(self, *args, **kwargs):
+    def save(self, schedule_followup_tasks: bool = False, *args, **kwargs):
         if not self.slug:
             self.slug = self.calculate_slug()
         is_new = self.pk is None
 
         if not is_new:
             # Recalculate published status on updates
-            self._published = self.calculate_and_set_published(update_model=False)
+            self.update_published(dispatch_signals=True)
         super().save(*args, **kwargs)
 
-        if is_new:
+        if schedule_followup_tasks and is_new:
             # Generate other sizes via Celery task
             tasks.post_photo_create.delay_on_commit(self.id)
     

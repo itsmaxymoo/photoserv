@@ -29,7 +29,7 @@ class PhotoModelTests(TestCase):
     @mock.patch("core.tasks.post_photo_create.delay_on_commit")
     def test_save_triggers_tasks_on_create(self, mock_post_photo_create):
         p = Photo(title="Another", raw_image="raw.jpg")
-        p.save()
+        p.save(schedule_followup_tasks=True)
 
         self.assertTrue(mock_post_photo_create.called)
 
@@ -364,7 +364,7 @@ class PhotoPublishStateTests(TestCase):
         self.photo._published = False
         self.photo.publish_date = timezone.now()
 
-        self.photo.calculate_and_set_published(dispatch=True, update_model=True)
+        self.photo.update_published(dispatch_signals=True, update_model=True)
 
         self.photo.refresh_from_db()
         assert self.photo._published is True
@@ -393,7 +393,7 @@ class PhotoPublishStateTests(TestCase):
         self.photo.hidden = False
         self.photo.publish_date = timezone.now()
 
-        self.photo.calculate_and_set_published(dispatch=True, update_model=True)
+        self.photo.update_published(dispatch_signals=True, update_model=True)
 
         mock_save.assert_not_called()
         mock_pub.assert_not_called()
@@ -406,7 +406,8 @@ class PhotoPublishStateTests(TestCase):
         self.photo.hidden = False
         self.photo._published = False
 
-        self.photo.calculate_and_set_published(dispatch=True, update_model=False)
+        self.photo.update_published(dispatch_signals=True, update_model=False)
+        self.photo.refresh_from_db()
 
         mock_save.assert_not_called()
         mock_pub.assert_called_once_with(Photo, instance=self.photo, uuid=self.photo.uuid)
@@ -418,7 +419,7 @@ class PhotoPublishStateTests(TestCase):
         self.photo.hidden = False
         self.photo._published = False
 
-        self.photo.calculate_and_set_published(dispatch=False, update_model=True)
+        self.photo.update_published(dispatch_signals=False, update_model=True)
 
         self.photo.refresh_from_db()
         assert self.photo._published is True
