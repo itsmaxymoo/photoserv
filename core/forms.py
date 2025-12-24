@@ -24,53 +24,10 @@ class PhotoForm(forms.ModelForm):
         widget=forms.DateTimeInput(attrs={"type": "datetime-local"}),
         initial=forms.fields.datetime.datetime.now,
     )
-    excluded_plugins = forms.ModelMultipleChoiceField(
-        queryset=None,  # Set in __init__
-        required=False,
-        widget=forms.CheckboxSelectMultiple,
-        label="Exclude from publish/unpublish notification",
-        help_text="Select plugins to exclude from being notified about this photo's publish/unpublish event. This setting is per-edit."
-    )
-
-    def _setup_plugin_exclusions(self, photo):
-        """
-        Helper method to set up plugin exclusions for a photo.
-        Must be called after the photo has been saved and has an ID.
-        """
-        try:
-            from integration.models import PhotoPluginExclusion
-            
-            # Clear any existing exclusions for this photo
-            PhotoPluginExclusion.objects.filter(photo=photo).delete()
-            
-            # Create new exclusions based on form selection
-            excluded_plugins = self.cleaned_data.get('excluded_plugins', [])
-            for plugin in excluded_plugins:
-                PhotoPluginExclusion.objects.create(photo=photo, plugin=plugin)
-        except ImportError:
-            # Integration app not available, skip exclusion handling
-            pass
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
-
-        # Dynamically populate excluded_plugins queryset
-        try:
-            from integration.models import PythonPlugin
-            self.fields['excluded_plugins'].queryset = PythonPlugin.objects.order_by('nickname', 'module')
-            
-            # Pre-populate with existing exclusions if editing
-            if self.instance and self.instance.pk:
-                from integration.models import PhotoPluginExclusion
-                excluded_ids = PhotoPluginExclusion.objects.filter(
-                    photo=self.instance
-                ).values_list('plugin_id', flat=True)
-                self.fields['excluded_plugins'].initial = excluded_ids
-        except Exception:
-            # If integration app is not available, use empty queryset
-            from django.db.models import Model
-            self.fields['excluded_plugins'].queryset = Model.objects.none()
 
         if self.instance and self.instance.pk:
             # pre-check albums the photo already belongs to
@@ -91,7 +48,14 @@ class PhotoForm(forms.ModelForm):
         fields = ["title", "description", "raw_image", "slug", "hidden", "publish_date", "albums"]
         exclude = ["last_updated"]
     
-    def save(self, commit=True):
+    def save(self, commit=True, exclusion_form=None):
+        """
+        Save the photo form.
+        
+        Args:
+            commit: Whether to save to database
+            exclusion_form: Optional PhotoPluginExclusionForm to handle plugin exclusions
+        """
         # Check if this is a new photo
         is_new = self.instance.pk is None
         
@@ -101,14 +65,15 @@ class PhotoForm(forms.ModelForm):
         
         # For existing photos, set up exclusions BEFORE saving
         # This ensures they're in place before any signals are dispatched
-        if not is_new:
-            self._setup_plugin_exclusions(self.instance)
+        if not is_new and exclusion_form and exclusion_form.is_valid():
+            exclusion_form.setup_exclusions(self.instance)
         
         photo = super().save(commit=True)
         
-        if is_new:            
+        if is_new:
             # Set up exclusions before scheduling tasks
-            self._setup_plugin_exclusions(photo)
+            if exclusion_form and exclusion_form.is_valid():
+                exclusion_form.setup_exclusions(photo)
             
             # Now schedule the post-creation task (which will trigger signals)
             post_photo_create.delay_on_commit(photo.id)

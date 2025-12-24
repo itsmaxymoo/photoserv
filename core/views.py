@@ -59,6 +59,38 @@ class PhotoCreateView(PhotoMixin, CreateView):
     form_class = PhotoForm
     template_name = "core/photo_form.html"
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Add exclusion form to context
+        try:
+            from integration.forms import PhotoPluginExclusionForm
+            if 'exclusion_form' not in context:
+                context['exclusion_form'] = PhotoPluginExclusionForm(
+                    self.request.POST if self.request.method == 'POST' else None,
+                    photo_instance=None
+                )
+        except ImportError:
+            pass
+        return context
+
+    def form_valid(self, form):
+        # Get exclusion form
+        exclusion_form = None
+        try:
+            from integration.forms import PhotoPluginExclusionForm
+            exclusion_form = PhotoPluginExclusionForm(
+                self.request.POST,
+                photo_instance=None
+            )
+            if not exclusion_form.is_valid():
+                return self.form_invalid(form)
+        except ImportError:
+            pass
+        
+        # Save with exclusion form
+        self.object = form.save(commit=True, exclusion_form=exclusion_form)
+        return redirect(self.get_success_url())
+
     def get_success_url(self):
         return reverse('photo-detail', kwargs={'pk': self.object.pk})
 
@@ -82,6 +114,38 @@ class PhotoUpdateView(PhotoMixin, UpdateView):
     model = Photo
     form_class = PhotoForm
     template_name = "core/photo_form.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Add exclusion form to context
+        try:
+            from integration.forms import PhotoPluginExclusionForm
+            if 'exclusion_form' not in context:
+                context['exclusion_form'] = PhotoPluginExclusionForm(
+                    self.request.POST if self.request.method == 'POST' else None,
+                    photo_instance=self.object
+                )
+        except ImportError:
+            pass
+        return context
+
+    def form_valid(self, form):
+        # Get exclusion form
+        exclusion_form = None
+        try:
+            from integration.forms import PhotoPluginExclusionForm
+            exclusion_form = PhotoPluginExclusionForm(
+                self.request.POST,
+                photo_instance=self.object
+            )
+            if not exclusion_form.is_valid():
+                return self.form_invalid(form)
+        except ImportError:
+            pass
+        
+        # Save with exclusion form
+        self.object = form.save(commit=True, exclusion_form=exclusion_form)
+        return redirect(self.get_success_url())
 
     def get_success_url(self):
         return reverse('photo-detail', kwargs={'pk': self.object.pk})
