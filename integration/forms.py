@@ -25,7 +25,7 @@ class PhotoPluginExclusionForm(forms.Form):
         required=False,
         widget=forms.CheckboxSelectMultiple,
         label="Exclude from publish/unpublish notification",
-        help_text="Select plugins to exclude from being notified about this photo's publish/unpublish event. This setting is per-edit."
+        help_text="Select plugins to permanently exclude from being notified about this photo's publish/unpublish events."
     )
 
     def __init__(self, *args, photo_instance=None, **kwargs):

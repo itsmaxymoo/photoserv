@@ -33,16 +33,10 @@ def dispatch_photo_signal(photo_instance, signal_name):
     # Serialize photo data
     photo_data = PhotoSerializer(photo_instance).data
     
-    # Queue task with plugin filtering and cleanup
-    def queue_task():
-        call_plugin_signal.delay(signal_name, data=photo_data, plugin_ids=included_plugin_ids)
-    
-    def cleanup_exclusions():
-        # Clean up exclusions after the task is queued
-        PhotoPluginExclusion.objects.filter(photo=photo_instance).delete()
-    
-    transaction.on_commit(queue_task)
-    transaction.on_commit(cleanup_exclusions)
+    # Queue task with plugin filtering
+    transaction.on_commit(
+        lambda: call_plugin_signal.delay(signal_name, data=photo_data, plugin_ids=included_plugin_ids)
+    )
 
 
 @receiver(photo_published)

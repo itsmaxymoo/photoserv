@@ -40,9 +40,9 @@ class PluginStorage(models.Model):
 
 class PhotoPluginExclusion(models.Model):
     """
-    Temporary exclusion of a photo from plugin dispatch.
-    Used when creating or editing photos to exclude specific plugins from notification.
-    These are automatically cleaned up after dispatch.
+    Persistent exclusion of a photo from plugin dispatch.
+    Used to permanently exclude specific plugins from being notified about
+    a photo's publish/unpublish events. These must be manually managed.
     """
     photo = models.ForeignKey('core.Photo', on_delete=models.CASCADE, related_name='plugin_exclusions')
     plugin = models.ForeignKey('PythonPlugin', on_delete=models.CASCADE, related_name='photo_exclusions')
