@@ -155,36 +155,41 @@ class PhotoservPlugin:
         self.photoserv = photoserv
         self.logger = photoserv.logger
 
-    def on_global_change(self) -> None:
+    def on_global_change(self, **kwargs) -> None:
         """
         Called when any global change occurs in the system.
         Only called if the plugin is registered with global=True.
+        
+        Args:
+            **kwargs: Additional parameters for future compatibility
         
         Raises:
             Exception: If the handler fails
         """
         pass
 
-    def on_photo_publish(self, data: Dict[str, Any]) -> None:
+    def on_photo_publish(self, data: Dict[str, Any], **kwargs) -> None:
         """
         Called when a photo is published.
         
         Args:
             data: Serialized photo data (dict) matching the public API format.
                   This is a read-only snapshot and cannot modify the database.
+            **kwargs: Additional parameters for future compatibility
         
         Raises:
             Exception: If the handler fails
         """
         pass
 
-    def on_photo_unpublish(self, data: Dict[str, Any]) -> None:
+    def on_photo_unpublish(self, data: Dict[str, Any], **kwargs) -> None:
         """
         Called when a photo is unpublished.
         
         Args:
             data: Serialized photo data (dict) matching the public API format.
                   This is a read-only snapshot and cannot modify the database.
+            **kwargs: Additional parameters for future compatibility
         
         Raises:
             Exception: If the handler fails

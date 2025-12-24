@@ -31,11 +31,11 @@ class ExamplePlugin(PhotoservPlugin):
         self.logger.info(f"This plugin has been called {call_count} times")
         self.photoserv.config.set('call_count', call_count + 1)
 
-    def on_global_change(self):
+    def on_global_change(self, **kwargs):
         """Handle global change events."""
         self.logger.info("Global change event received")
     
-    def on_photo_publish(self, data):
+    def on_photo_publish(self, data, **kwargs):
         """Handle photo publish events."""
         # data is a dict with serialized data from the public API
         self.logger.info(f"Photo published: {data.get('title')} (UUID: {data.get('uuid')})")
@@ -49,7 +49,7 @@ class ExamplePlugin(PhotoservPlugin):
         except Exception as e:
             self.logger.error(f"  Error getting thumbnail: {e}")
     
-    def on_photo_unpublish(self, data):
+    def on_photo_unpublish(self, data, **kwargs):
         """Handle photo unpublish events."""
         # data is a dict with serialized data from the public API
         self.logger.info(f"Photo unpublished: {data.get('title')} (UUID: {data.get('uuid')})")
