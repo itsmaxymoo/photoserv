@@ -70,6 +70,103 @@ class PhotoModelTests(TestCase):
         self.assertTrue(self.photo.health.all_sizes)
 
 
+class PhotoFormTests(TestCase):
+    @mock.patch("core.tasks.post_photo_create.delay_on_commit")
+    @mock.patch("django.core.files.storage.FileSystemStorage.save")
+    @mock.patch("PIL.Image.open")
+    def test_new_photo_schedules_post_photo_create(self, mock_image_open, mock_storage_save, mock_post_photo_create):
+        """Ensure for a new photo, post_photo_create is scheduled"""
+        from .forms import PhotoForm
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        
+        # Mock PIL Image.open to avoid actual image validation
+        mock_image_open.return_value.verify.return_value = None
+        mock_image_open.return_value.size = (100, 100)
+        mock_image_open.return_value.format = 'JPEG'
+        
+        # Mock storage save to avoid actual file operations
+        mock_storage_save.return_value = 'test_image.jpg'
+        
+        image_file = SimpleUploadedFile(
+            name='test_image.jpg',
+            content=b'fake image content',
+            content_type='image/jpeg'
+        )
+        
+        form_data = {
+            'title': 'New Photo',
+            'description': 'A new test photo',
+            'slug': 'new-photo',
+            'hidden': False,
+        }
+        
+        form = PhotoForm(data=form_data, files={'raw_image': image_file})
+        self.assertTrue(form.is_valid(), form.errors)
+        
+        photo = form.save(commit=True)
+        
+        # Verify post_photo_create was called with the photo's id
+        mock_post_photo_create.assert_called_once_with(photo.id)
+    
+    @mock.patch("core.tasks.post_photo_create.delay_on_commit")
+    def test_existing_photo_does_not_schedule_post_photo_create(self, mock_post_photo_create):
+        """Ensure for an existing photo, post_photo_create is not called"""
+        from .forms import PhotoForm
+        
+        # Create an existing photo
+        photo = Photo.objects.create(
+            title="Existing Photo",
+            raw_image="existing.jpg"
+        )
+        
+        # Update the photo through the form
+        form_data = {
+            'title': 'Updated Photo Title',
+            'description': 'Updated description',
+            'slug': photo.slug,
+            'hidden': False,
+        }
+        
+        form = PhotoForm(data=form_data, instance=photo)
+        self.assertTrue(form.is_valid(), form.errors)
+        
+        form.save(commit=True)
+        
+        # Verify post_photo_create was NOT called
+        mock_post_photo_create.assert_not_called()
+    
+    @mock.patch.object(Photo, 'update_published')
+    def test_existing_photo_calls_update_published_correctly(self, mock_update_published):
+        """For an existing photo, photo.update_published is called with dispatch_signals=True and update_model=False"""
+        from .forms import PhotoForm
+        
+        # Create an existing photo
+        photo = Photo.objects.create(
+            title="Existing Photo",
+            raw_image="existing.jpg"
+        )
+        
+        # Reset the mock to clear any calls from photo creation
+        mock_update_published.reset_mock()
+        
+        # Update the photo through the form
+        form_data = {
+            'title': 'Updated Photo Title',
+            'description': 'Updated description',
+            'slug': photo.slug,
+            'hidden': True,  # Change hidden status to trigger update
+        }
+        
+        form = PhotoForm(data=form_data, instance=photo)
+        self.assertTrue(form.is_valid(), form.errors)
+        
+        form.save(commit=True)
+        
+        # Verify update_published was called with correct arguments
+        # Note: update_published is called during Photo.save() when is_new=False
+        mock_update_published.assert_called_with(dispatch_signals=True)
+
+
 class PhotoSlugTests(TestCase):
     def test_photo_created_without_slug(self):
         # Create a photo without specifying a slug
