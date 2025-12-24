@@ -135,7 +135,6 @@ Assume:
 Python Todo:
 
 * Tests
-* Exclude publish dispatch per-integration
 * Per-photo integration params (reddit)
 * Examples
 
