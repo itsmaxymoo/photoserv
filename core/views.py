@@ -63,9 +63,9 @@ class PhotoCreateView(PhotoMixin, CreateView):
         context = super().get_context_data(**kwargs)
         # Add exclusion form to context
         try:
-            from integration.forms import PhotoPluginExclusionForm
+            from integration.forms import IntegrationPhotoForm
             if 'exclusion_form' not in context:
-                context['exclusion_form'] = PhotoPluginExclusionForm(
+                context['exclusion_form'] = IntegrationPhotoForm(
                     self.request.POST if self.request.method == 'POST' else None,
                     photo_instance=None
                 )
@@ -77,8 +77,8 @@ class PhotoCreateView(PhotoMixin, CreateView):
         # Get exclusion form
         exclusion_form = None
         try:
-            from integration.forms import PhotoPluginExclusionForm
-            exclusion_form = PhotoPluginExclusionForm(
+            from integration.forms import IntegrationPhotoForm
+            exclusion_form = IntegrationPhotoForm(
                 self.request.POST,
                 photo_instance=None
             )
@@ -119,9 +119,9 @@ class PhotoUpdateView(PhotoMixin, UpdateView):
         context = super().get_context_data(**kwargs)
         # Add exclusion form to context
         try:
-            from integration.forms import PhotoPluginExclusionForm
+            from integration.forms import IntegrationPhotoForm
             if 'exclusion_form' not in context:
-                context['exclusion_form'] = PhotoPluginExclusionForm(
+                context['exclusion_form'] = IntegrationPhotoForm(
                     self.request.POST if self.request.method == 'POST' else None,
                     photo_instance=self.object
                 )
@@ -133,8 +133,8 @@ class PhotoUpdateView(PhotoMixin, UpdateView):
         # Get exclusion form
         exclusion_form = None
         try:
-            from integration.forms import PhotoPluginExclusionForm
-            exclusion_form = PhotoPluginExclusionForm(
+            from integration.forms import IntegrationPhotoForm
+            exclusion_form = IntegrationPhotoForm(
                 self.request.POST,
                 photo_instance=self.object
             )

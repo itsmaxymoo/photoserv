@@ -7,8 +7,10 @@ from django_tables2.views import SingleTableView
 from .models import *
 from .forms import *
 from .tables import *
+from .tasks import scan_plugins, call_queue_global_integrations, call_single_plugin_signal
 from core.mixins import CRUDGenericMixin
 from django_tables2 import RequestConfig
+from core.models import Photo
 
 
 def redirect_to_home(request):
@@ -254,15 +256,68 @@ class PythonPluginScanView(View):
     View to manually trigger a scan for Python plugins.
     """
     def post(self, request):
-        from .tasks import scan_plugins
         scan_plugins.delay()
-        return redirect(reverse("python-plugin-scan-initiated"))
+        messages.success(request, "Scanning for new plugins. Refresh in a few moments.")
+        return redirect(reverse("integration-list"))
 
 
-class PythonPluginScanInitiatedView(TemplateView):
+class QueueGlobalIntegrationsView(View):
     """
-    View to show confirmation that a plugin scan has been initiated.
+    View to manually trigger global integrations (web requests and plugins).
     """
-    template_name = "integration/python_plugin_scan_initiated.html"
+    def post(self, request):
+        call_queue_global_integrations()
+        messages.success(request, "Queued global integration dispatch.")
+        return redirect(reverse("integration-list"))
+
+
+class IntegrationPhotoView(TemplateView):
+    """
+    View to manage plugin integrations for a specific photo.
+    """
+    template_name = "integration/integration_photo.html"
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        photo = get_object_or_404(Photo, pk=kwargs['pk'])
+        
+        context['photo'] = photo
+        context['exclusion_form'] = IntegrationPhotoForm(photo_instance=photo)
+        context['plugins'] = PythonPlugin.objects.all().order_by('nickname', 'module')
+        
+        return context
+    
+    def post(self, request, pk):
+        photo = get_object_or_404(Photo, pk=pk)
+        
+        # Handle form submission for exclusions
+        if 'update_exclusions' in request.POST:
+            exclusion_form = IntegrationPhotoForm(request.POST, photo_instance=photo)
+            if exclusion_form.is_valid():
+                exclusion_form.setup_exclusions(photo)
+                messages.success(request, "Plugin exclusions updated.")
+                return redirect(reverse('integration-photo', kwargs={'pk': pk}))
+        
+        # Handle plugin action buttons
+        elif 'plugin_action' in request.POST:
+            plugin_id = request.POST.get('plugin_id')
+            action = request.POST.get('action')
+            
+            if action in ['publish', 'unpublish']:
+                # Serialize photo data for plugin
+                from public_rest_api.serializers import PhotoSerializer
+                photo_data = PhotoSerializer(photo).data
+                
+                signal_name = f'on_photo_{action}'
+                try:
+                    # Queue the task asynchronously
+                    call_single_plugin_signal.delay(int(plugin_id), signal_name, photo_data)
+                    messages.success(request, f"Queued {action} action for plugin. Check the plugin's run history for results.")
+                except Exception as e:
+                    messages.error(request, f"Failed to queue {action} action: {e}")
+                
+                return redirect(reverse('integration-photo', kwargs={'pk': pk}))
+        
+        return redirect(reverse('integration-photo', kwargs={'pk': pk}))
 
 #endregion

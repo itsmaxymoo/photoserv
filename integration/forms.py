@@ -15,7 +15,7 @@ class PythonPluginForm(forms.ModelForm):
         fields = ["nickname", "module", "config", "active"]
 
 
-class PhotoPluginExclusionForm(forms.Form):
+class IntegrationPhotoForm(forms.Form):
     """
     Form for managing plugin exclusions for a photo.
     This form handles which plugins should be excluded from publish/unpublish notifications.

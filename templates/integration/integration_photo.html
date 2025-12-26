@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}Integrations for: {{ photo }}{% endblock %}
+
+{% block content %}
+<h2>Integrations for: {{ photo }}</h2>
+
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'success' %}
+<div class="alert alert-success">
+    {{ message }}
+</div>
+        {% elif message.tags == 'error' %}
+<div class="alert alert-error">
+    {{ message }}
+</div>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+<div class="grid grid-cols-1 gap-6">
+    <!-- Photo Preview -->
+    <div class="box">
+        <h3 class="text-2xl">Photo</h3>
+        <div class="flex flex-col md:flex-row gap-4">
+            <div class="order-2 md:order-1">
+                {% if photo.raw_image %}
+                <img src="{% url 'photo-image' photo.pk UI_THUMBNAIL_LARGE %}" alt="{{ photo.title }}"
+                    class="max-w-full shadow" />
+                {% else %}
+                <p>No image</p>
+                {% endif %}
+            </div>
+            <div class="order-1 md:order-2 flex-1 overflow-x-auto">
+                <table class="table table-zebra w-full">
+                    <colgroup>
+                        <col class="w-min whitespace-nowrap" />
+                        <col class="w-full" />
+                    </colgroup>
+                    <tr>
+                        <th>Title</th>
+                        <td>{{ photo }}</td>
+                    </tr>
+                    <tr>
+                        <th>UUID</th>
+                        <td>{{ photo.uuid }}</td>
+                    </tr>
+                    <tr>
+                        <th>Published</th>
+                        <td>{{ photo.published|yesno }}</td>
+                    </tr>
+                    <tr>
+                        <th>Hidden</th>
+                        <td>{{ photo.hidden|yesno }}</td>
+                    </tr>
+                    <tr>
+                        <th>Sizes Generated</th>
+                        <td>{{ photo.health.all_sizes|yesno }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Plugin Exclusions -->
+    <div class="box">
+        <h3 class="text-2xl">Plugin Exclusions</h3>
+        <p class="text-sm mb-4">Select plugins to permanently exclude from being notified about this photo's publish/unpublish events.</p>
+        
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="update_exclusions" value="1">
+            
+            {% load crispy_forms_tags %}
+            {{ exclusion_form|crispy }}
+            
+            <div class="mt-4 flex justify-center">
+                <button type="submit" class="btn btn-primary">Update Exclusions</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Plugin Actions -->
+    <div class="box">
+        <h3 class="text-2xl">Plugin Actions</h3>
+        
+        {% if not photo.health.all_sizes %}
+        <div class="alert alert-warning mb-4">
+            Warning: Photo sizes have not finished generating. Plugins may not have access to all image sizes.
+        </div>
+        {% endif %}
+        
+        <p class="text-sm mb-4">Manually trigger publish or unpublish actions for individual plugins. These actions ignore exclusion settings.</p>
+        
+        <div class="overflow-x-auto">
+            <table class="table table-zebra">
+                <thead>
+                    <tr>
+                        <th>Plugin</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for plugin in plugins %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'python-plugin-detail' plugin.pk %}" class="link">
+                                {{ plugin }}
+                            </a>
+                        </td>
+                        <td>
+                            {% if plugin.active %}
+                                <span class="badge badge-success">Active</span>
+                            {% else %}
+                                <span class="badge badge-neutral">Inactive</span>
+                            {% endif %}
+                            {% if plugin.valid %}
+                                <span class="badge badge-info">Valid</span>
+                            {% else %}
+                                <span class="badge badge-error">Invalid</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="flex gap-2">
+                                <form method="post" class="inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="plugin_action" value="1">
+                                    <input type="hidden" name="plugin_id" value="{{ plugin.pk }}">
+                                    <input type="hidden" name="action" value="publish">
+                                    <button type="submit" class="btn btn-sm btn-primary">Publish</button>
+                                </form>
+                                <form method="post" class="inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="plugin_action" value="1">
+                                    <input type="hidden" name="plugin_id" value="{{ plugin.pk }}">
+                                    <input type="hidden" name="action" value="unpublish">
+                                    <button type="submit" class="btn btn-sm btn-secondary">Unpublish</button>
+                                </form>
+                            </div>
+                            {% if not plugin.active %}
+                            <p class="text-xs mt-1">Plugin is inactive but can still be triggered manually</p>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center">No plugins available</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="flex justify-center gap-4">
+    <a href="{% url 'photo-detail' photo.pk %}" class="btn btn-primary">Back to Photo</a>
+    <a href="{% url 'integration-list' %}" class="btn">Back to Integrations</a>
+</div>
+
+{% endblock %}

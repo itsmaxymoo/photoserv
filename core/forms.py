@@ -54,7 +54,7 @@ class PhotoForm(forms.ModelForm):
         
         Args:
             commit: Whether to save to database
-            exclusion_form: Optional PhotoPluginExclusionForm to handle plugin exclusions
+            exclusion_form: Optional IntegrationPhotoForm to handle plugin exclusions
         """
         # Check if this is a new photo
         is_new = self.instance.pk is None

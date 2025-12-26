@@ -19,6 +19,42 @@ def call_web_request(web_request_id):
 
 
 @shared_task
+def call_single_plugin_signal(plugin_id, signal_name, data=None):
+    """
+    Call a specific plugin method, typically for manual triggering.
+    
+    This bypasses the active check but requires the plugin to be valid.
+    Used for manually triggering plugin actions from the integration UI.
+    
+    Args:
+        plugin_id: ID of the plugin to call
+        signal_name: Name of the plugin method to call (e.g., 'on_photo_publish', 'on_photo_unpublish')
+        data: Optional dict of serialized data to pass to the plugin method
+        
+    Returns:
+        Success message string
+        
+    Raises:
+        Exception: If the plugin doesn't exist, is invalid, or the execution fails
+    """
+    try:
+        plugin = PythonPlugin.objects.get(id=plugin_id)
+    except PythonPlugin.DoesNotExist:
+        raise Exception(f"Plugin with ID {plugin_id} does not exist")
+    
+    if not plugin.valid:
+        raise Exception(f"Plugin {plugin} is not valid")
+    
+    plugin.run(
+        IntegrationCaller.MANUAL,
+        method_name=signal_name,
+        method_args=(data,) if data else ()
+    )
+    
+    return f"Called {signal_name} on {plugin}"
+
+
+@shared_task
 def call_plugin_signal(signal_name, data=None, plugin_ids=None):
     """
     Call plugin methods based on signal name.
@@ -181,7 +217,7 @@ def consistency():
     # Delete all integration run results older than 1 year
     one_year_ago = timezone.now() - timedelta(days=365)
     deleted_count, _ = WebRequest.objects.filter(
-        created_at__lt=one_year_ago
+        start_timestamp__lt=one_year_ago
     ).delete()
 
     return f"Deleted {deleted_count} integration run results older than 1 year."
