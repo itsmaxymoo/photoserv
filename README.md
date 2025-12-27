@@ -127,6 +127,39 @@ Assume:
 
 ## Integrations
 
+### Web Requests
+
+Photoserv can be configured to dispatch web requests upon a global change.
+This can be useful for triggering a static site generator upon creating content.
+
+![Web request example](docs/screenshots/web_request.png)
+
+Web requests will be dispatched 10 minutes after the *most recent* Photoserv change to reduce excessive dispatches.
+
+#### Gitea Example
+
+Suppose you have a SSG project set up in a Gitea repo. You can call the `deploy.yml` workflow using Photoserv like so:
+
+| Parameter | Value |
+| --- | --- |
+| Method | `POST` |
+| URL | `https://your-gitea-instance.domain/api/v1/repos/<namespace>/<repo>/actions/workflows/deploy.yml/dispatches` |
+| Headers | `Content-Type: application/json`<br>`Authorization: token ${GITEA_KEY}` |
+| Body | `{ "ref": "main" }` |
+| Active | Checked |
+
+### Python Plugins
+
+Photoserv supports Python-based plugins to extend functionality beyond web requests.
+Plugins can intercept global changes as well as photo publish events. Use plugins for things like social media integration or more complex workflows.
+
+![Plugin example](docs/screenshots/python_plugin.png)
+
+See the [Photoserv plugin repository](https://github.com/photoserv/python-plugins) for first-class plugins, examples, and documentation. **Be careful** running Python plugins as they essentially allow arbitrary code execution.
+
+### Secrets
+
+Both web requests and plugins can use environment variables in the `${ENV_VAR}` format to safely reference secrets. Be careful not to leak secrets with this!
 
 ### Integrations for Other Projects
 

@@ -305,7 +305,4 @@ AUTHENTICATION_BACKENDS = [
 INTEGRATION_QUEUE_DELAY = 60 * 10  # 10 minutes
 
 # Python plugins path
-if IS_CONTAINER:
-    PLUGINS_PATH = Path("/plugins")
-else:
-    PLUGINS_PATH = BASE_DIR / "plugins"
+PLUGINS_PATH = Path(os.getenv("PLUGINS_PATH", str(Path("/plugins") if IS_CONTAINER else BASE_DIR / "plugins")))
