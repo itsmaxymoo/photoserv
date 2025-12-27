@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.2](https://github.com/photoserv/photoserv/compare/0.7.1...0.7.2) (2025-12-27)
+
+
+### Bug Fixes
+
+* Public API showing unpublished photos ([75d4eb4](https://github.com/photoserv/photoserv/commit/75d4eb46c0aea1b1f57a1cbb06b95b00caecc864))
+
 ## [0.7.1](https://github.com/photoserv/photoserv/compare/0.7.0...0.7.1) (2025-12-27)
 
 
