@@ -5,5 +5,52 @@
 }
 
 .codemirror-json-editor .cm-editor {
-    @apply p-2 my-2;
+    @apply p-2 my-2 bg-base-100 text-base-content;
+}
+
+.codemirror-json-editor .cm-gutters {
+    @apply bg-base-200 border-r border-base-300;
+}
+
+.codemirror-json-editor .cm-activeLineGutter {
+    @apply bg-base-300;
+}
+
+.codemirror-json-editor .cm-activeLine {
+    @apply bg-base-200/50;
+}
+
+.codemirror-json-editor .cm-selectionBackground {
+    @apply bg-primary/30;
+}
+
+.codemirror-json-editor .cm-cursor {
+    @apply border-l border-base-content;
+}
+
+/* JSON syntax highlighting */
+.codemirror-json-editor .cm-string {
+    @apply text-success;
+}
+
+.codemirror-json-editor .cm-number {
+    @apply text-info;
+}
+
+.codemirror-json-editor .cm-bool,
+.codemirror-json-editor .cm-null {
+    @apply text-warning;
+}
+
+.codemirror-json-editor .cm-property {
+    @apply text-primary;
+}
+
+.codemirror-json-editor .cm-punctuation {
+    @apply text-base-content/70;
+}
+
+/* Focus state */
+.codemirror-json-editor .cm-editor.cm-focused {
+    @apply outline outline-2 outline-primary outline-offset-2;
 }
