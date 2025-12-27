@@ -3,6 +3,8 @@
 Photoserv is an application for photographers, artists, or similar who want a system to act as a single source of truth
 for their publicly published photos.
 
+**Looking to contribute or inspect the code?** See **[CONTRIBUTING.md](CONTRIBUTING.md)**.
+
 | ![Photo detail](docs/screenshots/photo_detail.png) | ![Album detail](docs/screenshots/album_detail.png) |
 | --- | --- |
 | ![Size list](docs/screenshots/size_list.png) | ![API Key list](docs/screenshots/api_key_list.png) |
@@ -16,6 +18,8 @@ for their publicly published photos.
     * Swagger API browser included.
 * Define multiple sizes for your photos to be available in.
 * OIDC and simple auth optional.
+* Web request dispatch upon global changes.
+* Python plugin system for advanced integrations.
 
 ## Installation
 
