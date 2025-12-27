@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.1](https://github.com/photoserv/photoserv/compare/0.7.0...0.7.1) (2025-12-27)
+
+
+### Bug Fixes
+
+* Misaligned buttons on mobile ([8f86382](https://github.com/photoserv/photoserv/commit/8f8638225c964d75a4d18db5922c3ecc88507b27))
+
 ## [0.7.0](https://github.com/photoserv/photoserv/compare/0.6.4...0.7.0) (2025-12-27)
 
 
