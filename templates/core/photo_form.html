@@ -56,12 +56,12 @@ Editing {{ object|default:object_type_name }}
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
             <div>
                 <a href="{% if not no_object_detail_page or object is None %}../{% else %}../../{% endif %}"
-                    class="btn btn-secondary btn">
+                    class="btn btn-secondary w-full sm:w-auto">
                     Cancel
                 </a>
             </div>
             <div>
-                <button type="submit" class="btn btn-primary btn">
+                <button type="submit" class="btn btn-primary w-full sm:w-auto">
                     Save
                 </button>
             </div>
