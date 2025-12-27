@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.7.0](https://github.com/photoserv/photoserv/compare/0.6.4...0.7.0) (2025-12-27)
+
+
+### Features
+
+* Allow scheduling photos to publish in the future ([2abd809](https://github.com/photoserv/photoserv/commit/2abd80910223fa38cf4eb48f87ba171fdfc8e3f5))
+* Dispatch HTTP requests from within Photoserv ([f33d642](https://github.com/photoserv/photoserv/commit/f33d64215332826b07f7b75c4e72eb60897b2040))
+* Dispatch publish events manually per-photo ([c945d0f](https://github.com/photoserv/photoserv/commit/c945d0f3c146ffdbff440fa412f676d1a604c750))
+* Per-entity plugin parameters ([8759095](https://github.com/photoserv/photoserv/commit/8759095e724e7241cf21231987cad61c9812362d))
+* Python plugin integrations ([7bee460](https://github.com/photoserv/photoserv/commit/7bee4607f05d6b71d1422e1639f894ca35a813a5))
+* Track and review run logs of integrations. ([2fd4115](https://github.com/photoserv/photoserv/commit/2fd41159d3d4621f7121d6b3d1bdc129c393bdb2))
+
+
+### Bug Fixes
+
+* Do not attempt to access the database before migrations run when creating initial user ([bc01f08](https://github.com/photoserv/photoserv/commit/bc01f089738c530bc5bb971bb5ecda97b3461ac2))
+* Docker compose example image name update ([3c427fb](https://github.com/photoserv/photoserv/commit/3c427fb153e39e8502d1ea6e2bcf5450c9d5ebd7))
+* Footer displaying wrong user on users page ([053fbff](https://github.com/photoserv/photoserv/commit/053fbff282a72b420abb2a7afc1745451d5c81d9))
+* Make consistency checker run more frequently ([4910e28](https://github.com/photoserv/photoserv/commit/4910e2873e91d677f771d98161778906bdd135c0))
+* Persist job results for longer ([a40177b](https://github.com/photoserv/photoserv/commit/a40177bb10527ad20775770a838755d3eb899f08))
+
 ## [0.6.4](https://github.com/photoserv/photoserv/compare/0.6.3...0.6.4) (2025-12-04)
 
 
