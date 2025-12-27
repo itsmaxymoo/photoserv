@@ -101,7 +101,7 @@ class ExamplePlugin(PhotoservPlugin):
         
         # Example: Get a photo's thumbnail
         try:
-            thumbnail = self.photoserv.get_photo_image(data, 'photoserv_ui_thumbnail')
+            thumbnail = self.photoserv.get_photo_image(data, 'photoserv_ui_small')
             if thumbnail:
                 self.logger.info(f"  Retrieved thumbnail image stream")
                 thumbnail.close()
