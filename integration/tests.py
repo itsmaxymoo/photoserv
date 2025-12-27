@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 from unittest.mock import patch, MagicMock, Mock
 from django.utils.timezone import now
 from .models import (
-    WebRequest, IntegrationRunResult, IntegrationCaller,
+    WebRequest, RunResult, IntegrationCaller,
     PythonPlugin, PhotoPluginExclusion, PluginEntityParameters
 )
 from .forms import IntegrationPhotoForm
@@ -13,6 +13,8 @@ import uuid
 import tempfile
 import os
 import sys
+import json
+import shutil
 from pathlib import Path
 
 
@@ -26,7 +28,7 @@ class WebRequestTests(TestCase):
         )
 
     def test_run_creates_integration_run_result(self):
-        """1. Running a WebRequest creates an IntegrationRunResult tied to this integration."""
+        """1. Running a WebRequest creates an RunResult tied to this integration."""
         with patch.object(WebRequest, "_send") as mock_send:
             mock_response = MagicMock()
             mock_response.status_code = 200
@@ -35,12 +37,12 @@ class WebRequestTests(TestCase):
 
             result = self.webreq.run(IntegrationCaller.MANUAL)
 
-        self.assertIsInstance(result, IntegrationRunResult)
+        self.assertIsInstance(result, RunResult)
         self.assertEqual(result.integration_uuid, self.webreq.uuid)
         self.assertTrue(result.successful)
         self.assertIn("GET https://example.com", result.run_log)
         self.assertEqual(
-            IntegrationRunResult.objects.filter(integration_uuid=self.webreq.uuid).count(),
+            RunResult.objects.filter(integration_uuid=self.webreq.uuid).count(),
             1
         )
 
@@ -66,7 +68,7 @@ class WebRequestTests(TestCase):
 
     @patch("integration.models.requests.request")
     def test_mock_http_request_failure(self, mock_request):
-        """3. Mock non-200 response → failed IntegrationRunResult."""
+        """3. Mock non-200 response → failed RunResult."""
         mock_response = MagicMock()
         mock_response.status_code = 500
         mock_response.text = "Internal Server Error"
@@ -200,7 +202,7 @@ class PythonPluginModelTests(TestCase):
         plugin = PythonPlugin.objects.create(
             nickname="Test Plugin",
             module="plugins.test_basic_plugin",
-            config="api_key: test123\nbase_url: https://example.com",
+            config={"api_key": "test123", "base_url": "https://example.com"},
             active=True
         )
         self.assertEqual(plugin.nickname, "Test Plugin")
@@ -242,7 +244,7 @@ class PythonPluginModelTests(TestCase):
         plugin = PythonPlugin.objects.create(
             nickname="Test Plugin",
             module="plugins.test_basic_plugin",
-            config="api_key: test123",
+            config={"api_key": "test123"},
             active=True
         )
         
@@ -252,7 +254,7 @@ class PythonPluginModelTests(TestCase):
             method_args=()
         )
         
-        self.assertIsInstance(result, IntegrationRunResult)
+        self.assertIsInstance(result, RunResult)
         self.assertTrue(result.successful)
         self.assertIn("Calling on_global_change", result.run_log)
     
@@ -261,7 +263,7 @@ class PythonPluginModelTests(TestCase):
         plugin = PythonPlugin.objects.create(
             nickname="Test Plugin",
             module="plugins.test_basic_plugin",
-            config="api_key: secret123\nbase_url: https://api.example.com",
+            config={"api_key": "secret123", "base_url": "https://api.example.com"},
             active=True
         )
         
@@ -270,6 +272,30 @@ class PythonPluginModelTests(TestCase):
         
         self.assertEqual(config['api_key'], 'secret123')
         self.assertEqual(config['base_url'], 'https://api.example.com')
+    
+    def test_plugin_config_validation_invalid_json(self):
+        """Test that invalid JSON config raises validation error."""
+        plugin = PythonPlugin(
+            nickname="Test Plugin",
+            module="plugins.test_basic_plugin",
+            config="not a dict",  # String, not dict
+            active=True
+        )
+        with self.assertRaises(ValidationError) as cm:
+            plugin.clean()
+        self.assertIn("valid JSON object", str(cm.exception))
+    
+    def test_plugin_config_validation_list_not_allowed(self):
+        """Test that list config raises validation error."""
+        plugin = PythonPlugin(
+            nickname="Test Plugin",
+            module="plugins.test_basic_plugin",
+            config=["item1", "item2"],  # List, not dict
+            active=True
+        )
+        with self.assertRaises(ValidationError) as cm:
+            plugin.clean()
+        self.assertIn("valid JSON object", str(cm.exception))
 
 
 class PhotoPluginExclusionTests(TestCase):
@@ -349,7 +375,7 @@ class PluginEntityParametersTests(TestCase):
         params = PluginEntityParameters.objects.create(
             plugin=self.plugin,
             entity_uuid=self.photo.uuid,
-            parameters="custom_field: value123\nphoto_id: ext_12345"
+            parameters={"custom_field": "value123", "photo_id": "ext_12345"}
         )
         self.assertEqual(params.plugin, self.plugin)
         self.assertEqual(params.entity_uuid, self.photo.uuid)
@@ -359,7 +385,7 @@ class PluginEntityParametersTests(TestCase):
         params = PluginEntityParameters.objects.create(
             plugin=self.plugin,
             entity_uuid=self.photo.uuid,
-            parameters="custom_field: value123\nphoto_id: ext_12345\nempty_value:"
+            parameters={"custom_field": "value123", "photo_id": "ext_12345", "empty_value": ""}
         )
         
         params_dict = params.get_parameters_dict()
@@ -368,34 +394,36 @@ class PluginEntityParametersTests(TestCase):
         self.assertEqual(params_dict['photo_id'], 'ext_12345')
         self.assertEqual(params_dict['empty_value'], '')
     
-    def test_parameters_validation(self):
-        """Test that invalid parameter format raises validation error."""
+    def test_parameters_validation_not_dict(self):
+        """Test that non-dict parameter format raises validation error."""
         params = PluginEntityParameters(
             plugin=self.plugin,
             entity_uuid=self.photo.uuid,
-            parameters="invalid_format_no_colon\nvalid: value"
+            parameters="not a dict"  # String, not dict
         )
         
         with self.assertRaises(ValidationError) as cm:
             params.clean()
+        self.assertIn("valid JSON object", str(cm.exception))
     
-    def test_duplicate_key_validation(self):
-        """Test that duplicate keys raise validation error."""
+    def test_parameters_validation_list_not_allowed(self):
+        """Test that list parameters raise validation error."""
         params = PluginEntityParameters(
             plugin=self.plugin,
             entity_uuid=self.photo.uuid,
-            parameters="key1: value1\nkey1: value2"
+            parameters=["item1", "item2"]  # List, not dict
         )
         
         with self.assertRaises(ValidationError) as cm:
             params.clean()
+        self.assertIn("valid JSON object", str(cm.exception))
     
     def test_unique_together_constraint(self):
         """Test that plugin+entity_uuid combination is unique."""
         PluginEntityParameters.objects.create(
             plugin=self.plugin,
             entity_uuid=self.photo.uuid,
-            parameters="key: value"
+            parameters={"key": "value"}
         )
         
         # Attempting to create duplicate should fail
@@ -403,7 +431,7 @@ class PluginEntityParametersTests(TestCase):
             PluginEntityParameters.objects.create(
                 plugin=self.plugin,
                 entity_uuid=self.photo.uuid,
-                parameters="key: different_value"
+                parameters={"key": "different_value"}
             )
     
     def test_parameters_passed_to_plugin(self):
@@ -414,7 +442,7 @@ class PluginEntityParametersTests(TestCase):
         PluginEntityParameters.objects.create(
             plugin=self.plugin,
             entity_uuid=self.photo.uuid,
-            parameters="custom_field: test_value\nphoto_id: 12345"
+            parameters={"custom_field": "test_value", "photo_id": 12345}
         )
         
         # Get parameters
@@ -492,7 +520,7 @@ class IntegrationPhotoFormTests(TestCase):
         """Test form validation catches invalid entity parameter format."""
         form_data = {
             'excluded_plugins': [],
-            f'entity_params_{self.plugin1.pk}': 'invalid_no_colon'
+            f'entity_params_{self.plugin1.pk}': 'not valid json'
         }
         form = IntegrationPhotoForm(data=form_data, photo_instance=self.photo)
         
@@ -500,13 +528,13 @@ class IntegrationPhotoFormTests(TestCase):
         self.assertFalse(is_valid)
         field_name = f'entity_params_{self.plugin1.pk}'
         if field_name in form.errors:
-            self.assertIn('Invalid format', str(form.errors[field_name]))
+            self.assertIn('Invalid JSON', str(form.errors[field_name]))
     
-    def test_form_validation_duplicate_keys(self):
-        """Test form validation catches duplicate keys."""
+    def test_form_validation_list_not_allowed(self):
+        """Test form validation catches list instead of object."""
         form_data = {
             'excluded_plugins': [],
-            f'entity_params_{self.plugin1.pk}': 'key1: value1\nkey1: value2'
+            f'entity_params_{self.plugin1.pk}': '["item1", "item2"]'
         }
         form = IntegrationPhotoForm(data=form_data, photo_instance=self.photo)
         
@@ -514,13 +542,13 @@ class IntegrationPhotoFormTests(TestCase):
         self.assertFalse(is_valid)
         field_name = f'entity_params_{self.plugin1.pk}'
         if field_name in form.errors:
-            self.assertIn('Duplicate key', str(form.errors[field_name]))
+            self.assertIn('must be a JSON object', str(form.errors[field_name]))
     
     def test_form_validation_valid_params(self):
         """Test form validation accepts valid entity parameters."""
         form_data = {
             'excluded_plugins': [],
-            f'entity_params_{self.plugin1.pk}': 'key1: value1\nkey2: value2'
+            f'entity_params_{self.plugin1.pk}': '{"key1": "value1", "key2": "value2"}'
         }
         form = IntegrationPhotoForm(data=form_data, photo_instance=self.photo)
         
@@ -564,7 +592,7 @@ class IntegrationPhotoFormTests(TestCase):
         """Test setup_entity_parameters creates/updates parameters."""
         form_data = {
             'excluded_plugins': [],
-            f'entity_params_{self.plugin1.pk}': 'custom_field: test123\nphoto_id: 456'
+            f'entity_params_{self.plugin1.pk}': '{"custom_field": "test123", "photo_id": 456}'
         }
         form = IntegrationPhotoForm(data=form_data, photo_instance=self.photo)
         self.assertTrue(form.is_valid())
@@ -575,18 +603,20 @@ class IntegrationPhotoFormTests(TestCase):
             plugin=self.plugin1,
             entity_uuid=self.photo.uuid
         )
-        self.assertIn('custom_field: test123', params.parameters)
+        params_dict = params.get_parameters_dict()
+        self.assertEqual(params_dict['custom_field'], 'test123')
+        self.assertEqual(params_dict['photo_id'], 456)
     
     def test_setup_entity_parameters_deletes_empty(self):
         """Test setup_entity_parameters deletes empty parameters."""
-        # Create existing parameters
+        # Create initial parameters
         PluginEntityParameters.objects.create(
             plugin=self.plugin1,
             entity_uuid=self.photo.uuid,
-            parameters="old: value"
+            parameters={"key": "value"}
         )
         
-        # Submit empty value
+        # Update with empty value
         form_data = {
             'excluded_plugins': [],
             f'entity_params_{self.plugin1.pk}': ''
@@ -641,7 +671,7 @@ class PluginSignalTests(TestCase):
         """Test calling a single plugin signal."""
         from .tasks import call_single_plugin_signal
         
-        mock_run.return_value = IntegrationRunResult(
+        mock_run.return_value = RunResult(
             integration_uuid=self.plugin.uuid,
             successful=True,
             run_log="Test successful"
@@ -663,7 +693,7 @@ class PluginSignalTests(TestCase):
             active=True
         )
         
-        mock_run.return_value = IntegrationRunResult(
+        mock_run.return_value = RunResult(
             integration_uuid=uuid.uuid4(),
             successful=True,
             run_log="Test successful"
@@ -695,7 +725,7 @@ class PluginSignalTests(TestCase):
             plugin=self.plugin
         )
         
-        mock_run.return_value = IntegrationRunResult(
+        mock_run.return_value = RunResult(
             integration_uuid=uuid.uuid4(),
             successful=True,
             run_log="Test successful"
@@ -754,7 +784,7 @@ class PluginSignalTests(TestCase):
             parameters="custom_field: test_value\nphoto_id: 12345"
         )
         
-        mock_result = IntegrationRunResult(
+        mock_result = RunResult(
             integration_uuid=self.plugin.uuid,
             successful=True,
             run_log="Success"
@@ -789,7 +819,7 @@ class PluginSignalTests(TestCase):
         from .tasks import call_plugin_signal
         
         with patch.object(PythonPlugin, 'run') as mock_run:
-            mock_run.return_value = IntegrationRunResult(
+            mock_run.return_value = RunResult(
                 integration_uuid=self.plugin.uuid,
                 successful=True,
                 run_log="Success"

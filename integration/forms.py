@@ -1,5 +1,6 @@
 from django import forms
 from .models import *
+import json
 
 
 class WebRequestForm(forms.ModelForm):
@@ -9,10 +10,42 @@ class WebRequestForm(forms.ModelForm):
 
 
 class PythonPluginForm(forms.ModelForm):
+    config = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={
+            'rows': 10,
+            'class': 'textarea textarea-bordered w-full font-mono',
+            'data-json-editor': 'true'
+        }),
+        help_text="JSON object containing plugin configuration (environment variables like ${VAR} are supported)"
+    )
 
     class Meta:
         model = PythonPlugin
         fields = ["nickname", "module", "config", "active"]
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Pre-populate config field with pretty-printed JSON
+        if self.instance and self.instance.pk and self.instance.config:
+            self.initial['config'] = json.dumps(self.instance.config, indent=2)
+        elif 'initial' in kwargs and 'config' in kwargs['initial']:
+            if isinstance(kwargs['initial']['config'], dict):
+                self.initial['config'] = json.dumps(kwargs['initial']['config'], indent=2)
+    
+    def clean_config(self):
+        """Validate and parse JSON config."""
+        config_str = self.cleaned_data.get('config', '').strip()
+        if not config_str:
+            return {}
+        
+        try:
+            config = json.loads(config_str)
+            if not isinstance(config, dict):
+                raise forms.ValidationError("Config must be a JSON object (dictionary), not a list or other type.")
+            return config
+        except json.JSONDecodeError as e:
+            raise forms.ValidationError(f"Invalid JSON: {str(e)}")
 
 
 class IntegrationPhotoForm(forms.Form):
@@ -72,16 +105,21 @@ class IntegrationPhotoForm(forms.Form):
                             plugin=plugin,
                             entity_uuid=self.photo_instance.uuid
                         )
-                        initial_value = entity_params.parameters
+                        # Pretty-print the JSON
+                        initial_value = json.dumps(entity_params.parameters, indent=2) if entity_params.parameters else ""
                     except PluginEntityParameters.DoesNotExist:
                         pass
                 
                 # Build help text from entity parameter definitions
-                help_text = "Available parameters (K: V format): " + ", ".join(entity_param_defs.keys())
+                help_text = "JSON object with available keys: " + ", ".join(entity_param_defs.keys())
                 
                 self.fields[field_name] = forms.CharField(
                     required=False,
-                    widget=forms.Textarea(attrs={'rows': 3, 'class': 'textarea textarea-bordered w-full'}),
+                    widget=forms.Textarea(attrs={
+                        'rows': 5,
+                        'class': 'textarea textarea-bordered w-full font-mono',
+                        'data-json-editor': 'true'
+                    }),
                     label=f"Entity Parameters for {plugin}",
                     help_text=help_text,
                     initial=initial_value
@@ -99,19 +137,20 @@ class IntegrationPhotoForm(forms.Form):
         # Use list() to create a copy of items to avoid RuntimeError during iteration
         for field_name, value in list(cleaned_data.items()):
             if field_name.startswith('entity_params_') and value:
-                # Validate format
-                seen_keys = set()
-                for line in value.splitlines():
-                    line = line.strip()
-                    if not line:
-                        continue
-                    if ':' not in line:
-                        self.add_error(field_name, f"Invalid format: '{line}'. Expected 'key: value'.")
-                        continue
-                    key = line.split(':', 1)[0].strip()
-                    if key in seen_keys:
-                        self.add_error(field_name, f"Duplicate key: '{key}'")
-                    seen_keys.add(key)
+                value_str = value.strip()
+                if not value_str:
+                    cleaned_data[field_name] = {}
+                    continue
+                
+                # Validate JSON format
+                try:
+                    parsed = json.loads(value_str)
+                    if not isinstance(parsed, dict):
+                        self.add_error(field_name, "Parameters must be a JSON object (dictionary), not a list or other type.")
+                    else:
+                        cleaned_data[field_name] = parsed
+                except json.JSONDecodeError as e:
+                    self.add_error(field_name, f"Invalid JSON: {str(e)}")
         
         return cleaned_data
 
@@ -141,7 +180,8 @@ class IntegrationPhotoForm(forms.Form):
                 try:
                     plugin = PythonPlugin.objects.get(pk=plugin_id)
                     
-                    if value and value.strip():
+                    if value:
+                        # value is already parsed as dict from clean()
                         # Create or update entity parameters
                         PluginEntityParameters.objects.update_or_create(
                             plugin=plugin,

@@ -11,6 +11,7 @@ from .tasks import scan_plugins, call_queue_global_integrations, call_single_plu
 from core.mixins import CRUDGenericMixin
 from django_tables2 import RequestConfig
 from core.models import Photo
+import json
 
 
 def redirect_to_home(request):
@@ -50,18 +51,18 @@ class RunResultMixin(CRUDGenericMixin):
 
 
 class RunResultListView(RunResultMixin, SingleTableView):
-    model = IntegrationRunResult
+    model = RunResult
     table_class = IntegrationRunResultTable
     template_name = "generic_crud_list.html"
 
 
 class RunResultDetailView(RunResultMixin, DetailView):
-    model = IntegrationRunResult
+    model = RunResult
     template_name = "integration/integration_run_result_detail.html"
 
 
 class RunResultDeleteView(RunResultMixin, DeleteView):
-    model = IntegrationRunResult
+    model = RunResult
     template_name = 'confirm_delete_generic.html'
 
     def get_success_url(self):
@@ -194,10 +195,28 @@ class PythonPluginDetailView(PythonPluginMixin, DetailView):
                     context["plugin_name"] = getattr(plugin_module, '__plugin_name__', 'Unknown')
                     context["plugin_version"] = getattr(plugin_module, '__plugin_version__', 'Unknown')
                     context["plugin_uuid"] = getattr(plugin_module, '__plugin_uuid__', 'Unknown')
-                    context["plugin_config"] = getattr(plugin_module, '__plugin_config__', {})
-                    context["plugin_entity_parameters"] = getattr(plugin_module, '__plugin_entity_parameters__', {})
+                    
+                    # Get schema dictionaries
+                    plugin_config = getattr(plugin_module, '__plugin_config__', {})
+                    plugin_entity_params = getattr(plugin_module, '__plugin_entity_parameters__', {})
+                    
+                    # Store raw dicts for conditional checks
+                    context["plugin_config"] = plugin_config
+                    context["plugin_entity_parameters"] = plugin_entity_params
+                    
+                    # Pretty-print as JSON for display
+                    if plugin_config:
+                        context["plugin_config_json"] = json.dumps(plugin_config, indent=2)
+                    if plugin_entity_params:
+                        context["plugin_entity_parameters_json"] = json.dumps(plugin_entity_params, indent=2)
             except Exception:
                 pass
+        
+        # Pretty-print the supplied config JSON
+        if plugin.config:
+            context["config_pretty"] = json.dumps(plugin.config, indent=2)
+        else:
+            context["config_pretty"] = None
         
         return context
 

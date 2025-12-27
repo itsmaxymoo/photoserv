@@ -36,4 +36,9 @@ class Migration(migrations.Migration):
             name='publish_date',
             field=models.DateTimeField(blank=True, default=django.utils.timezone.now),
         ),
+        migrations.AlterField(
+            model_name='album',
+            name='sort_method',
+            field=models.CharField(choices=[('CREATED', 'Photo Created Date (Exif)'), ('PUBLISHED', 'Publish Date'), ('MANUAL', 'Manual'), ('RANDOM', 'Random')], default='PUBLISHED', max_length=10),
+        ),
     ]

@@ -3,12 +3,12 @@ from .models import *
 
 
 class IntegrationRunResultTable(tables.Table):
-    """Table for displaying IntegrationRunResult records."""
+    """Table for displaying RunResult records."""
     start_timestamp = tables.Column(linkify=True)
     end_timestamp = tables.Column(linkify=True)
 
     class Meta:
-        model = IntegrationRunResult
+        model = RunResult
         fields = (
             "start_timestamp",
             "end_timestamp",

@@ -1,0 +1,9 @@
+/* CodeMirror JSON Editor Styles */
+
+.codemirror-json-editor {
+    @apply border;
+}
+
+.codemirror-json-editor .cm-editor {
+    @apply p-2 my-2;
+}

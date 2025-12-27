@@ -75,16 +75,7 @@ Python Plugin: {{ object }}
                     <tr>
                         <th>Config Schema</th>
                         <td>
-                            <ul class="list-none bg-base-200 p-2 rounded text-sm">
-                                {% for key, value in plugin_config.items %}
-                                    <li class="flex space-y-1">
-                                        <span class="underline decoration-dotted mr-2">{{ key }}:</span>
-                                        <span>
-                                            {{ value }}
-                                        </span>
-                                    </li>
-                                {% endfor %}
-                            </ul>
+                            <pre class="whitespace-pre-wrap bg-base-200 p-2 rounded text-sm font-mono">{{ plugin_config_json }}</pre>
                         </td>
                     </tr>
                     {% endif %}
@@ -92,16 +83,7 @@ Python Plugin: {{ object }}
                     <tr>
                         <th>Entity Parameter Schema</th>
                         <td>
-                            <ul class="list-none bg-base-200 p-2 rounded text-sm">
-                                {% for key, value in plugin_entity_parameters.items %}
-                                    <li class="flex space-y-1">
-                                        <span class="underline decoration-dotted mr-2">{{ key }}:</span>
-                                        <span>
-                                            {{ value }}
-                                        </span>
-                                    </li>
-                                {% endfor %}
-                            </ul>
+                            <pre class="whitespace-pre-wrap bg-base-200 p-2 rounded text-sm font-mono">{{ plugin_entity_parameters_json }}</pre>
                         </td>
                     </tr>
                     {% endif %}
@@ -109,8 +91,8 @@ Python Plugin: {{ object }}
                     <tr>
                         <th>Supplied Config</th>
                         <td>
-                            {% if object.config %}
-                                <pre class="whitespace-pre-wrap bg-base-200 p-2 rounded text-sm">{{ object.config }}</pre>
+                            {% if config_pretty %}
+                                <pre class="whitespace-pre-wrap bg-base-200 p-2 rounded text-sm font-mono">{{ config_pretty }}</pre>
                             {% else %}
                                 (none)
                             {% endif %}

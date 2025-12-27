@@ -3,4 +3,4 @@ from django.contrib import admin
 # Register your models here.
 from .models import *
 
-admin.site.register([IntegrationRunResult, WebRequest, PythonPlugin, PluginStorage, PhotoPluginExclusion, PluginEntityParameters])
+admin.site.register([RunResult, WebRequest, PythonPlugin, PluginStorage, PhotoPluginExclusion, PluginEntityParameters])

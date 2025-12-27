@@ -6,7 +6,12 @@ Plugins must also define the following module-level variables:
 - __plugin_name__: str - Human-readable name of the plugin
 - __plugin_uuid__: str - UUID for the plugin
 - __plugin_version__: str - Version string
-- __plugin_config__: dict[str, str] - Configuration parameters with descriptions
+- __plugin_config__: dict[str, str] - Example configuration schema as a dictionary.
+  Each key represents a config parameter name, and the value is a description.
+  Users will provide actual config as JSON in the admin interface.
+- __plugin_entity_parameters__: dict[str, str] - (Optional) Example entity parameter 
+  schema as a dictionary. Each key represents a parameter name, and the value is a 
+  description. Users will provide actual parameters as JSON per entity.
 """
 
 import logging
@@ -145,7 +150,9 @@ class PhotoservPlugin:
         Initialize the plugin with configuration data.
         
         Args:
-            config: Configuration dictionary with environment variables already expanded
+            config: Configuration dictionary with environment variables already expanded.
+                    This is a JSON object (dict) provided by the user in the admin interface.
+                    Values can be strings, numbers, booleans, lists, or nested objects.
             photoserv: PhotoservInstance providing access to logger, config storage, and photoserv functionality
         
         Raises:
@@ -177,6 +184,8 @@ class PhotoservPlugin:
                   This is a read-only snapshot and cannot modify the database.
             params: Per-entity parameters configured for this specific photo.
                     Dictionary of custom parameters from PluginEntityParameters.
+                    This is a JSON object (dict) provided by the user per entity.
+                    Values can be strings, numbers, booleans, lists, or nested objects.
             **kwargs: Additional parameters for future compatibility
         
         Raises:
@@ -193,6 +202,8 @@ class PhotoservPlugin:
                   This is a read-only snapshot and cannot modify the database.
             params: Per-entity parameters configured for this specific photo.
                     Dictionary of custom parameters from PluginEntityParameters.
+                    This is a JSON object (dict) provided by the user per entity.
+                    Values can be strings, numbers, booleans, lists, or nested objects.
             **kwargs: Additional parameters for future compatibility
         
         Raises:

@@ -1,18 +1,18 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.urls import reverse
+from django.utils.timezone import now, datetime
+from django.conf import settings
 import requests
 import os
-from django.utils.timezone import now
 import uuid
 import importlib
 import sys
 import logging
+import json
 from io import StringIO
 from pathlib import Path
-from django.conf import settings
 from typing import Optional
-from django.utils.timezone import datetime
 
     
 class IntegrationCaller(models.TextChoices):
@@ -65,7 +65,7 @@ class PluginEntityParameters(models.Model):
     """
     plugin = models.ForeignKey('PythonPlugin', on_delete=models.CASCADE, related_name='entity_parameters')
     entity_uuid = models.UUIDField(db_index=True, help_text="UUID of the entity")
-    parameters = models.TextField(blank=True, null=True, default="", help_text="One per line in the format key: value (JSON parsed with ENV vars)")
+    parameters = models.JSONField(blank=True, null=True, default=dict, help_text="JSON object containing entity-specific parameters")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -80,42 +80,29 @@ class PluginEntityParameters(models.Model):
     def clean(self):
         """Validate parameters format."""
         if self.parameters:
-            seen_keys = set()
-            for line in self.parameters.splitlines():
-                line = line.strip()
-                if not line:
-                    continue
-                if ':' not in line:
-                    raise ValidationError(f"Invalid parameter format: '{line}'. Expected 'key: value'.")
-                key = line.split(':', 1)[0].strip()
-                if key in seen_keys:
-                    raise ValidationError(f"Duplicate parameter key: '{key}'")
-                seen_keys.add(key)
+            if not isinstance(self.parameters, dict):
+                raise ValidationError("Parameters must be a valid JSON object.")
     
     def get_parameters_dict(self) -> dict:
-        """Parse parameters field into a dictionary with env vars expanded."""
-        import json
-        params = {}
-        if self.parameters:
-            for line in self.parameters.splitlines():
-                line = line.strip()
-                if not line:
-                    continue
-                key, value = line.split(':', 1)
-                key = key.strip()
-                value = value.strip()
-                # Expand environment variables
-                value = os.path.expandvars(value)
-                # Try to parse as JSON
-                try:
-                    params[key] = json.loads(value)
-                except json.JSONDecodeError:
-                    # If not valid JSON, store as string
-                    params[key] = value
-        return params
+        """Get parameters dictionary with environment variables expanded."""
+        if not self.parameters:
+            return {}
+        
+        def expand_env_vars(obj):
+            """Recursively expand environment variables in strings."""
+            if isinstance(obj, str):
+                return os.path.expandvars(obj)
+            elif isinstance(obj, dict):
+                return {k: expand_env_vars(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [expand_env_vars(item) for item in obj]
+            else:
+                return obj
+        
+        return expand_env_vars(self.parameters)
 
 
-class IntegrationRunResult(models.Model):
+class RunResult(models.Model):
     """
     Stores a historical record of an integration run.
 
@@ -157,7 +144,7 @@ class IntegrationObject(models.Model):
 
     def run(self, caller: IntegrationCaller, **kwargs):
         """Execute the integration and automatically record the result."""
-        result = IntegrationRunResult.objects.create(
+        result = RunResult.objects.create(
             integration_uuid=self.uuid,
             start_timestamp=now(),
             caller=caller,
@@ -180,14 +167,14 @@ class IntegrationObject(models.Model):
     @property
     def run_history(self):
         """Query run history for this integration instance by UUID."""
-        return IntegrationRunResult.objects.filter(
+        return RunResult.objects.filter(
             integration_uuid=self.uuid
         ).order_by('-start_timestamp')
     
     @property
     def last_run_timestamp(self) -> Optional[datetime]:
         """Get the most recent run result for this integration instance."""
-        last_run = IntegrationRunResult.objects.filter(
+        last_run = RunResult.objects.filter(
             integration_uuid=self.uuid
         ).order_by('-start_timestamp').first()
         return last_run.start_timestamp if last_run else None
@@ -280,22 +267,13 @@ class PythonPlugin(IntegrationObject):
     """Python plugin integration that can respond to system events."""
     
     module = models.CharField(max_length=255, help_text="Python module name (without .py extension)")
-    config = models.TextField(blank=True, null=True, default="", help_text="One per line in the format key: value (JSON parsed with ENV vars)")
+    config = models.JSONField(blank=True, null=True, default=dict, help_text="JSON object containing plugin configuration with environment variable support")
     
     def clean(self):
-        # Ensure config are in the correct format
+        """Validate config format."""
         if self.config:
-            seen_keys = set()
-            for line in self.config.splitlines():
-                line = line.strip()
-                if not line:
-                    continue
-                if ':' not in line:
-                    raise ValidationError(f"Invalid param format: '{line}'. Each param must contain a colon.")
-                key_name = line.split(':', 1)[0].strip()
-                if key_name in seen_keys:
-                    raise ValidationError(f"Duplicate param key found: '{key_name}'.")
-                seen_keys.add(key_name)
+            if not isinstance(self.config, dict):
+                raise ValidationError("Config must be a valid JSON object.")
     
     @property
     def valid(self) -> bool:
@@ -347,16 +325,22 @@ class PythonPlugin(IntegrationObject):
         return None
     
     def _get_config_dict(self) -> dict:
-        """Parse config field into a dictionary with env vars expanded."""
-        config = {}
-        if self.config:
-            for line in self.config.splitlines():
-                line = line.strip()
-                if line:
-                    key, value = map(str.strip, line.split(':', 1))
-                    # Expand environment variables
-                    config[key] = os.path.expandvars(value)
-        return config
+        """Get config dictionary with environment variables expanded."""
+        if not self.config:
+            return {}
+        
+        def expand_env_vars(obj):
+            """Recursively expand environment variables in strings."""
+            if isinstance(obj, str):
+                return os.path.expandvars(obj)
+            elif isinstance(obj, dict):
+                return {k: expand_env_vars(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [expand_env_vars(item) for item in obj]
+            else:
+                return obj
+        
+        return expand_env_vars(self.config)
     
     def _run(self, **kwargs) -> str:
         """
