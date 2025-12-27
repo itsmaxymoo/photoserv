@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "public_rest_api",
     "iam",
     "job_overview",
+    "integration",
 
     'django.contrib.admin',
     'django.contrib.auth',
@@ -158,14 +159,32 @@ REDIS_PORT = os.getenv("REDIS_PORT", "6379")
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_TASK_TRACK_STARTED = True
 CELERY_ALWAYS_EAGER = DEBUG
-CELERY_TASK_TIME_LIMIT = 30 * 60
+CELERY_TASK_TIME_LIMIT = 60 * 60
 CELERY_BROKER_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/0"
 CELERY_RESULT_BACKEND = "django-db"
 CELERY_RESULT_EXTENDED = True
+CELERY_RESULT_EXPIRES = 604800
+
+# --- Cache Configuration (use Redis for shared cache across workers) ---
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': f'redis://{REDIS_HOST}:{REDIS_PORT}/0',
+    }
+}
+
 
 CELERY_BEAT_SCHEDULE = {
     'run-consistency': {
         'task': 'core.tasks.consistency',
+        'schedule': 60.0 * 60 * 2,
+    },
+    'publish-photos': {
+        'task': 'core.tasks.publish_photos',
+        'schedule': 60.0 * 10 if not DEBUG else 30.0,
+    },
+    'integration-consistency': {
+        'task': 'integration.tasks.consistency',
         'schedule': 60.0 * 60 * 24,
     },
 }
@@ -279,3 +298,14 @@ AUTHENTICATION_BACKENDS = [
     'iam.auth.OIDCAuthenticationBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
+
+
+# ------- Integrations
+
+INTEGRATION_QUEUE_DELAY = 60 * 10  # 10 minutes
+
+# Python plugins path
+if IS_CONTAINER:
+    PLUGINS_PATH = Path("/plugins")
+else:
+    PLUGINS_PATH = BASE_DIR / "plugins"

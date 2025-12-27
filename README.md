@@ -125,20 +125,16 @@ Assume:
 - "traefik.http.services.photoserv.loadbalancer.server.port=8000"
 ```
 
-## Roadmap
+## Integrations
 
-1. ~~Better documentation~~
-2. ~~Mobile layout~~
-3. ~~Add feature to hide photos from the UI~~
-4. ~~Consistency checker~~
-5. ~~API documentation~~
-6. ~~Security/traefik documentation~~
-7. ~~Album Parents~~
-8. ~~Jobs overview~~
-9. ~~API response metadata~~
-10. ~~EV comp filter~~
-11. ~~Photo formset~~
-12. ~~Split app and worker into two containers~~ Should we though?
-13. 1.0 release
-14. 1.1: Webhooks
-15. 1.2: Social integration
+
+### Integrations for Other Projects
+
+* [Astro Loader](https://github.com/photoserv/astro-loader) - For the Astro static site generator.
+
+## AI Disclosure
+
+AI has been used in the capacity of an advanced autocomplete while making this project.
+All architectural choices and model interfaces have been created and decided upon
+by a human, with physical pen-and-paper, or while on a long run. This entire README
+is handwritten without obnoxious emojis.

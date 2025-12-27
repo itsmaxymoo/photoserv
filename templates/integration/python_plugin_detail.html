@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% load django_tables2 %}
+
+{% block title %}
+Python Plugin: {{ object }}
+{% endblock %}
+
+{% block content %}
+<h2 class="text-3xl inline-flex gap-2">
+    <span class="font-extralight">
+        {% include "partials/back_button.html" %}
+        Python Plugin:
+    </span>
+    {{ object }}
+</h2>
+
+<div class="grid grid-cols-1 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Left column: details -->
+        <div class="box">
+            <div class="overflow-x-scroll">
+                <table class="table table-zebra table-auto">
+                    <colgroup>
+                        <col class="w-min whitespace-nowrap" />
+                        <col class="w-full" />
+                    </colgroup>
+
+                    <tr>
+                        <th>Nickname</th>
+                        <td>{{ object.nickname|default:"(none)" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Active</th>
+                        <td>
+                            {% if object.active %}
+                                Yes
+                            {% else %}
+                                No
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Valid</th>
+                        <td>
+                            {% if object.valid %}
+                                Yes
+                            {% else %}
+                                No
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Module</th>
+                        <td><code class="bg-base-200 p-1 text-sm">{{ object.module }}</code></td>
+                    </tr>
+                    {% if plugin_name %}
+                    <tr>
+                        <th>Plugin Name</th>
+                        <td>{{ plugin_name }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if plugin_version %}
+                    <tr>
+                        <th>Plugin Version</th>
+                        <td>{{ plugin_version }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if plugin_uuid %}
+                    <tr>
+                        <th>Plugin UUID</th>
+                        <td><code class="bg-base-200 p-1 rounded text-sm">{{ plugin_uuid }}</code></td>
+                    </tr>
+                    {% endif %}
+                    {% if plugin_config %}
+                    <tr>
+                        <th>Config Schema</th>
+                        <td>
+                            <pre class="whitespace-pre-wrap bg-base-200 p-2 rounded text-sm font-mono">{{ plugin_config_json }}</pre>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% if plugin_entity_parameters %}
+                    <tr>
+                        <th>Entity Parameter Schema</th>
+                        <td>
+                            <pre class="whitespace-pre-wrap bg-base-200 p-2 rounded text-sm font-mono">{{ plugin_entity_parameters_json }}</pre>
+                        </td>
+                    </tr>
+                    {% endif %}
+
+                    <tr>
+                        <th>Supplied Config</th>
+                        <td>
+                            {% if config_pretty %}
+                                <pre class="whitespace-pre-wrap bg-base-200 p-2 rounded text-sm font-mono">{{ config_pretty }}</pre>
+                            {% else %}
+                                (none)
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="box">
+            <h2>Test Plugin</h2>
+            
+            <p class="text-sm mb-4">
+                This will call a global change event dispatch for this plugin.
+            </p>
+            
+            <div class="flex justify-center">
+                <form method="post" action="{% url 'python-plugin-test-run' object.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary mt-4">
+                        Test Run
+                    </button>
+                </form>
+            </div>
+
+            {% if messages %}
+            <div class="mt-4">
+                {% for message in messages %}
+                    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                        <pre class="whitespace-pre-wrap">{{ message }}</pre>
+                    </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="box">
+        <h3>Run History</h3>
+
+        {% render_table run_history_table %}
+    </div>
+</div>
+
+<!-- View/Edit/Delete buttons -->
+<div class="mt-6">
+    {% include "partials/model_view_modify_buttons.html" %}
+</div>
+
+{% endblock %}

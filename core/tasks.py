@@ -186,6 +186,17 @@ def generate_photo_metadata(photo_id):
 
 
 @shared_task
+def post_photo_create(photo_id):
+    # Run these synchronously after photo creation
+    generate_photo_metadata(photo_id)
+    generate_sizes_for_photo(photo_id)
+    photo = models.Photo.objects.get(id=photo_id)
+    photo.update_published(dispatch_signals=True, update_model=True)
+    
+    return f"Generated sizes, metadata, and calculated publish state for photo {photo_id}."
+
+
+@shared_task
 def consistency():
     issues = 0
 
@@ -238,3 +249,17 @@ def consistency():
         delete_files.delay(delete_files_list)
 
     return f"Identified and queued fixes for {issues} issues." if issues > 0 else "No issues found."
+
+
+@shared_task
+def publish_photos():
+    # Iterate through all photos and call calculate_and_set_published
+    photos = models.Photo.objects.all()
+    changed_count = 0
+    for photo in photos:
+        if not photo.health.all_sizes:
+            continue
+        if photo.update_published(dispatch_signals=True, update_model=True):
+            changed_count += 1
+
+    return f"{changed_count} photos published/unpublished."

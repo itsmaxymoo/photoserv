@@ -1,4 +1,5 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib import messages
 
 from core.mixins import CRUDGenericMixin
 from django.views.generic import DetailView, CreateView, UpdateView, DeleteView
@@ -7,7 +8,6 @@ from .tables import APIKeyTable
 from .forms import APIKeyForm
 from .models import APIKey
 from django.urls import reverse
-from django.shortcuts import redirect
 
 
 # Create your views here.
@@ -23,12 +23,6 @@ class APIKeyListView(APIKeyMixin, SingleTableView):
     template_name = "api_key/api_key_list.html"
     table_class = APIKeyTable
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        # pop removes it so it won’t persist
-        context["new_api_key"] = self.request.session.pop("new_api_key", None)
-        return context
-
 
 class APIKeyCreateView(APIKeyMixin, CreateView):
     model = APIKey
@@ -40,8 +34,8 @@ class APIKeyCreateView(APIKeyMixin, CreateView):
         name = form.cleaned_data["name"]
         secret_key = APIKey.create_key(name)
 
-        # Save secret key to session for one-time display
-        self.request.session["new_api_key"] = secret_key
+        # Add success message with just the API key
+        messages.success(self.request, secret_key)
 
         # Redirect manually — skip form.save() and super()
         return redirect(self.get_success_url())

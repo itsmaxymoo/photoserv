@@ -26,15 +26,12 @@ class PhotoModelTests(TestCase):
         url = self.photo.get_absolute_url()
         self.assertIn(str(self.photo.pk), url)
 
-    @mock.patch("core.tasks.generate_sizes_for_photo.delay_on_commit")
-    @mock.patch("core.tasks.generate_photo_metadata.delay_on_commit")
-    def test_save_triggers_tasks_on_create(self, mock_metadata, mock_sizes):
+    @mock.patch("core.tasks.post_photo_create.delay_on_commit")
+    def test_save_triggers_tasks_on_create(self, mock_post_photo_create):
         p = Photo(title="Another", raw_image="raw.jpg")
-        p.save()
+        p.save(schedule_followup_tasks=True)
 
-
-        self.assertTrue(mock_sizes.called)
-        self.assertTrue(mock_metadata.called)
+        self.assertTrue(mock_post_photo_create.called)
 
     @mock.patch("core.tasks.delete_files.delay_on_commit")
     def test_delete_triggers_delete_files(self, mock_delete):
@@ -71,6 +68,103 @@ class PhotoModelTests(TestCase):
         self.photo.refresh_from_db()
         self.assertTrue(self.photo.health.metadata)
         self.assertTrue(self.photo.health.all_sizes)
+
+
+class PhotoFormTests(TestCase):
+    @mock.patch("core.tasks.post_photo_create.delay_on_commit")
+    @mock.patch("django.core.files.storage.FileSystemStorage.save")
+    @mock.patch("PIL.Image.open")
+    def test_new_photo_schedules_post_photo_create(self, mock_image_open, mock_storage_save, mock_post_photo_create):
+        """Ensure for a new photo, post_photo_create is scheduled"""
+        from .forms import PhotoForm
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        
+        # Mock PIL Image.open to avoid actual image validation
+        mock_image_open.return_value.verify.return_value = None
+        mock_image_open.return_value.size = (100, 100)
+        mock_image_open.return_value.format = 'JPEG'
+        
+        # Mock storage save to avoid actual file operations
+        mock_storage_save.return_value = 'test_image.jpg'
+        
+        image_file = SimpleUploadedFile(
+            name='test_image.jpg',
+            content=b'fake image content',
+            content_type='image/jpeg'
+        )
+        
+        form_data = {
+            'title': 'New Photo',
+            'description': 'A new test photo',
+            'slug': 'new-photo',
+            'hidden': False,
+        }
+        
+        form = PhotoForm(data=form_data, files={'raw_image': image_file})
+        self.assertTrue(form.is_valid(), form.errors)
+        
+        photo = form.save(commit=True)
+        
+        # Verify post_photo_create was called with the photo's id
+        mock_post_photo_create.assert_called_once_with(photo.id)
+    
+    @mock.patch("core.tasks.post_photo_create.delay_on_commit")
+    def test_existing_photo_does_not_schedule_post_photo_create(self, mock_post_photo_create):
+        """Ensure for an existing photo, post_photo_create is not called"""
+        from .forms import PhotoForm
+        
+        # Create an existing photo
+        photo = Photo.objects.create(
+            title="Existing Photo",
+            raw_image="existing.jpg"
+        )
+        
+        # Update the photo through the form
+        form_data = {
+            'title': 'Updated Photo Title',
+            'description': 'Updated description',
+            'slug': photo.slug,
+            'hidden': False,
+        }
+        
+        form = PhotoForm(data=form_data, instance=photo)
+        self.assertTrue(form.is_valid(), form.errors)
+        
+        form.save(commit=True)
+        
+        # Verify post_photo_create was NOT called
+        mock_post_photo_create.assert_not_called()
+    
+    @mock.patch.object(Photo, 'update_published')
+    def test_existing_photo_calls_update_published_correctly(self, mock_update_published):
+        """For an existing photo, photo.update_published is called with dispatch_signals=True and update_model=False"""
+        from .forms import PhotoForm
+        
+        # Create an existing photo
+        photo = Photo.objects.create(
+            title="Existing Photo",
+            raw_image="existing.jpg"
+        )
+        
+        # Reset the mock to clear any calls from photo creation
+        mock_update_published.reset_mock()
+        
+        # Update the photo through the form
+        form_data = {
+            'title': 'Updated Photo Title',
+            'description': 'Updated description',
+            'slug': photo.slug,
+            'hidden': True,  # Change hidden status to trigger update
+        }
+        
+        form = PhotoForm(data=form_data, instance=photo)
+        self.assertTrue(form.is_valid(), form.errors)
+        
+        form.save(commit=True)
+        
+        # Verify update_published was called with correct arguments
+        # Note: update_published is called during Photo.save() when is_new=False
+        mock_update_published.assert_called_with(dispatch_signals=True)
 
 
 class PhotoSlugTests(TestCase):
@@ -347,6 +441,108 @@ class CommonEntityTests(TestCase):
     def test_uuid_field_exists(self):
         photo_meta = PhotoMetadata.objects.create(photo=Photo.objects.create(title="P", raw_image="r.jpg"))
         self.assertIsNotNone(photo_meta.uuid)
+
+
+class PhotoPublishStateTests(TestCase):
+    def setUp(self):
+        self.photo = Photo.objects.create(
+            title="Test Photo",
+            slug="test-photo",
+            publish_date=timezone.now(),
+            hidden=False,
+            _published=False,
+        )
+
+    @mock.patch("core.signals.photo_published.send")
+    @mock.patch("core.signals.photo_unpublished.send")
+    def test_becomes_published_updates_and_dispatches(self, mock_unpub, mock_pub):
+        """When transitioning to published: updates DB and dispatches photo_published."""
+        self.photo.hidden = False
+        self.photo._published = False
+        self.photo.publish_date = timezone.now()
+
+        self.photo.update_published(dispatch_signals=True, update_model=True)
+
+        self.photo.refresh_from_db()
+        assert self.photo._published is True
+        mock_pub.assert_called_once_with(Photo, instance=self.photo, uuid=self.photo.uuid)
+        mock_unpub.assert_not_called()
+
+    @mock.patch("core.signals.photo_published.send")
+    @mock.patch("core.signals.photo_unpublished.send")
+    def test_becomes_unpublished_updates_and_dispatches(self, mock_unpub, mock_pub):
+        """When transitioning to unpublished: updates DB and dispatches photo_unpublished."""
+        self.photo._published = True
+        self.photo.hidden = True
+        self.photo.save()
+
+        self.photo.refresh_from_db()
+        assert self.photo._published is False
+        mock_pub.assert_not_called()
+        mock_unpub.assert_called_once_with(Photo, instance=self.photo, uuid=self.photo.uuid)
+
+    @mock.patch("core.signals.photo_published.send")
+    @mock.patch("core.signals.photo_unpublished.send")
+    @mock.patch.object(Photo, "save")
+    def test_no_change_when_state_same(self, mock_save, mock_unpub, mock_pub):
+        """No changes → no save, no signals."""
+        self.photo._published = True
+        self.photo.hidden = False
+        self.photo.publish_date = timezone.now()
+
+        self.photo.update_published(dispatch_signals=True, update_model=True)
+
+        mock_save.assert_not_called()
+        mock_pub.assert_not_called()
+        mock_unpub.assert_not_called()
+
+    @mock.patch("core.signals.photo_published.send")
+    @mock.patch.object(Photo, "save")
+    def test_no_update_model_flag_skips_save(self, mock_save, mock_pub):
+        """update_model=False skips DB save but dispatches signal."""
+        self.photo.hidden = False
+        self.photo._published = False
+
+        self.photo.update_published(dispatch_signals=True, update_model=False)
+        self.photo.refresh_from_db()
+
+        mock_save.assert_not_called()
+        mock_pub.assert_called_once_with(Photo, instance=self.photo, uuid=self.photo.uuid)
+        assert self.photo._published is False  # unchanged in-memory
+
+    @mock.patch("core.signals.photo_published.send")
+    def test_no_dispatch_flag_skips_signal(self, mock_pub):
+        """dispatch=False updates DB but skips signal dispatch."""
+        self.photo.hidden = False
+        self.photo._published = False
+
+        self.photo.update_published(dispatch_signals=False, update_model=True)
+
+        self.photo.refresh_from_db()
+        assert self.photo._published is True
+        mock_pub.assert_not_called()
+    
+    @mock.patch("core.signals.photo_unpublished.send")
+    def test_photo_deleted_dispatches_unpublished(self, mock_unpub):
+        """Deleting a published photo dispatches photo_unpublished."""
+        self.photo.hidden = False
+        self.photo._published = True
+        self.photo.save()
+
+        self.photo.delete()
+
+        mock_unpub.assert_called_once_with(Photo, instance=self.photo, uuid=self.photo.uuid)
+    
+    @mock.patch("core.signals.photo_unpublished.send")
+    def test_photo_deleted_unpublished_no_signal_if_unpublished(self, mock_unpub):
+        """Deleting an unpublished photo does not dispatch photo_unpublished."""
+        self.photo.hidden = True
+        self.photo._published = False
+        self.photo.save()
+
+        self.photo.delete()
+
+        mock_unpub.assert_not_called()
 
 
 class TestMigrations(TestCase):

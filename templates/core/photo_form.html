@@ -38,6 +38,21 @@ Editing {{ object|default:object_type_name }}
 
         {% include './partials/tag_input.html' %}
 
+        {% if integration_photo_form %}
+
+        <hr class="my-4" />
+
+        <div>
+            <h3>Integration Settings</h3>
+            <div class="py-4">
+                {% load crispy_forms_tags %}
+                {% for field in integration_photo_form %}
+                {{ field|as_crispy_field }}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
             <div>
                 <a href="{% if not no_object_detail_page or object is None %}../{% else %}../../{% endif %}"

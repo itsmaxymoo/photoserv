@@ -4,13 +4,15 @@
 
 {% block content %}
 
-{% if new_api_key %}
-
-<div class="alert alert-success">
-    New API Key: <code>{{ new_api_key }}</code><br />
-    This will only be shown once!
-</div>
-
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'success' %}
+            <div class="alert alert-success">
+                New API Key: <code>{{ message }}</code><br />
+                This will only be shown once!
+            </div>
+        {% endif %}
+    {% endfor %}
 {% endif %}
 
 {{ block.super }}

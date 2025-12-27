@@ -7,6 +7,7 @@ from . import CONTENT_RAW_PHOTOS_PATH, CONTENT_RESIZED_PHOTOS_PATH
 from . import tasks
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from .signals import photo_published, photo_unpublished
 
 
 class PublicEntity(models.Model):
@@ -15,13 +16,9 @@ class PublicEntity(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
+        # auto_now=True already handles updated_at automatically on each save
+        # No need to manually update and save again
         super().save(*args, **kwargs)
-
-        now = timezone.now()
-        # Always update updated_at to current time
-        self.updated_at = now
-        # Persist timestamp changes
-        super().save(update_fields=["created_at", "updated_at"])
 
     class Meta:
         abstract = True
@@ -39,8 +36,9 @@ class Photo(PublicEntity):
     slug = models.SlugField(max_length=255, unique=True)
     description = models.TextField(max_length=4096, default="", blank=True)
     raw_image = models.ImageField(upload_to=get_image_file_path)
-    publish_date = models.DateTimeField(auto_now_add=True)
+    publish_date = models.DateTimeField(default=timezone.now, blank=True, null=False)
     hidden = models.BooleanField(default=False, help_text="Hide from public API")
+    _published = models.BooleanField(default=False, db_column="published")
 
     tags = models.ManyToManyField(
         "Tag",
@@ -49,8 +47,8 @@ class Photo(PublicEntity):
     )
 
     @property
-    def public(self):
-        return not self.hidden
+    def published(self):
+        return self._published
 
     @property
     def health(self) -> "PhotoHealth":
@@ -61,6 +59,26 @@ class Photo(PublicEntity):
     def calculate_slug(self) -> str:
         slug = f"{timezone.now().strftime('%Y-%m-%d')}-{slugify(self.title)}"
         return slug[:self._meta.get_field('slug').max_length]
+    
+    def calculate_published(self) -> bool:
+        return not self.hidden and bool(self.publish_date and self.publish_date <= timezone.now())
+    
+    def update_published(self, update_model: bool = False, dispatch_signals: bool = False) -> bool:
+        old = self._published
+        new = self.calculate_published()
+        changed = new != old
+        self._published = new
+
+        if changed and dispatch_signals:
+            if new:
+                photo_published.send(Photo, instance=self, uuid=self.uuid)
+            else:
+                photo_unpublished.send(Photo, instance=self, uuid=self.uuid)
+        
+        if changed and update_model:
+            self.save()
+
+        return changed
 
     def get_absolute_url(self):
         return reverse("photo-detail", kwargs={"pk": self.pk})
@@ -77,22 +95,19 @@ class Photo(PublicEntity):
             raise ValidationError(f"A photo with the slug '{slug_to_check}' already exists.")
     
     # After saving a new photo, trigger the task to generate sizes
-    def save(self, *args, **kwargs):
+    def save(self, schedule_followup_tasks: bool = False, *args, **kwargs):
         if not self.slug:
             self.slug = self.calculate_slug()
         is_new = self.pk is None
 
+        if not is_new:
+            # Recalculate published status on updates
+            self.update_published(dispatch_signals=True)
         super().save(*args, **kwargs)
 
-        if is_new:
-            try:
-                original_size = Size.objects.get(slug="original")
-            except Size.DoesNotExist:
-                original_size = None
-
+        if schedule_followup_tasks and is_new:
             # Generate other sizes via Celery task
-            tasks.generate_sizes_for_photo.delay_on_commit(self.id),
-            tasks.generate_photo_metadata.delay_on_commit(self.id)
+            tasks.post_photo_create.delay_on_commit(self.id)
     
     def assign_albums(self, albums):
         # Remove unselected
@@ -110,10 +125,14 @@ class Photo(PublicEntity):
     def delete(self, *args, **kwargs):
         # Delete all sizes associated with this photo
         size_files = [s.image.path for s in self.sizes.all() if s.image]
-        size_files.append(self.raw_image.path)
+        if self.raw_image:
+            size_files.append(self.raw_image.path)
 
         if size_files:
             tasks.delete_files.delay_on_commit(size_files)
+
+        if self._published:
+            photo_unpublished.send(Photo, instance=self, uuid=self.uuid)
 
         super().delete(*args, **kwargs)
 
@@ -216,8 +235,8 @@ class PhotoTag(models.Model):
 
 class Album(PublicEntity):
     class DefaultSortMethod(models.TextChoices):
-        CREATED = "CREATED", "Created/Taken"
-        PUBLISHED = "PUBLISHED", "Published/Uploaded"
+        CREATED = "CREATED", "Photo Created Date (Exif)"
+        PUBLISHED = "PUBLISHED", "Publish Date"
         MANUAL = "MANUAL", "Manual"
         RANDOM = "RANDOM", "Random"
 

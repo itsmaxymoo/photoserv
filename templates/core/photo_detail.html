@@ -3,7 +3,7 @@
 {% load photo_metadata_extras %}
 
 {% block title %}
-{{ object }}
+Photo: {{ object }}
 {% endblock %}
 
 {% block content %}
@@ -261,6 +261,16 @@
             <p class="pt-4">
                 Note: These links are not public! You must use the public API in your clients to access these images.
             </p>
+        </div>
+    </div>
+
+    <div class="box">
+        <h3 class="text-2xl">Integration Info</h3>
+
+        <div class="flex justify-center">
+            <a href="{% url 'integration-photo' object.pk %}" class="btn btn-primary">
+                Integration Settings
+            </a>
         </div>
     </div>
 </div>

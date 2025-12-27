@@ -59,6 +59,41 @@ class PhotoCreateView(PhotoMixin, CreateView):
     form_class = PhotoForm
     template_name = "core/photo_form.html"
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Add exclusion form to context
+        try:
+            from integration.forms import IntegrationPhotoForm
+            if 'integration_photo_form' not in context:
+                context['integration_photo_form'] = IntegrationPhotoForm(
+                    self.request.POST if self.request.method == 'POST' else None,
+                    photo_instance=None
+                )
+        except ImportError:
+            pass
+        return context
+
+    def form_valid(self, form):
+        # Get exclusion form
+        integration_photo_form = None
+        try:
+            from integration.forms import IntegrationPhotoForm
+            integration_photo_form = IntegrationPhotoForm(
+                self.request.POST,
+                photo_instance=None
+            )
+            if not integration_photo_form.is_valid():
+                # Pass the exclusion form with errors back to the template
+                context = self.get_context_data(form=form)
+                context['integration_photo_form'] = integration_photo_form
+                return self.render_to_response(context)
+        except ImportError:
+            pass
+        
+        # Save with exclusion form
+        self.object = form.save(commit=True, integration_photo_form=integration_photo_form)
+        return redirect(self.get_success_url())
+
     def get_success_url(self):
         return reverse('photo-detail', kwargs={'pk': self.object.pk})
 
@@ -82,6 +117,41 @@ class PhotoUpdateView(PhotoMixin, UpdateView):
     model = Photo
     form_class = PhotoForm
     template_name = "core/photo_form.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Add exclusion form to context
+        try:
+            from integration.forms import IntegrationPhotoForm
+            if 'integration_photo_form' not in context:
+                context['integration_photo_form'] = IntegrationPhotoForm(
+                    self.request.POST if self.request.method == 'POST' else None,
+                    photo_instance=self.object
+                )
+        except ImportError:
+            pass
+        return context
+
+    def form_valid(self, form):
+        # Get exclusion form
+        integration_photo_form = None
+        try:
+            from integration.forms import IntegrationPhotoForm
+            integration_photo_form = IntegrationPhotoForm(
+                self.request.POST,
+                photo_instance=self.object
+            )
+            if not integration_photo_form.is_valid():
+                # Pass the exclusion form with errors back to the template
+                context = self.get_context_data(form=form)
+                context['integration_photo_form'] = integration_photo_form
+                return self.render_to_response(context)
+        except ImportError:
+            pass
+        
+        # Save with exclusion form
+        self.object = form.save(commit=True, integration_photo_form=integration_photo_form)
+        return redirect(self.get_success_url())
 
     def get_success_url(self):
         return reverse('photo-detail', kwargs={'pk': self.object.pk})

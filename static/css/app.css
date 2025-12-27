@@ -6,6 +6,7 @@
 
 @plugin "daisyui";
 @import "./theme.css";
+@import "./codemirror.css";
 
 h2 {
     @apply text-3xl;

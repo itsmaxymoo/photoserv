@@ -3,7 +3,8 @@
     "build:css": "tailwindcss -i ./static/css/app.css -o ./static/css/style.css --minify",
     "dev:css": "tailwindcss -i ./static/css/app.css -o ./static/css/style.css --watch",
     "build:js": "esbuild ./static/js/app.js --bundle --outfile=./static/js/bundle.js --minify",
-    "dev:js": "esbuild ./static/js/app.js --bundle --outfile=./static/js/bundle.js --watch"
+    "dev:js": "esbuild ./static/js/app.js --bundle --outfile=./static/js/bundle.js --watch",
+    "build": "npm run build:css && npm run build:js"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.11",
@@ -13,6 +14,10 @@
   },
   "dependencies": {
     "@alpinejs/sort": "^3.15.2",
-    "alpinejs": "^3.15.2"
+    "alpinejs": "^3.15.2",
+    "@codemirror/view": "^6.34.3",
+    "@codemirror/state": "^6.4.1",
+    "@codemirror/lang-json": "^6.0.1",
+    "codemirror": "^6.0.1"
   }
 }
