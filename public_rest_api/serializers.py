@@ -85,7 +85,7 @@ class TagSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(PhotoSummarySerializer(many=True))
     def get_photos(self, obj):
-        return PhotoSummarySerializer(obj.photos.all(), many=True, context=self.context).data
+        return PhotoSummarySerializer(obj.photos.filter(_published=True), many=True, context=self.context).data
 
 
 class PhotoSerializer(serializers.ModelSerializer):

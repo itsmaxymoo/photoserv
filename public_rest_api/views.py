@@ -31,7 +31,7 @@ class PhotoViewSet(viewsets.ReadOnlyModelViewSet):
     authentication_classes = [APIKeyAuthentication]
     permission_classes = [HasAPIKey]
     lookup_field = 'uuid'
-    queryset = Photo.objects.filter(hidden=False)
+    queryset = Photo.objects.filter(_published=True)
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -53,7 +53,7 @@ class PhotoViewSet(viewsets.ReadOnlyModelViewSet):
 class PhotoImageAPIView(GenericAPIView):
     authentication_classes = [APIKeyAuthentication]
     permission_classes = [HasAPIKey]
-    queryset = Photo.objects.all()
+    queryset = Photo.objects.filter(_published=True)
     lookup_field = "uuid"
 
     def get(self, request, uuid, size, *args, **kwargs):

@@ -6,6 +6,8 @@ from core.models import *
 from api_key.models import APIKey
 import io
 from PIL import Image
+from django.utils import timezone
+from datetime import timedelta
 
 
 def create_test_image_file(filename="test.jpg"):
@@ -31,6 +33,7 @@ class APISerializerTestCase(TestCase):
             title="Test Photo",
             raw_image=create_test_image_file(),
         )
+        self.photo.update_published(update_model=True)
 
         # Attach a PhotoSize for the original size
         self.photo_size = PhotoSize.objects.create(
@@ -162,7 +165,7 @@ class APISerializerTestCase(TestCase):
     def test_hidden_photos_excluded_from_public_api(self):
         # Hide the photo
         self.photo.hidden = True
-        self.photo.save()
+        self.photo.update_published(update_model=True)
 
         # Check photo list does not include hidden photo
         response = self.client.get("/api/photos/")
@@ -182,6 +185,104 @@ class APISerializerTestCase(TestCase):
         data = response.json()
         photo_uuids = [photo['uuid'] for photo in data.get('photos', [])]
         self.assertNotIn(str(self.photo.uuid), photo_uuids)
+    
+    def test_photo_published_shows_up(self):
+        # Create a public size for testing
+        public_test_size = Size.objects.create(slug="public_test", max_dimension=800, public=True)
+        
+        # Create a new photo with future publish date
+        future_photo = Photo.objects.create(
+            title="Future Photo",
+            raw_image=create_test_image_file("future.jpg"),
+            hidden=False,
+            publish_date=timezone.now() + timedelta(hours=1)
+        )
+        future_photo.update_published(update_model=True)
+        
+        # Add a photo size for the future photo
+        future_photo_size = PhotoSize.objects.create(
+            photo=future_photo,
+            size=public_test_size,
+            image=create_test_image_file("future_original.jpg")
+        )
+        
+        # Add it to an album and give it a tag
+        future_photo.assign_albums([self.album1])
+        PhotoTag.objects.create(photo=future_photo, tag=self.tag1)
+        
+        # Assert it does NOT show up in any API endpoint
+        
+        # 1. Photo list endpoint
+        response = self.client.get("/api/photos/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        photo_uuids = [photo['uuid'] for photo in response.json()]
+        self.assertNotIn(str(future_photo.uuid), photo_uuids)
+        
+        # 2. Photo detail endpoint
+        url = f"/api/photos/{future_photo.uuid}/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        
+        # 3. Album detail endpoint
+        url = f"/api/albums/{self.album1.uuid}/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+        photo_uuids = [photo['uuid'] for photo in data.get('photos', [])]
+        self.assertNotIn(str(future_photo.uuid), photo_uuids)
+        
+        # 4. Tag detail endpoint
+        url = f"/api/tags/{self.tag1.uuid}/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+        photo_uuids = [photo['uuid'] for photo in data.get('photos', [])]
+        self.assertNotIn(str(future_photo.uuid), photo_uuids)
+        
+        # 5. Photo image endpoint
+        url = f"/api/photos/{future_photo.uuid}/sizes/{public_test_size.slug}/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        
+        # Now set the publish date to the past
+        future_photo.publish_date = timezone.now() - timedelta(hours=1)
+        future_photo.update_published(update_model=True)
+        
+        # Assert it DOES show up in all endpoints
+        
+        # 1. Photo list endpoint
+        response = self.client.get("/api/photos/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        photo_uuids = [photo['uuid'] for photo in response.json()]
+        self.assertIn(str(future_photo.uuid), photo_uuids)
+        
+        # 2. Photo detail endpoint
+        url = f"/api/photos/{future_photo.uuid}/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+        self.assertEqual(data['uuid'], str(future_photo.uuid))
+        
+        # 3. Album detail endpoint
+        url = f"/api/albums/{self.album1.uuid}/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+        photo_uuids = [photo['uuid'] for photo in data.get('photos', [])]
+        self.assertIn(str(future_photo.uuid), photo_uuids)
+        
+        # 4. Tag detail endpoint
+        url = f"/api/tags/{self.tag1.uuid}/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+        photo_uuids = [photo['uuid'] for photo in data.get('photos', [])]
+        self.assertIn(str(future_photo.uuid), photo_uuids)
+        
+        # 5. Photo image endpoint
+        url = f"/api/photos/{future_photo.uuid}/sizes/{public_test_size.slug}/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
 class APISizeDetailTestCase(TestCase):
@@ -197,6 +298,7 @@ class APISizeDetailTestCase(TestCase):
             title="Test Photo for Sizes",
             raw_image=create_test_image_file()
         )
+        self.photo.update_published(update_model=True)
 
         # Original size for photo attachment
         self.size_original = Size.objects.get(slug="original")
@@ -343,6 +445,7 @@ class TestIncludePhotoSummarySizes(TestCase):
 
         # --- Create a Photo ---
         self.photo = Photo.objects.create(title="Test Photo", raw_image="test.jpg")
+        self.photo.update_published(update_model=True)
 
         # --- Create Sizes ---
         self.public_size = Size.objects.create(slug="public_size", public=True, max_dimension=500)

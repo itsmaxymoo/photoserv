@@ -262,7 +262,7 @@ class Album(PublicEntity):
         qs = self._photos.all()
 
         if public_only:
-            qs = qs.filter(hidden=False)
+            qs = qs.filter(_published=True)
 
         if self.sort_method == self.DefaultSortMethod.MANUAL:
             order_by = "photoinalbum__order"
