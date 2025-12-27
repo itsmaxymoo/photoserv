@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load crispy_forms_tags %}
 
 {% block title %}Integrations for: {{ photo }}{% endblock %}
 
@@ -8,13 +9,13 @@
 {% if messages %}
     {% for message in messages %}
         {% if message.tags == 'success' %}
-<div class="alert alert-success">
-    {{ message }}
-</div>
-        {% elif message.tags == 'error' %}
-<div class="alert alert-error">
-    {{ message }}
-</div>
+            <div class="alert alert-success">
+                {{ message }}
+            </div>
+                    {% elif message.tags == 'error' %}
+            <div class="alert alert-error">
+                {{ message }}
+            </div>
         {% endif %}
     {% endfor %}
 {% endif %}
@@ -63,20 +64,39 @@
         </div>
     </div>
 
-    <!-- Plugin Exclusions -->
+    <!-- Plugin Exclusions and Entity Parameters -->
     <div class="box">
-        <h3 class="text-2xl">Plugin Exclusions</h3>
-        <p class="text-sm mb-4">Select plugins to permanently exclude from being notified about this photo's publish/unpublish events.</p>
+        <h3 class="text-2xl">Plugin Configuration</h3>
+        <p class="text-sm mb-4">Configure plugin exclusions and entity-specific parameters for this photo.</p>
+
+        {% if integration_photo_form.non_field_errors %}
+        <div class="alert alert-error" id="form-errors">
+            {{ integration_photo_form.non_field_errors }}
+        </div>
+        {% endif %}
         
         <form method="post">
             {% csrf_token %}
             <input type="hidden" name="update_exclusions" value="1">
             
-            {% load crispy_forms_tags %}
-            {{ exclusion_form|crispy }}
+            <div class="mb-6">
+                <h4 class="text-lg font-semibold mb-2">Exclusions</h4>
+                {{ integration_photo_form.excluded_plugins|as_crispy_field }}
+            </div>
+            
+            <div class="divider"></div>
+            
+            <h4 class="text-lg font-semibold mb-4">Entity Parameters</h4>
+            <p class="text-sm mb-4">Configure per-entity parameters for valid plugins. These parameters are passed to plugin methods when this photo triggers events.</p>
+            
+            {% for field in integration_photo_form %}
+                {% if field.name|slice:":14" == "entity_params_" %}
+                    {{ field|as_crispy_field }}
+                {% endif %}
+            {% endfor %}
             
             <div class="mt-4 flex justify-center">
-                <button type="submit" class="btn btn-primary">Update Exclusions</button>
+                <button type="submit" class="btn btn-primary">Update Configuration</button>
             </div>
         </form>
     </div>

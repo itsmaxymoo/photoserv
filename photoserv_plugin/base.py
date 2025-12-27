@@ -168,13 +168,15 @@ class PhotoservPlugin:
         """
         pass
 
-    def on_photo_publish(self, data: Dict[str, Any], **kwargs) -> None:
+    def on_photo_publish(self, data: Dict[str, Any], params: Dict[str, Any], **kwargs) -> None:
         """
         Called when a photo is published.
         
         Args:
             data: Serialized photo data (dict) matching the public API format.
                   This is a read-only snapshot and cannot modify the database.
+            params: Per-entity parameters configured for this specific photo.
+                    Dictionary of custom parameters from PluginEntityParameters.
             **kwargs: Additional parameters for future compatibility
         
         Raises:
@@ -182,13 +184,15 @@ class PhotoservPlugin:
         """
         pass
 
-    def on_photo_unpublish(self, data: Dict[str, Any], **kwargs) -> None:
+    def on_photo_unpublish(self, data: Dict[str, Any], params: Dict[str, Any], **kwargs) -> None:
         """
         Called when a photo is unpublished.
         
         Args:
             data: Serialized photo data (dict) matching the public API format.
                   This is a read-only snapshot and cannot modify the database.
+            params: Per-entity parameters configured for this specific photo.
+                    Dictionary of custom parameters from PluginEntityParameters.
             **kwargs: Additional parameters for future compatibility
         
         Raises:

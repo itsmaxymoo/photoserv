@@ -88,6 +88,24 @@ Python Plugin: {{ object }}
                         </td>
                     </tr>
                     {% endif %}
+                    {% if plugin_entity_parameters %}
+                    <tr>
+                        <th>Entity Parameter Schema</th>
+                        <td>
+                            <ul class="list-none bg-base-200 p-2 rounded text-sm">
+                                {% for key, value in plugin_entity_parameters.items %}
+                                    <li class="flex space-y-1">
+                                        <span class="underline decoration-dotted mr-2">{{ key }}:</span>
+                                        <span>
+                                            {{ value }}
+                                        </span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </td>
+                    </tr>
+                    {% endif %}
+
                     <tr>
                         <th>Supplied Config</th>
                         <td>
@@ -106,7 +124,7 @@ Python Plugin: {{ object }}
             <h2>Test Plugin</h2>
             
             <p class="text-sm mb-4">
-                This will simulate a global event dispatch for this plugin.
+                This will call a global change event dispatch for this plugin.
             </p>
             
             <div class="flex justify-center">

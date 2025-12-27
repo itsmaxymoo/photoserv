@@ -195,6 +195,7 @@ class PythonPluginDetailView(PythonPluginMixin, DetailView):
                     context["plugin_version"] = getattr(plugin_module, '__plugin_version__', 'Unknown')
                     context["plugin_uuid"] = getattr(plugin_module, '__plugin_uuid__', 'Unknown')
                     context["plugin_config"] = getattr(plugin_module, '__plugin_config__', {})
+                    context["plugin_entity_parameters"] = getattr(plugin_module, '__plugin_entity_parameters__', {})
             except Exception:
                 pass
         
@@ -282,7 +283,7 @@ class IntegrationPhotoView(TemplateView):
         photo = get_object_or_404(Photo, pk=kwargs['pk'])
         
         context['photo'] = photo
-        context['exclusion_form'] = IntegrationPhotoForm(photo_instance=photo)
+        context['integration_photo_form'] = IntegrationPhotoForm(photo_instance=photo)
         context['plugins'] = PythonPlugin.objects.all().order_by('nickname', 'module')
         
         return context
@@ -290,13 +291,22 @@ class IntegrationPhotoView(TemplateView):
     def post(self, request, pk):
         photo = get_object_or_404(Photo, pk=pk)
         
-        # Handle form submission for exclusions
+        # Handle form submission for exclusions and entity parameters
         if 'update_exclusions' in request.POST:
-            exclusion_form = IntegrationPhotoForm(request.POST, photo_instance=photo)
-            if exclusion_form.is_valid():
-                exclusion_form.setup_exclusions(photo)
-                messages.success(request, "Plugin exclusions updated.")
+            integration_photo_form = IntegrationPhotoForm(request.POST, photo_instance=photo)
+            if integration_photo_form.is_valid():
+                integration_photo_form.setup_exclusions(photo)
+                integration_photo_form.setup_entity_parameters(photo)
+                messages.success(request, "Plugin exclusions and entity parameters updated.")
                 return redirect(reverse('integration-photo', kwargs={'pk': pk}))
+            else:
+                # Form has validation errors, render template with errors
+                context = {
+                    'photo': photo,
+                    'integration_photo_form': integration_photo_form,
+                    'plugins': PythonPlugin.objects.all().order_by('nickname', 'module'),
+                }
+                return render(request, self.template_name, context)
         
         # Handle plugin action buttons
         elif 'plugin_action' in request.POST:

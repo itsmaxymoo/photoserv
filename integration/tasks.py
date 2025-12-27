@@ -6,6 +6,31 @@ from django.conf import settings
 from .models import WebRequest, IntegrationCaller, PythonPlugin
 from datetime import timedelta
 from django.utils import timezone
+from .models import PluginEntityParameters
+
+
+def get_entity_parameters(plugin, data):
+    """
+    Look up entity parameters for a plugin and entity.
+    
+    Args:
+        plugin: PythonPlugin instance
+        data: Dict containing entity data with 'uuid' key
+        
+    Returns:
+        Dict of entity parameters, or empty dict if none found
+    """
+    params = {}
+    if data and 'uuid' in data:
+        try:
+            entity_params = PluginEntityParameters.objects.get(
+                plugin=plugin,
+                entity_uuid=data['uuid']
+            )
+            params = entity_params.get_parameters_dict()
+        except PluginEntityParameters.DoesNotExist:
+            pass
+    return params
 
 
 @shared_task
@@ -37,6 +62,7 @@ def call_single_plugin_signal(plugin_id, signal_name, data=None):
     Raises:
         Exception: If the plugin doesn't exist, is invalid, or the execution fails
     """
+    
     try:
         plugin = PythonPlugin.objects.get(id=plugin_id)
     except PythonPlugin.DoesNotExist:
@@ -45,10 +71,19 @@ def call_single_plugin_signal(plugin_id, signal_name, data=None):
     if not plugin.valid:
         raise Exception(f"Plugin {plugin} is not valid")
     
+    # Look up entity parameters if data contains a UUID
+    params = get_entity_parameters(plugin, data)
+    
+    # Build method args based on signal name
+    if signal_name in ['on_photo_publish', 'on_photo_unpublish']:
+        method_args = (data, params) if data else (None, params)
+    else:
+        method_args = (data,) if data else ()
+    
     plugin.run(
         IntegrationCaller.MANUAL,
         method_name=signal_name,
-        method_args=(data,) if data else ()
+        method_args=method_args
     )
     
     return f"Called {signal_name} on {plugin}"
@@ -69,6 +104,7 @@ def call_plugin_signal(signal_name, data=None, plugin_ids=None):
         data: Optional dict of serialized data to pass to the plugin method
         plugin_ids: Optional list of plugin IDs to include. If None, calls all active plugins.
     """
+    
     if plugin_ids is not None:
         # Call only specified plugins
         plugins = PythonPlugin.objects.filter(id__in=plugin_ids, active=True)
@@ -82,10 +118,19 @@ def call_plugin_signal(signal_name, data=None, plugin_ids=None):
             continue
 
         try:
+            # Look up entity parameters if data contains a UUID
+            params = get_entity_parameters(plugin, data)
+            
+            # Build method args based on signal name
+            if signal_name != "on_global_change":
+                method_args = (data, params) if data else (None, params)
+            else:
+                method_args = (data,) if data else ()
+            
             plugin.run(
                 IntegrationCaller.EVENT_SCHEDULER,
                 method_name=signal_name,
-                method_args=(data,) if data else ()
+                method_args=method_args
             )
             called_count += 1
         except Exception:

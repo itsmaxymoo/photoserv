@@ -3,7 +3,7 @@
 {% load photo_metadata_extras %}
 
 {% block title %}
-{{ object }}
+Photo: {{ object }}
 {% endblock %}
 
 {% block content %}
@@ -269,7 +269,7 @@
 
         <div class="flex justify-center">
             <a href="{% url 'integration-photo' object.pk %}" class="btn btn-primary">
-                View Integration Info
+                Integration Settings
             </a>
         </div>
     </div>

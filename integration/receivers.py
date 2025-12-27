@@ -5,6 +5,7 @@ from django.db.models.signals import post_save, post_delete
 from core.models import Photo, PhotoMetadata, PhotoSize, Size, Album, PhotoInAlbum, Tag, PhotoTag
 from integration.tasks import call_queue_global_integrations, call_plugin_signal
 from public_rest_api.serializers import PhotoSerializer
+from .models import PluginEntityParameters
 
 
 def dispatch_photo_signal(photo_instance, signal_name):

@@ -235,8 +235,8 @@ class PhotoTag(models.Model):
 
 class Album(PublicEntity):
     class DefaultSortMethod(models.TextChoices):
-        CREATED = "CREATED", "Created/Taken"
-        PUBLISHED = "PUBLISHED", "Published/Uploaded"
+        CREATED = "CREATED", "Photo Created Date (Exif)"
+        PUBLISHED = "PUBLISHED", "Publish Date"
         MANUAL = "MANUAL", "Manual"
         RANDOM = "RANDOM", "Random"
 

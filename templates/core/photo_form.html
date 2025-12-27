@@ -38,12 +38,15 @@ Editing {{ object|default:object_type_name }}
 
         {% include './partials/tag_input.html' %}
 
-        {% if exclusion_form %}
+        {% if integration_photo_form %}
+
+        <hr class="my-4" />
+
         <div>
             <h3>Integration Settings</h3>
             <div class="py-4">
                 {% load crispy_forms_tags %}
-                {% for field in exclusion_form %}
+                {% for field in integration_photo_form %}
                 {{ field|as_crispy_field }}
                 {% endfor %}
             </div>

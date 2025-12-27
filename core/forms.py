@@ -48,13 +48,13 @@ class PhotoForm(forms.ModelForm):
         fields = ["title", "description", "raw_image", "slug", "hidden", "publish_date", "albums"]
         exclude = ["last_updated"]
     
-    def save(self, commit=True, exclusion_form=None):
+    def save(self, commit=True, integration_photo_form=None):
         """
         Save the photo form.
         
         Args:
             commit: Whether to save to database
-            exclusion_form: Optional IntegrationPhotoForm to handle plugin exclusions
+            integration_photo_form: Optional IntegrationPhotoForm to handle plugin exclusions
         """
         # Check if this is a new photo
         is_new = self.instance.pk is None
@@ -65,15 +65,17 @@ class PhotoForm(forms.ModelForm):
         
         # For existing photos, set up exclusions BEFORE saving
         # This ensures they're in place before any signals are dispatched
-        if not is_new and exclusion_form and exclusion_form.is_valid():
-            exclusion_form.setup_exclusions(self.instance)
+        if not is_new and integration_photo_form and integration_photo_form.is_valid():
+            integration_photo_form.setup_exclusions(self.instance)
+            integration_photo_form.setup_entity_parameters(self.instance)
         
         photo = super().save(commit=True)
         
         if is_new:
-            # Set up exclusions before scheduling tasks
-            if exclusion_form and exclusion_form.is_valid():
-                exclusion_form.setup_exclusions(photo)
+            # Set up exclusions and entity parameters before scheduling tasks
+            if integration_photo_form and integration_photo_form.is_valid():
+                integration_photo_form.setup_exclusions(photo)
+                integration_photo_form.setup_entity_parameters(photo)
             
             # Now schedule the post-creation task (which will trigger signals)
             post_photo_create.delay_on_commit(photo.id)

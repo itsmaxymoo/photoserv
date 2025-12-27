@@ -57,6 +57,64 @@ class PhotoPluginExclusion(models.Model):
         return f"Exclude {self.plugin} from {self.photo}"
 
 
+class PluginEntityParameters(models.Model):
+    """
+    Per-entity parameters for integration plugins.
+    Stores custom parameters for specific entities (identified by UUID) that
+    are passed to plugin methods during entity-specific events.
+    """
+    plugin = models.ForeignKey('PythonPlugin', on_delete=models.CASCADE, related_name='entity_parameters')
+    entity_uuid = models.UUIDField(db_index=True, help_text="UUID of the entity")
+    parameters = models.TextField(blank=True, null=True, default="", help_text="One per line in the format key: value (JSON parsed with ENV vars)")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('plugin', 'entity_uuid')
+        verbose_name = "Plugin Entity Parameters"
+        verbose_name_plural = "Plugin Entity Parameters"
+
+    def __str__(self):
+        return f"{self.plugin} parameters for {self.entity_uuid}"
+    
+    def clean(self):
+        """Validate parameters format."""
+        if self.parameters:
+            seen_keys = set()
+            for line in self.parameters.splitlines():
+                line = line.strip()
+                if not line:
+                    continue
+                if ':' not in line:
+                    raise ValidationError(f"Invalid parameter format: '{line}'. Expected 'key: value'.")
+                key = line.split(':', 1)[0].strip()
+                if key in seen_keys:
+                    raise ValidationError(f"Duplicate parameter key: '{key}'")
+                seen_keys.add(key)
+    
+    def get_parameters_dict(self) -> dict:
+        """Parse parameters field into a dictionary with env vars expanded."""
+        import json
+        params = {}
+        if self.parameters:
+            for line in self.parameters.splitlines():
+                line = line.strip()
+                if not line:
+                    continue
+                key, value = line.split(':', 1)
+                key = key.strip()
+                value = value.strip()
+                # Expand environment variables
+                value = os.path.expandvars(value)
+                # Try to parse as JSON
+                try:
+                    params[key] = json.loads(value)
+                except json.JSONDecodeError:
+                    # If not valid JSON, store as string
+                    params[key] = value
+        return params
+
+
 class IntegrationRunResult(models.Model):
     """
     Stores a historical record of an integration run.
@@ -268,12 +326,7 @@ class PythonPlugin(IntegrationObject):
             if plugins_path not in sys.path:
                 sys.path.insert(0, plugins_path)
             
-            # Check if module file exists
-            module_file = settings.PLUGINS_PATH / f"{self.module}.py"
-            if not module_file.exists():
-                return None
-            
-            # Import or reload the module
+            # Try to import or reload the module
             if self.module in sys.modules:
                 module = importlib.reload(sys.modules[self.module])
             else:

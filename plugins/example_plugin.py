@@ -7,10 +7,14 @@ from photoserv_plugin import PhotoservPlugin
 # Required module-level variables
 __plugin_name__ = "Example Plugin"
 __plugin_uuid__ = "00000000-0000-0000-0000-000000000000"
-__plugin_version__ = "1.0.0"
+__plugin_version__ = "0.1.0"
 __plugin_config__ = {
     "example_param": "An example configuration parameter",
     "api_key": "An API key for external service (can use ${ENV_VAR})",
+}
+__plugin_entity_parameters__ = {
+    "custom_field": "A custom field specific to this photo",
+    "priority": "Priority level for this entity (e.g., 1, 2, 3)",
 }
 
 
@@ -35,21 +39,29 @@ class ExamplePlugin(PhotoservPlugin):
         """Handle global change events."""
         self.logger.info("Global change event received")
     
-    def on_photo_publish(self, data, **kwargs):
+    def on_photo_publish(self, data, params, **kwargs):
         """Handle photo publish events."""
         # data is a dict with serialized data from the public API
         self.logger.info(f"Photo published: {data.get('title')} (UUID: {data.get('uuid')})")
         
+        # params contains per-entity parameters configured for this photo
+        if params:
+            self.logger.info(f"  Entity parameters: {params}")
+        
         # Example: Get a photo's thumbnail
         try:
-            thumbnail = self.photoserv.get_photo_image(data, 'thumbnail')
+            thumbnail = self.photoserv.get_photo_image(data, 'photoserv_ui_thumbnail')
             if thumbnail:
                 self.logger.info(f"  Retrieved thumbnail image stream")
                 thumbnail.close()
         except Exception as e:
             self.logger.error(f"  Error getting thumbnail: {e}")
     
-    def on_photo_unpublish(self, data, **kwargs):
+    def on_photo_unpublish(self, data, params, **kwargs):
         """Handle photo unpublish events."""
         # data is a dict with serialized data from the public API
         self.logger.info(f"Photo unpublished: {data.get('title')} (UUID: {data.get('uuid')})")
+        
+        # params contains per-entity parameters configured for this photo
+        if params:
+            self.logger.info(f"  Entity parameters: {params}")
