@@ -41,7 +41,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Create volumes and app dir
 RUN useradd -m -r photoserv -u 1000 \
-    && mkdir /app /database /content \
+    && mkdir /app /database /content /plugins \
     && chown -R photoserv:photoserv /app /database /content /etc/supervisor/conf.d
 
 # Nginx
