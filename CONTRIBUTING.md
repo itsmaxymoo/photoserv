@@ -128,6 +128,8 @@ Examples:
 
 ### Feature Requests
 * **Photo Calendar**: Month-by-month grid showing upcoming photos by publish date. Photos listed chronologically within each day. Add link on photo form and before photo "Create" buttons (style: `btn-secondary`).
+* Query photos (photo table in UI) by any arbitrary fields and/or metadata
+* Automatic albums based on photo data/metadata (e.g., camera model, location)
 
 ## Project Structure
 
