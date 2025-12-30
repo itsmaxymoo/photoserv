@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.7.3](https://github.com/photoserv/photoserv/compare/0.7.2...0.7.3) (2025-12-30)
+
+
+### Bug Fixes
+
+* Add a link to the project's GitHub in the footer ([5cdb65c](https://github.com/photoserv/photoserv/commit/5cdb65c42d26a3e73bc0f60cd01862236250c651))
+* Add support for deleting plugin config keys ([5cdb65c](https://github.com/photoserv/photoserv/commit/5cdb65c42d26a3e73bc0f60cd01862236250c651))
+* Display plugin author on detail page ([5cdb65c](https://github.com/photoserv/photoserv/commit/5cdb65c42d26a3e73bc0f60cd01862236250c651))
+* Display plugin website on detail page ([5cdb65c](https://github.com/photoserv/photoserv/commit/5cdb65c42d26a3e73bc0f60cd01862236250c651))
+
 ## [0.7.2](https://github.com/photoserv/photoserv/compare/0.7.1...0.7.2) (2025-12-27)
 
 
