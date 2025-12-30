@@ -195,6 +195,8 @@ class PythonPluginDetailView(PythonPluginMixin, DetailView):
                     context["plugin_name"] = getattr(plugin_module, '__plugin_name__', 'Unknown')
                     context["plugin_version"] = getattr(plugin_module, '__plugin_version__', 'Unknown')
                     context["plugin_uuid"] = getattr(plugin_module, '__plugin_uuid__', 'Unknown')
+                    context["plugin_author"] = getattr(plugin_module, '__plugin_author__', 'Unknown')
+                    context["plugin_website"] = getattr(plugin_module, '__plugin_website__', 'Unknown')
                     
                     # Get schema dictionaries
                     plugin_config = getattr(plugin_module, '__plugin_config__', {})

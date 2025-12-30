@@ -16,6 +16,7 @@ Plugins must also define the following module-level variables:
 
 import logging
 from typing import Any, Dict, Optional, Union, BinaryIO
+from integration.models import PluginStorage
 
 
 class PluginConfigManager:
@@ -48,8 +49,6 @@ class PluginConfigManager:
         Returns:
             The stored value or default if not found
         """
-        # Import here to avoid circular imports
-        from integration.models import PluginStorage
         
         prefixed_key = self._make_key(key)
         try:
@@ -66,14 +65,23 @@ class PluginConfigManager:
             key: The key to store (will be automatically prefixed)
             value: The value to store (must be JSON-serializable)
         """
-        # Import here to avoid circular imports
-        from integration.models import PluginStorage
         
         prefixed_key = self._make_key(key)
         storage, created = PluginStorage.objects.update_or_create(
             key=prefixed_key,
             defaults={'value': value}
         )
+    
+    def delete(self, key: str) -> None:
+        """
+        Delete a value from persistent storage.
+        
+        Args:
+            key: The key to delete (will be automatically prefixed)
+        """
+        
+        prefixed_key = self._make_key(key)
+        PluginStorage.objects.filter(key=prefixed_key).delete()
 
 
 class PhotoservInstance:

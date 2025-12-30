@@ -15,7 +15,7 @@ Python Plugin: {{ object }}
 </h2>
 
 <div class="grid grid-cols-1 gap-4">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 gap-4">
         <!-- Left column: details -->
         <div class="box">
             <div class="overflow-x-scroll">
@@ -63,6 +63,18 @@ Python Plugin: {{ object }}
                     <tr>
                         <th>Plugin Version</th>
                         <td>{{ plugin_version }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if plugin_author %}
+                    <tr>
+                        <th>Plugin Author</th>
+                        <td>{{ plugin_author }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if plugin_website %}
+                    <tr>
+                        <th>Plugin Website</th>
+                        <td><a href="{{ plugin_website }}" class="link" target="_blank">{{ plugin_website }}</a></td>
                     </tr>
                     {% endif %}
                     {% if plugin_uuid %}
