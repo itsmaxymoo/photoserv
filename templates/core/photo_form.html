@@ -9,7 +9,7 @@ Editing {{ object|default:object_type_name }}
 
 {% block content %}
 
-<form method="post" enctype="multipart/form-data" x-data="{ submitting: false }" @submit="submitting = true">
+<form method="post" enctype="multipart/form-data">
     {% csrf_token %}
 
     <div class="grid grid-cols-1 gap-4">
@@ -61,7 +61,7 @@ Editing {{ object|default:object_type_name }}
                 </a>
             </div>
             <div>
-                <button type="submit" class="btn btn-primary w-full sm:w-auto" :disabled="submitting">
+                <button type="submit" class="btn btn-primary w-full sm:w-auto">
                     Save
                 </button>
             </div>
