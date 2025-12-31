@@ -87,7 +87,7 @@ Python Plugin: {{ object }}
                     <tr>
                         <th>Config Schema</th>
                         <td>
-                            <pre class="whitespace-pre-wrap bg-base-200 p-2 rounded text-sm font-mono">{{ plugin_config_json }}</pre>
+                            <pre class="whitespace-pre-wrap bg-base-200 p-2 rounded text-sm font-mono max-h-72 overflow-auto block">{{ plugin_config_json }}</pre>
                         </td>
                     </tr>
                     {% endif %}
@@ -95,7 +95,7 @@ Python Plugin: {{ object }}
                     <tr>
                         <th>Entity Parameter Schema</th>
                         <td>
-                            <pre class="whitespace-pre-wrap bg-base-200 p-2 rounded text-sm font-mono">{{ plugin_entity_parameters_json }}</pre>
+                            <pre class="whitespace-pre-wrap bg-base-200 p-2 rounded text-sm font-mono max-h-72 overflow-auto block">{{ plugin_entity_parameters_json }}</pre>
                         </td>
                     </tr>
                     {% endif %}
@@ -104,7 +104,7 @@ Python Plugin: {{ object }}
                         <th>Supplied Config</th>
                         <td>
                             {% if config_pretty %}
-                                <pre class="whitespace-pre-wrap bg-base-200 p-2 rounded text-sm font-mono">{{ config_pretty }}</pre>
+                                <pre class="whitespace-pre-wrap bg-base-200 p-2 rounded text-sm font-mono max-h-72 overflow-auto block">{{ config_pretty }}</pre>
                             {% else %}
                                 (none)
                             {% endif %}
