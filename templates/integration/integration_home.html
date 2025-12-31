@@ -7,13 +7,13 @@
 <h2>Integrations</h2>
 
 {% if messages %}
-    {% for message in messages %}
-        {% if message.tags == 'success' %}
+{% for message in messages %}
+{% if message.tags == 'success' %}
 <div class="alert alert-success">
     {{ message }}
 </div>
-        {% endif %}
-    {% endfor %}
+{% endif %}
+{% endfor %}
 {% endif %}
 
 <div class="grid grid-cols-1 gap-6">
@@ -44,9 +44,6 @@
         <div class="flex justify-between mb-4">
             <h3 class="text-2xl">Python Plugins</h3>
             <div class="flex gap-2 flex-row">
-                <a href="https://github.com/photoserv/python-plugins" target="_blank" class="btn btn-info">
-                    Get Official Plugins
-                </a>
                 <form method="post" action="{% url 'python-plugin-scan' %}" class="inline">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-secondary">
@@ -62,6 +59,12 @@
         <div class="overflow-x-hidden">
             {% render_table python_plugins_table %}
         </div>
+    </div>
+
+    <div class="flex justify-center">
+        <a href="https://github.com/photoserv/python-plugins" target="_blank" class="mx-auto btn btn-wide">
+            Get Official Plugins
+        </a>
     </div>
 </div>
 {% endblock %}
