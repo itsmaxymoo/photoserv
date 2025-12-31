@@ -31,7 +31,7 @@ IS_CONTAINER = os.environ.get("PHOTOSERV_IS_CONTAINER", "false").lower().strip()
 
 # --- Application definition
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS","127.0.0.1").split(",")
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS","127.0.0.1").split(",") if not DEBUG else ["*"]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
