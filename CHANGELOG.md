@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.7.4](https://github.com/photoserv/photoserv/compare/0.7.3...0.7.4) (2025-12-31)
+
+
+### Bug Fixes
+
+* "Get Official Plugins" button moved to bottom of page to improve mobile layout ([76614bf](https://github.com/photoserv/photoserv/commit/76614bfe9251e8c365543bc5e156f3477a1280c1))
+* Delete confirmation buttons are full-width on mobile ([edaa789](https://github.com/photoserv/photoserv/commit/edaa78953b72cb40167a34cc87997c56be06a49f))
+* Extremely long config sections are now scrollable on Plugin Detail page ([c4b100d](https://github.com/photoserv/photoserv/commit/c4b100d572c511e13f594435d7980b4996647e79))
+* Photo form submission not working on Firefox Mobile ([a7f98b4](https://github.com/photoserv/photoserv/commit/a7f98b4007c2a64498ed49a81e756b0c632d78cc))
+
 ## [0.7.3](https://github.com/photoserv/photoserv/compare/0.7.2...0.7.3) (2025-12-30)
 
 
