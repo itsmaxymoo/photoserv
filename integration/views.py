@@ -26,12 +26,12 @@ class IntegrationHomeView(TemplateView):
         
         # Web Requests table
         web_requests = WebRequest.objects.all()
-        web_requests_table = WebRequestTable(web_requests)
+        web_requests_table = WebRequestTable(web_requests, prefix="webreq-")
         RequestConfig(self.request, paginate={"per_page": 10}).configure(web_requests_table)
         
         # Python Plugins table
         python_plugins = PythonPlugin.objects.all()
-        python_plugins_table = PythonPluginTable(python_plugins)
+        python_plugins_table = PythonPluginTable(python_plugins, prefix="plugin-")
         RequestConfig(self.request, paginate={"per_page": 10}).configure(python_plugins_table)
         
         context["web_requests_table"] = web_requests_table

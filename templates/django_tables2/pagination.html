@@ -1,21 +1,26 @@
-<div class="flex justify-center">
-    <div class="join py-2">
+{% load django_tables2 %}
+<div class="w-full overflow-x-auto py-2 flex justify-center">
+    <div class="join inline-flex">
         {% if table.page.has_previous %}
-        <a class="join-item btn" href="{% querystring page=table.page.previous_page_number %}">Prev</a>
+        <a class="join-item btn" href="{% querystring table.prefixed_page_field=table.page.previous_page_number %}">Prev</a>
         {% else %}
         <button class="join-item btn btn-disabled">Prev</button>
         {% endif %}
 
-        {% for p in table.paginator.page_range %}
-        {% if p == table.page.number %}
-        <button class="join-item btn btn-active">{{ p }}</button>
-        {% else %}
-        <a class="join-item btn" href="{% querystring page=p %}">{{ p }}</a>
-        {% endif %}
+        {% spaceless %}
+        {% for p in table.page|table_page_range:table.paginator %}
+            {% if p == "..." %}
+                <button class="join-item btn btn-disabled">...</button>
+            {% elif p == table.page.number %}
+                <button class="join-item btn btn-active">{{ p }}</button>
+            {% else %}
+                <a class="join-item btn" href="{% querystring table.prefixed_page_field=p %}">{{ p }}</a>
+            {% endif %}
         {% endfor %}
+        {% endspaceless %}
 
         {% if table.page.has_next %}
-        <a class="join-item btn" href="{% querystring page=table.page.next_page_number %}">Next</a>
+        <a class="join-item btn" href="{% querystring table.prefixed_page_field=table.page.next_page_number %}">Next</a>
         {% else %}
         <button class="join-item btn btn-disabled">Next</button>
         {% endif %}
