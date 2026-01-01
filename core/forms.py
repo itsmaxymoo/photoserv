@@ -1,4 +1,5 @@
 from django import forms
+from django.utils import timezone
 from django.forms import modelformset_factory
 from crispy_forms.helper import FormHelper
 from .models import *
@@ -42,6 +43,9 @@ class PhotoForm(forms.ModelForm):
             if self.instance.published:
                 self.fields['publish_date'].disabled = True
                 self.fields['publish_date'].help_text = "Cannot change publish date of a published photo."
+        else:
+            # For new photos, set publish_date to now by default
+            self.fields['publish_date'].initial = timezone.now()
 
     class Meta:
         model = Photo
