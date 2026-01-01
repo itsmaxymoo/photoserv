@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.7.6](https://github.com/photoserv/photoserv/compare/0.7.5...0.7.6) (2026-01-01)
+
+
+### Bug Fixes
+
+* Better pagination ([29c722e](https://github.com/photoserv/photoserv/commit/29c722e634a5125130f5b55d33b8139e64985e02))
+* Omit photo publish job from job logs iff the job is successful and 0 photos were updated ([0e885b2](https://github.com/photoserv/photoserv/commit/0e885b2d64ebe737c0645d4a3d7297023deac134))
+* Photo pagination ([6056298](https://github.com/photoserv/photoserv/commit/6056298b3b410165401e05f2e268430e4336b521))
+* Set default publish time for new photos ([eb3a187](https://github.com/photoserv/photoserv/commit/eb3a187ae28a224996e39e4b75b075f44a3ac31a))
+
 ## [0.7.5](https://github.com/photoserv/photoserv/compare/0.7.4...0.7.5) (2026-01-01)
 
 
