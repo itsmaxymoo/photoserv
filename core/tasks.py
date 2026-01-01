@@ -1,5 +1,4 @@
 from celery import shared_task
-from celery.exceptions import Ignore
 from . import models
 from PIL import Image
 from io import BytesIO
@@ -263,9 +262,4 @@ def publish_photos():
         if photo.update_published(dispatch_signals=True, update_model=True):
             changed_count += 1
 
-    # Only return a message if there were changes
-    if changed_count > 0:
-        return f"{changed_count} photos published/unpublished."
-    
-    # Raise Ignore to prevent this task result from being stored
-    raise Ignore()
+    return f"{changed_count} photos published/unpublished."
