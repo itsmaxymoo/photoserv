@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.5](https://github.com/photoserv/photoserv/compare/0.7.4...0.7.5) (2026-01-01)
+
+
+### Bug Fixes
+
+* Round publish date to nearest minute ([2d75640](https://github.com/photoserv/photoserv/commit/2d75640f4c89daeca95bd8a504db970d835e3ee8))
+
 ## [0.7.4](https://github.com/photoserv/photoserv/compare/0.7.3...0.7.4) (2025-12-31)
 
 
