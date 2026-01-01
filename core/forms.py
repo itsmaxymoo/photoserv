@@ -21,8 +21,8 @@ class PhotoForm(forms.ModelForm):
     publish_date = forms.DateTimeField(
         required=False,
         help_text="Set a specific publish date/time for the photo.",
-        widget=forms.DateTimeInput(attrs={"type": "datetime-local"}),
-        initial=forms.fields.datetime.datetime.now,
+        widget=forms.DateTimeInput(attrs={"type": "datetime-local"}, format="%Y-%m-%dT%H:%M"),
+        input_formats=["%Y-%m-%dT%H:%M"],
     )
 
     def __init__(self, *args, **kwargs):
