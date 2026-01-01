@@ -25,6 +25,8 @@ class PhotoListView(PhotoMixin, SingleTableView):
     table_class = PhotoTable
     template_name = "generic_crud_list.html"
 
+    paginate_by = 10
+
 
 class PhotoDetailView(DetailView):
     model = Photo

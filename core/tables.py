@@ -28,7 +28,6 @@ class PhotoTable(tables.Table):
         model = Photo
         fields = ("id", "thumbnail", "title", "description", "publish_date", "published")
         order_by = ("-publish_date",)
-        paginate_by = 10
 
 
 class SizeTable(tables.Table):
