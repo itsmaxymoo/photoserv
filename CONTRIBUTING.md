@@ -2,6 +2,8 @@
 
 # 1.0 Change List (TODO):
 
+* FIX: id showing when it shouldn't
+* UI/frontend permissions
 * Publishing Schedule
 
 # 1.0 Branch Committed Changes:

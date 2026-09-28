@@ -72,6 +72,19 @@ def copy_run_result_integrations(apps, schema_editor):
             run_result.save(update_fields=["integration_plugin"])
 
 
+def remove_obsolete_content_types(apps, schema_editor):
+    ContentType = apps.get_model("contenttypes", "ContentType")
+    ContentType.objects.filter(
+        app_label="integration",
+        model__in=(
+            "pythonplugin",
+            "webrequest",
+            "pluginentityparameters",
+            "photopluginexclusion",
+        ),
+    ).delete()
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -139,5 +152,9 @@ class Migration(migrations.Migration):
         ),
         migrations.DeleteModel(
             name='PythonPlugin',
+        ),
+        migrations.RunPython(
+            remove_obsolete_content_types,
+            migrations.RunPython.noop,
         ),
     ]

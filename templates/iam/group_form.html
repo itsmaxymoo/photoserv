@@ -24,20 +24,14 @@
 
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
             {% for app_name, permission_fields in form.permission_groups %}
-            <fieldset class="box">
-                <legend class="text-xl font-semibold">{{ app_name }}</legend>
+            <section class="box">
+                <h3>{{ app_name }}</h3>
                 <div class="grid grid-cols-1 gap-2 pt-2">
                     {% for permission_field in permission_fields %}
-                    <label class="flex cursor-pointer items-center justify-between gap-4">
-                        <span>{{ permission_field.label }}</span>
-                        {{ permission_field }}
-                    </label>
-                    {% if permission_field.errors %}
-                    <div class="text-error">{{ permission_field.errors }}</div>
-                    {% endif %}
+                    {{ permission_field|as_crispy_field }}
                     {% endfor %}
                 </div>
-            </fieldset>
+            </section>
             {% endfor %}
         </div>
 

@@ -3,12 +3,24 @@ from itertools import groupby
 from django.apps import apps
 
 
+STANDARD_PERMISSION_ACTIONS = {"add", "change", "delete", "view"}
+
+
 def _app_name(permission):
     app_label = permission.content_type.app_label
     try:
         return str(apps.get_app_config(app_label).verbose_name)
     except LookupError:
         return app_label.replace("_", " ").title()
+
+
+def permission_display_name(permission):
+    """Format standard Django codenames as ``model_action``."""
+
+    action, separator, noun = permission.codename.partition("_")
+    if separator and action in STANDARD_PERMISSION_ACTIONS and noun:
+        return f"{noun}_{action}"
+    return permission.codename
 
 
 def group_permissions_by_app(permissions):
@@ -19,7 +31,7 @@ def group_permissions_by_app(permissions):
         key=lambda permission: (
             _app_name(permission).casefold(),
             permission.content_type.app_label.casefold(),
-            permission.name.casefold(),
+            permission_display_name(permission).casefold(),
             permission.codename.casefold(),
         ),
     )

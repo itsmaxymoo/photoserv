@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.models import Group, Permission
 from crispy_forms.helper import FormHelper
 
-from .permissions import group_permissions_by_app
+from .permissions import group_permissions_by_app, permission_display_name
 from .models import User
 
 
@@ -17,6 +17,11 @@ class UserForm(forms.ModelForm):
         widget=forms.PasswordInput,
         required=False
     )
+    groups = forms.ModelMultipleChoiceField(
+        queryset=Group.objects.all(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -24,7 +29,7 @@ class UserForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ["username", "email", "first_name", "last_name"]
+        fields = ["username", "email", "first_name", "last_name", "is_active", "is_superuser", "groups"]
 
     def clean(self):
         cleaned_data = super().clean()
@@ -47,6 +52,7 @@ class UserForm(forms.ModelForm):
 
         if commit:
             user.save()
+            self.save_m2m()
         return user
 
 
@@ -73,9 +79,8 @@ class GroupForm(forms.ModelForm):
                 field_name = self.permission_field_name(permission)
                 self.fields[field_name] = forms.BooleanField(
                     required=False,
-                    label=permission.name,
+                    label=permission_display_name(permission),
                     initial=permission.pk in selected_permission_ids,
-                    widget=forms.CheckboxInput(attrs={"class": "toggle"}),
                 )
                 self.permission_ids_by_field[field_name] = permission.pk
                 permission_fields.append(self[field_name])

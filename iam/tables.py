@@ -9,7 +9,7 @@ class UserTable(tables.Table):
 
     class Meta:
         model = User
-        fields = ("username", "email", "last_login")
+        fields = ("username", "email", "last_login", "is_active", "is_superuser")
         order_by = ("username")
 
 

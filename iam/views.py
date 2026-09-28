@@ -7,7 +7,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import reverse
 from photoserv.mixins import CRUDGenericMixin
 from .models import User
-from .permissions import group_permissions_by_app
+from .permissions import group_permissions_by_app, permission_display_name
 from .tables import GroupTable, UserTable
 from .forms import GroupForm, UserForm
 
@@ -94,9 +94,13 @@ class GroupDetailView(GroupMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["permission_groups"] = group_permissions_by_app(
+        permission_groups = group_permissions_by_app(
             self.object.permissions.all()
         )
+        for _, permissions in permission_groups:
+            for permission in permissions:
+                permission.display_name = permission_display_name(permission)
+        context["permission_groups"] = permission_groups
         return context
 
 
