@@ -91,13 +91,12 @@ class PhotoForm(forms.ModelForm, FormWithCustomAttributesFieldMixin):
         model = Photo
         fields = ["title", "description", "raw_image", "slug", "canonical_hidden", "hide_location", "canonical_publish_date", "custom_attributes", "albums"]
     
-    def save(self, commit=True, integration_photo_form=None):
+    def save(self, commit=True):
         """
         Save the photo form.
         
         Args:
             commit: Whether to save to database
-            integration_photo_form: Optional IntegrationPhotoForm to handle plugin exclusions
         """
         # Check if this is a new photo
         is_new = self.instance.pk is None
@@ -106,21 +105,10 @@ class PhotoForm(forms.ModelForm, FormWithCustomAttributesFieldMixin):
             # Just return unsaved instance
             return super().save(commit=False)
         
-        # For existing photos, set up exclusions BEFORE saving
-        # This ensures they're in place before any signals are dispatched
-        if not is_new and integration_photo_form and integration_photo_form.is_valid():
-            integration_photo_form.setup_exclusions(self.instance)
-            integration_photo_form.setup_entity_parameters(self.instance)
-        
         photo = super().save(commit=True)
         
         if is_new:
-            # Set up exclusions and entity parameters before scheduling tasks
-            if integration_photo_form and integration_photo_form.is_valid():
-                integration_photo_form.setup_exclusions(photo)
-                integration_photo_form.setup_entity_parameters(photo)
-            
-            # Now schedule the post-creation task (which will trigger signals)
+            # Schedule the post-creation task (which will trigger signals).
             post_photo_create.delay_on_commit(photo.id)
 
         # Assign albums with sequential order using a model method
@@ -249,31 +237,6 @@ class PhotoChannelForm(forms.Form):
                 channel_photo.publish_date = publish_date
                 channel_photo.save(update_fields=['publish_date'])
                 channel_photos.exclude(pk=channel_photo.pk).delete()
-
-
-class CondensedPhotoForm(PhotoForm):
-    description = forms.CharField(
-        required=False,
-        widget=forms.Textarea(attrs={"rows": 1, "class": "min-h-0"})
-    )
-
-    class Meta(PhotoForm.Meta):
-        fields = ["title", "description", "raw_image", "canonical_hidden", "canonical_publish_date", "albums"]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Remove the slug field inherited from PhotoForm
-        for field in ["slug", "custom_attributes"]:
-            if field in self.fields:
-                del self.fields[field]
-
-
-PhotoFormSet = forms.modelformset_factory(
-    Photo,
-    form=CondensedPhotoForm,
-    extra=0,
-    can_delete=False
-)
 
 
 class SizeForm(forms.ModelForm):

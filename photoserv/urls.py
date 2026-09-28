@@ -17,7 +17,6 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from media.urls import urlpatterns as media_urls
-from public_rest_api.urls import urlpatterns as api_urls
 from api_key.urls import urlpatterns as api_key_urls
 from iam.urls import urlpatterns as iam_urls
 from home.urls import urlpatterns as home_urls
@@ -35,7 +34,7 @@ handler404 = error_views.error_404
 handler500 = error_views.error_500
 
 urlpatterns = [
-    path("api/", include(api_urls)),
+    path("api/", include("media.api_urls")),
     path("", include(media_urls)),
     path("", include(api_key_urls)),
     path("", include(iam_urls)),

@@ -44,7 +44,6 @@ INSTALLED_APPS = [
     "media",
     "core",
     "api_key",
-    "public_rest_api",
     "iam",
     "job_overview",
     "integration",
@@ -225,8 +224,8 @@ REST_FRAMEWORK = {
         'api_key.permissions.IsAuthenticatedOrHasAPIKey',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'api_key.authentication.APIKeyAuthentication',
         'rest_framework.authentication.SessionAuthentication',
+        'api_key.authentication.APIKeyAuthentication',
     ),
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',  # Only JSON, no HTML
@@ -235,6 +234,8 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend',
     ],
+    'DEFAULT_PAGINATION_CLASS': 'media.pagination.MediaPagination',
+    'PAGE_SIZE': 100,
 }
 
 SPECTACULAR_SETTINGS = {
@@ -318,7 +319,10 @@ AUTHENTICATION_BACKENDS = [
 
 # ------- Integrations
 
-INTEGRATION_QUEUE_DELAY = 60 * 10  # 10 minutes
+INTEGRATION_QUEUE_DELAY = (60 * 10) if not DEBUG else 10  # seconds
 
-# Python plugins path
-PLUGINS_PATH = Path(os.getenv("PLUGINS_PATH", str(Path("/plugins") if IS_CONTAINER else BASE_DIR / "plugins")))
+# Python plugin paths, ordered by precedence.
+PLUGINS_PATH = [
+    Path(os.getenv("PLUGINS_PATH", str(Path("/plugins") if IS_CONTAINER else BASE_DIR / "plugins"))),
+    BASE_DIR / "official_plugins",
+]

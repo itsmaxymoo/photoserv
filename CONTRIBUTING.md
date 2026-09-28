@@ -1,25 +1,23 @@
 # Contributing to Photoserv
 
+# 1.0 Change List (TODO):
+
+* Publishing Schedule
+
 # 1.0 Branch Committed Changes:
 
-(for future changelog after squash merge)
-
+* Integrations subscribe to a publishing channel
+* All integrations shall be python based
+* Photo calendar shall be based on publishing channels
 * Rename 'core' to 'media'
 * Newer API schema
     * Session Auth supported
     * Read/write endpoints for resources (admin api)
     * Write requires permission on API key
-    * Public API moved to `/public/`
 * Authentication is now enforced; no anonymous mode.
-
-# 1.0 Change List (TODO):
-
 * Implement publishing channels; publishing logic fully owned by Media
-* Remove public_rest_api; apps to own APIs
-* Photo calendar shall be based on publishing channels
 * A photo shall not be published until all sizes are generated
-* All integrations shall be python based
-* Integrations subscribe to a publishing channel
+* Remove "Create Multiple" photos.
 
 ## Architecture
 

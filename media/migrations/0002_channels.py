@@ -3,6 +3,7 @@
 import django.db.models.deletion
 import django.utils.timezone
 from django.db import migrations, models
+import uuid
 
 
 def create_default_channel(apps, schema_editor):
@@ -35,6 +36,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('media', '0001_initial'),
+        ('core', '0006_remove_core_module'),
     ]
 
     operations = [
@@ -99,5 +101,21 @@ class Migration(migrations.Migration):
         migrations.RemoveField(
             model_name='photo',
             name='_published',
-        )
+        ),
+        migrations.AddField(
+            model_name='channel',
+            name='created_at',
+            field=models.DateTimeField(auto_now_add=True, default=django.utils.timezone.now),
+            preserve_default=False,
+        ),
+        migrations.AddField(
+            model_name='channel',
+            name='updated_at',
+            field=models.DateTimeField(auto_now=True),
+        ),
+        migrations.AddField(
+            model_name='channel',
+            name='uuid',
+            field=models.UUIDField(db_index=True, default=uuid.uuid4, editable=False, unique=True),
+        ),
     ]

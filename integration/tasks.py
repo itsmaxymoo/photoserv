@@ -3,94 +3,14 @@ from django.core.cache import cache
 from celery import shared_task
 from celery.exceptions import Ignore
 from django.conf import settings
-from .models import WebRequest, IntegrationCaller, PythonPlugin, RunResult
+from .models import IntegrationCaller, IntegrationPlugin, RunResult
+from .services import discover_plugin_modules
 from datetime import timedelta
 from django.utils import timezone
-from .models import PluginEntityParameters
-
-
-def get_entity_parameters(plugin, data):
-    """
-    Look up entity parameters for a plugin and entity.
-    
-    Args:
-        plugin: PythonPlugin instance
-        data: Dict containing entity data with 'uuid' key
-        
-    Returns:
-        Dict of entity parameters, or empty dict if none found
-    """
-    params = {}
-    if data and 'uuid' in data:
-        try:
-            entity_params = PluginEntityParameters.objects.get(
-                plugin=plugin,
-                entity_uuid=data['uuid']
-            )
-            params = entity_params.get_parameters_dict()
-        except PluginEntityParameters.DoesNotExist:
-            pass
-    return params
 
 
 @shared_task
-def call_web_request(web_request_id):
-    web_request = WebRequest.objects.get(id=web_request_id)
-    result = web_request.run(IntegrationCaller.EVENT_SCHEDULER)
-    if not result.successful:
-        raise Exception(str(web_request) + " - failed")
-
-    return str(web_request) + " - success"
-
-
-@shared_task
-def call_single_plugin_signal(plugin_id, signal_name, data=None):
-    """
-    Call a specific plugin method, typically for manual triggering.
-    
-    This bypasses the active check but requires the plugin to be valid.
-    Used for manually triggering plugin actions from the integration UI.
-    
-    Args:
-        plugin_id: ID of the plugin to call
-        signal_name: Name of the plugin method to call (e.g., 'on_photo_publish', 'on_photo_unpublish')
-        data: Optional dict of serialized data to pass to the plugin method
-        
-    Returns:
-        Success message string
-        
-    Raises:
-        Exception: If the plugin doesn't exist, is invalid, or the execution fails
-    """
-    
-    try:
-        plugin = PythonPlugin.objects.get(id=plugin_id)
-    except PythonPlugin.DoesNotExist:
-        raise Exception(f"Plugin with ID {plugin_id} does not exist")
-    
-    if not plugin.valid:
-        raise Exception(f"Plugin {plugin} is not valid")
-    
-    # Look up entity parameters if data contains a UUID
-    params = get_entity_parameters(plugin, data)
-    
-    # Build method args based on signal name
-    if signal_name in ['on_photo_publish', 'on_photo_unpublish']:
-        method_args = (data, params) if data else (None, params)
-    else:
-        method_args = (data,) if data else ()
-    
-    plugin.run(
-        IntegrationCaller.MANUAL,
-        method_name=signal_name,
-        method_args=method_args
-    )
-    
-    return f"Called {signal_name} on {plugin}"
-
-
-@shared_task
-def call_plugin_signal(signal_name, data=None, plugin_ids=None):
+def call_integration_plugin_signal(signal_name, data=None, channel_id=None):
     """
     Call plugin methods based on signal name.
     
@@ -100,17 +20,13 @@ def call_plugin_signal(signal_name, data=None, plugin_ids=None):
     - Avoid exposing internal implementation details
 
     Args:
-        signal_name: Name of the plugin method to call (e.g., 'on_photo_publish', 'on_global_change')
+        signal_name: Name of the integration method to call
         data: Optional dict of serialized data to pass to the plugin method
-        plugin_ids: Optional list of plugin IDs to include. If None, calls all active plugins.
+        channel_id: Dispatch photo events only to integrations subscribed to this channel.
     """
-    
-    if plugin_ids is not None:
-        # Call only specified plugins
-        plugins = PythonPlugin.objects.filter(id__in=plugin_ids, active=True)
-    else:
-        # Call all active plugins
-        plugins = PythonPlugin.objects.filter(active=True)
+    plugins = IntegrationPlugin.objects.filter(active=True)
+    if signal_name != "on_global_change":
+        plugins = plugins.filter(channel_id=channel_id)
     
     called_count = 0
     for plugin in plugins:
@@ -118,12 +34,9 @@ def call_plugin_signal(signal_name, data=None, plugin_ids=None):
             continue
 
         try:
-            # Look up entity parameters if data contains a UUID
-            params = get_entity_parameters(plugin, data)
-            
             # Build method args based on signal name
             if signal_name != "on_global_change":
-                method_args = (data, params) if data else (None, params)
+                method_args = (data, {}) if data else (None, {})
             else:
                 method_args = (data,) if data else ()
             
@@ -197,20 +110,10 @@ def debounced_task(key_generator, delay=settings.INTEGRATION_QUEUE_DELAY):
 
 
 def queue_global_integrations(*args, **kwargs):
-    """Queue all global integrations (web requests and global plugins)."""
-    # Queue web requests
-    web_requests = WebRequest.objects.filter(active=True)
-    for web_request in web_requests:
-        call_web_request.delay(web_request.id)
-    
-    # Call global plugins
-    plugins = PythonPlugin.objects.filter(active=True)
-    for plugin in plugins:
-        if not plugin.valid:
-            continue
-        call_plugin_signal.delay('on_global_change')
+    """Queue active integration plugins subscribed to global events."""
+    call_integration_plugin_signal.delay("on_global_change")
 
-    return f"Queued {web_requests.count()} web requests and called {plugins.count()} global plugins"
+    return "Queued global integration dispatch."
 
 
 call_queue_global_integrations = debounced_task(
@@ -222,30 +125,14 @@ call_queue_global_integrations = debounced_task(
 @shared_task
 def scan_plugins():
     """
-    Scan the plugins directory for new plugin modules.
-    Creates PythonPlugin entries for any modules that don't already have one.
+    Scan the configured plugin directories for new plugin modules.
+    Creates IntegrationPlugin entries for any modules that don't already have one.
     """
-    plugins_path = settings.PLUGINS_PATH
-    
-    # Ensure the plugins directory exists
-    plugins_path.mkdir(parents=True, exist_ok=True)
-    
-    # Get all .py files in the plugins directory
-    plugin_files = list(plugins_path.glob("*.py"))
-    
     created_count = 0
-    for plugin_file in plugin_files:
-        module = plugin_file.stem
-        
-        # Skip __init__ and other special files
-        if module.startswith("_"):
-            continue
-        
-        # Check if a plugin entry already exists for this module
-        if not PythonPlugin.objects.filter(module=module).exists():
+    for module in discover_plugin_modules():
+        if not IntegrationPlugin.objects.filter(module=module).exists():
             try:
-                # Create a new plugin entry
-                plugin = PythonPlugin.objects.create(
+                IntegrationPlugin.objects.create(
                     module=module,
                     active=False  # Start as inactive for safety
                 )
@@ -265,4 +152,9 @@ def consistency():
         start_timestamp__lt=one_year_ago
     ).delete()
 
-    return f"Deleted {deleted_count} integration run results older than 1 year."
+    # Delete all run results with a null plugin reference
+    deleted_null_count, _ = RunResult.objects.filter(
+        integration_plugin__isnull=True
+    ).delete()
+
+    return f"Deleted {deleted_count} old run results and {deleted_null_count} run results with null plugin reference."

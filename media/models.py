@@ -123,9 +123,6 @@ class Photo(PublicEntity):
                 pass
 
         if not is_new:
-            # Recalculate published status on updates
-            # self.update_published(dispatch_signals=True)
-
             # If the lat/long is null, fetch from metadata if available
             if not (not is_new and image_replaced) and (self.latitude is None or self.longitude is None) and hasattr(self, "metadata"):
                 if self.metadata.raw_latitude is not None and self.metadata.raw_longitude is not None:
@@ -450,7 +447,7 @@ class PhotoSize(models.Model):
         return f"{self.photo.title} - {self.size.slug}"
 
 
-class Channel(models.Model):
+class Channel(PublicEntity):
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField(max_length=255, blank=True, default="")
     include_new_photos = models.BooleanField(default=True, help_text="Include new photos by default")
@@ -518,15 +515,15 @@ class ChannelPhoto(models.Model):
             change = True
         self.published = new
 
-        if dispatch_signals:
+        if change and dispatch_signals:
             if new:
-                channel_photo_published.send(Photo, instance=self, uuid=None) # TODO: Fix UUID
+                channel_photo_published.send(Photo, instance=self)
             else:
-                channel_photo_unpublished.send(Photo, instance=self, uuid=None) # TODO: Fix UUID
+                channel_photo_unpublished.send(Photo, instance=self)
         
         return change
 
     def delete(self, *args, **kwargs):
-        channel_photo_unpublished.send(Photo, instance=self, uuid=None) # TODO: Fix UUID
+        channel_photo_unpublished.send(Photo, instance=self)
 
         return super().delete(*args, **kwargs)

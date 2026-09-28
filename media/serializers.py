@@ -1,0 +1,379 @@
+from django.db import transaction
+from django.db.models import Q
+from rest_framework import serializers
+from drf_spectacular.utils import extend_schema_field
+
+from .models import (
+    Album,
+    Channel,
+    ChannelPhoto,
+    Photo,
+    PhotoMetadata,
+    PhotoSize,
+    Size,
+    Tag,
+)
+
+
+def include_unpublished_requested(request):
+    if request is None:
+        return False
+    return serializers.BooleanField().run_validation(
+        request.query_params.get("include_unpublished", False)
+    )
+
+
+def published_in_builtin_channel():
+    return Q(channels__channel__builtin=True, channels__published=True)
+
+
+class UUIDModelSerializer(serializers.ModelSerializer):
+    """Base serializer which makes the API's UUID-only identity explicit."""
+
+    uuid = serializers.UUIDField(read_only=True)
+
+
+class SizeReferenceSerializer(UUIDModelSerializer):
+    class Meta:
+        model = Size
+        fields = ["uuid", "slug"]
+
+
+class PhotoSizeSerializer(serializers.ModelSerializer):
+    size = SizeReferenceSerializer(read_only=True)
+
+    class Meta:
+        model = PhotoSize
+        fields = ["size", "height", "width", "md5"]
+
+
+class TagSummarySerializer(UUIDModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ["uuid", "name"]
+
+
+class AlbumSummarySerializer(UUIDModelSerializer):
+    class Meta:
+        model = Album
+        fields = ["uuid", "slug", "title", "short_description"]
+
+
+class ChannelSummarySerializer(UUIDModelSerializer):
+    class Meta:
+        model = Channel
+        fields = ["uuid", "name"]
+
+
+class PhotoMetadataNestedSerializer(UUIDModelSerializer):
+    class Meta:
+        model = PhotoMetadata
+        exclude = ["id", "photo", "raw_latitude", "raw_longitude"]
+        read_only_fields = ["created_at", "updated_at"]
+
+
+class PhotoSummarySerializer(UUIDModelSerializer):
+    sizes = PhotoSizeSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Photo
+        fields = [
+            "uuid",
+            "title",
+            "slug",
+            "canonical_publish_date",
+            "sizes",
+        ]
+
+
+class PhotoChannelSerializer(serializers.ModelSerializer):
+    channel = ChannelSummarySerializer(read_only=True)
+    published = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        model = ChannelPhoto
+        fields = ["channel", "publish_date", "published"]
+
+
+class ChannelPhotoSerializer(serializers.ModelSerializer):
+    photo = PhotoSummarySerializer(read_only=True)
+    published = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        model = ChannelPhoto
+        fields = ["photo", "publish_date", "published"]
+
+
+class PhotoSerializer(UUIDModelSerializer):
+    image = serializers.ImageField(
+        source="raw_image",
+        write_only=True,
+        required=False,
+    )
+    metadata = PhotoMetadataNestedSerializer(read_only=True)
+    albums = AlbumSummarySerializer(many=True, read_only=True)
+    tags = TagSummarySerializer(many=True, read_only=True)
+    sizes = PhotoSizeSerializer(many=True, read_only=True)
+    channels = PhotoChannelSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Photo
+        fields = [
+            "uuid",
+            "title",
+            "slug",
+            "description",
+            "image",
+            "canonical_publish_date",
+            "canonical_hidden",
+            "custom_attributes",
+            "latitude",
+            "longitude",
+            "hide_location",
+            "albums",
+            "tags",
+            "metadata",
+            "sizes",
+            "channels",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["slug", "created_at", "updated_at"]
+
+    def validate(self, attrs):
+        if "raw_image" in self.initial_data:
+            raise serializers.ValidationError(
+                {"raw_image": "Use the binary 'image' upload field."}
+            )
+        return attrs
+
+
+class PhotoCreateSerializer(PhotoSerializer):
+    image = serializers.ImageField(source="raw_image", write_only=True)
+
+    @transaction.atomic
+    def create(self, validated_data):
+        instance = Photo(**validated_data)
+        instance.save(schedule_followup_tasks=True)
+        if not instance.canonical_hidden:
+            ChannelPhoto.objects.bulk_create(
+                [
+                    ChannelPhoto(
+                        channel=channel,
+                        photo=instance,
+                        publish_date=instance.canonical_publish_date,
+                    )
+                    for channel in Channel.objects.filter(include_new_photos=True)
+                ]
+            )
+        return instance
+
+
+class PhotoUpdateSerializer(PhotoSerializer):
+    image = serializers.ImageField(
+        source="raw_image",
+        write_only=True,
+        required=False,
+    )
+
+
+class AlbumSerializer(UUIDModelSerializer):
+    parent = AlbumSummarySerializer(read_only=True)
+    parent_uuid = serializers.SlugRelatedField(
+        source="parent",
+        slug_field="uuid",
+        queryset=Album.objects.all(),
+        allow_null=True,
+        required=False,
+        write_only=True,
+    )
+
+    class Meta:
+        model = Album
+        fields = [
+            "uuid",
+            "title",
+            "slug",
+            "short_description",
+            "description",
+            "sort_method",
+            "sort_descending",
+            "parent",
+            "parent_uuid",
+            "custom_attributes",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["slug", "created_at", "updated_at"]
+
+
+class AlbumDetailSerializer(AlbumSerializer):
+    photos = serializers.SerializerMethodField()
+    children = AlbumSummarySerializer(many=True, read_only=True)
+
+    class Meta(AlbumSerializer.Meta):
+        fields = AlbumSerializer.Meta.fields + ["photos", "children"]
+
+    @extend_schema_field(PhotoSummarySerializer(many=True))
+    def get_photos(self, obj):
+        request = self.context.get("request")
+        recursive = False
+        if request and "recursive" in request.query_params:
+            recursive_field = serializers.BooleanField()
+            recursive = recursive_field.run_validation(
+                request.query_params["recursive"]
+            )
+        photos = obj.get_ordered_photos(recursive=recursive)
+        if not include_unpublished_requested(request):
+            photos = photos.filter(published_in_builtin_channel()).distinct()
+        return PhotoSummarySerializer(
+            photos.prefetch_related("sizes__size"),
+            many=True,
+            context=self.context,
+        ).data
+
+
+class TagSerializer(UUIDModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ["uuid", "name", "created_at", "updated_at"]
+        read_only_fields = ["created_at", "updated_at"]
+
+    def validate_name(self, value):
+        value = value.strip().lower()
+        if ";" in value or "\n" in value:
+            raise serializers.ValidationError(
+                "Tag names cannot contain semicolons or newlines."
+            )
+        return value
+
+
+class TagDetailSerializer(TagSerializer):
+    photos = serializers.SerializerMethodField()
+
+    class Meta(TagSerializer.Meta):
+        fields = TagSerializer.Meta.fields + ["photos"]
+
+    @extend_schema_field(PhotoSummarySerializer(many=True))
+    def get_photos(self, obj):
+        photos = obj.photos.all()
+        if not include_unpublished_requested(self.context.get("request")):
+            photos = photos.filter(published_in_builtin_channel()).distinct()
+        return PhotoSummarySerializer(
+            photos.prefetch_related("sizes__size"),
+            many=True,
+            context=self.context,
+        ).data
+
+
+class TagCreateSerializer(TagSerializer):
+    photo = serializers.SlugRelatedField(
+        slug_field="uuid",
+        queryset=Photo.objects.all(),
+        required=False,
+        write_only=True,
+    )
+    photos = serializers.SlugRelatedField(
+        slug_field="uuid",
+        queryset=Photo.objects.all(),
+        many=True,
+        required=False,
+        write_only=True,
+    )
+
+    class Meta:
+        model = Tag
+        fields = [
+            "uuid",
+            "name",
+            "photo",
+            "photos",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["created_at", "updated_at"]
+
+    def create(self, validated_data):
+        photo = validated_data.pop("photo", None)
+        photos = list(validated_data.pop("photos", []))
+        if photo is not None:
+            photos.append(photo)
+        tag = Tag.objects.filter(name=validated_data["name"]).first()
+        if tag is None:
+            tag = Tag.objects.create(**validated_data)
+        for related_photo in {photo.uuid: photo for photo in photos}.values():
+            related_photo.tags.add(tag)
+        return tag
+
+
+class TagUpdateSerializer(TagSerializer):
+    class Meta:
+        model = Tag
+        fields = ["uuid", "name"]
+        read_only_fields = ["uuid"]
+
+    def validate(self, attrs):
+        unexpected = set(self.initial_data) - {"name"}
+        if unexpected:
+            raise serializers.ValidationError(
+                {field: "This field is not accepted." for field in unexpected}
+            )
+        return attrs
+
+    def update(self, instance, validated_data):
+        replacement = (
+            Tag.objects.filter(name=validated_data["name"])
+            .exclude(pk=instance.pk)
+            .first()
+        )
+        instance.name = validated_data["name"]
+        instance.save()
+        return replacement or instance
+
+
+class SizeSerializer(UUIDModelSerializer):
+    class Meta:
+        model = Size
+        fields = [
+            "uuid",
+            "slug",
+            "comment",
+            "max_dimension",
+            "square_crop",
+            "builtin",
+            "can_edit",
+            "public",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["builtin", "created_at", "updated_at"]
+
+
+class ChannelSerializer(UUIDModelSerializer):
+    class Meta:
+        model = Channel
+        fields = [
+            "uuid",
+            "name",
+            "description",
+            "include_new_photos",
+            "builtin",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["builtin", "created_at", "updated_at"]
+
+
+class ChannelDetailSerializer(ChannelSerializer):
+    photos = ChannelPhotoSerializer(many=True, read_only=True)
+
+    class Meta(ChannelSerializer.Meta):
+        fields = ChannelSerializer.Meta.fields + ["photos"]
+
+
+class PhotoRelationshipSerializer(serializers.Serializer):
+    photo = serializers.UUIDField()
+
+
+class ChannelPhotoRelationshipSerializer(PhotoRelationshipSerializer):
+    publish_date = serializers.DateTimeField(required=True, allow_null=True)

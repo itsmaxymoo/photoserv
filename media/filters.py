@@ -1,7 +1,7 @@
 import django_filters
 from django import forms
 from django_filters.widgets import RangeWidget
-from .models import Photo, PhotoMetadata, Album, Tag
+from .models import Album, Channel, ChannelPhoto, Photo, PhotoMetadata, Tag
 from .widgets import *
 from .fields import *
 
@@ -176,3 +176,76 @@ class PhotoFilter(django_filters.FilterSet):
     class Meta:
         model = Photo
         fields = []  # We define all fields explicitly above
+
+
+class AlbumFilter(django_filters.FilterSet):
+    """Filters shared by the HTML UI and the media API."""
+
+    title = django_filters.CharFilter(lookup_expr="icontains")
+    slug = django_filters.CharFilter(lookup_expr="icontains")
+    description = django_filters.CharFilter(lookup_expr="icontains")
+    parent = django_filters.UUIDFilter(field_name="parent__uuid")
+    photos = django_filters.UUIDFilter(field_name="_photos__uuid", distinct=True)
+
+    class Meta:
+        model = Album
+        fields = ["sort_method", "sort_descending"]
+
+
+class TagFilter(django_filters.FilterSet):
+    name = django_filters.CharFilter(lookup_expr="icontains")
+    photos = django_filters.UUIDFilter(field_name="photos__uuid", distinct=True)
+
+    class Meta:
+        model = Tag
+        fields = []
+
+
+class ChannelFilter(django_filters.FilterSet):
+    name = django_filters.CharFilter(lookup_expr="icontains")
+    description = django_filters.CharFilter(lookup_expr="icontains")
+    photos = django_filters.UUIDFilter(
+        field_name="photos__photo__uuid",
+        distinct=True,
+    )
+
+    class Meta:
+        model = Channel
+        fields = ["include_new_photos", "builtin"]
+
+
+class ChannelPhotoFilter(django_filters.FilterSet):
+    """Filter channel-membership headers without exposing their database IDs."""
+
+    channel = django_filters.UUIDFilter(field_name="channel__uuid")
+    photo = django_filters.UUIDFilter(field_name="photo__uuid")
+    publish_date = django_filters.DateTimeFromToRangeFilter()
+
+    class Meta:
+        model = ChannelPhoto
+        fields = ["published"]
+
+
+class PhotoAPIFilter(PhotoFilter):
+    """PhotoFilter variant whose relationships accept public UUIDs."""
+
+    albums = django_filters.UUIDFilter(
+        field_name="albums__uuid",
+        distinct=True,
+    )
+    tags = django_filters.UUIDFilter(
+        field_name="tags__uuid",
+        distinct=True,
+    )
+    channels = django_filters.UUIDFilter(
+        field_name="channels__channel__uuid",
+        distinct=True,
+    )
+    published = django_filters.BooleanFilter(field_name="channels__published")
+    include_unpublished = django_filters.BooleanFilter(
+        method="filter_include_unpublished"
+    )
+
+    def filter_include_unpublished(self, queryset, name, value):
+        # Visibility is applied by PhotoViewSet before the regular filters.
+        return queryset

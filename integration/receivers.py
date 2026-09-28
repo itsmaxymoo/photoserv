@@ -1,56 +1,46 @@
 from django.dispatch import receiver
 from django.db import transaction
-from media.signals import photo_published, photo_unpublished
+from media.signals import channel_photo_published, channel_photo_unpublished
 from django.db.models.signals import post_save, post_delete
 from media.models import Photo, PhotoMetadata, PhotoSize, Size, Album, PhotoInAlbum, Tag, PhotoTag
-from integration.tasks import call_queue_global_integrations, call_plugin_signal
-from public_rest_api.serializers import PhotoSerializer
-from .models import PluginEntityParameters
+from integration.tasks import call_integration_plugin_signal, call_queue_global_integrations
+from media.serializers import PhotoSerializer
 
 
-def dispatch_photo_signal(photo_instance, signal_name):
+def dispatch_photo_signal(channel_photo, signal_name):
     """
-    Helper function to dispatch plugin signals for photo events with exclusion handling.
+    Dispatch a channel photo event to integrations subscribed to that channel.
     
     Args:
-        photo_instance: The Photo instance
+        channel_photo: The ChannelPhoto instance that was published or unpublished
         signal_name: The plugin method to call ('on_photo_publish' or 'on_photo_unpublish')
     """
-    from .models import PhotoPluginExclusion, PythonPlugin
-    
-    # Get list of excluded plugins for this photo
-    excluded_plugin_ids = set(
-        PhotoPluginExclusion.objects.filter(photo=photo_instance)
-        .values_list('plugin_id', flat=True)
-    )
-    
-    # Get list of active plugins that are NOT excluded
-    included_plugin_ids = list(
-        PythonPlugin.objects.filter(active=True)
-        .exclude(id__in=excluded_plugin_ids)
-        .values_list('id', flat=True)
-    )
-    
-    # Serialize photo data
-    photo_data = PhotoSerializer(photo_instance).data
-    
-    # Queue task with plugin filtering
+    photo_data = PhotoSerializer(channel_photo.photo).data
+    channel_id = channel_photo.channel_id
+
     transaction.on_commit(
-        lambda: call_plugin_signal.delay(signal_name, data=photo_data, plugin_ids=included_plugin_ids)
+        lambda: call_integration_plugin_signal.delay(
+            signal_name,
+            data=photo_data,
+            channel_id=channel_id,
+        )
     )
 
 
-@receiver(photo_published)
+@receiver(channel_photo_published)
 def handle_photo_published(sender, instance, **kwargs):
     """Handle photo published event."""
     dispatch_photo_signal(instance, 'on_photo_publish')
 
 
-@receiver(photo_unpublished)
+@receiver(channel_photo_unpublished)
 def handle_photo_unpublished(sender, instance, **kwargs):
     """Handle photo unpublished event."""
     dispatch_photo_signal(instance, 'on_photo_unpublish')
 
+
+@receiver(channel_photo_published)
+@receiver(channel_photo_unpublished)
 
 @receiver(post_save, sender=Photo)
 @receiver(post_save, sender=PhotoMetadata)

@@ -12,17 +12,53 @@
         </span>
     </h2>
 
-    <div class="flex items-center justify-center mx-auto md:mr-0 gap-2 mt-2 md:mt-0">
-        <a href="?year={{ prev_year }}&month={{ prev_month }}" class="btn btn-primary">Prev</a>
-        <a href="?year={{ next_year }}&month={{ next_month }}" class="btn btn-primary">Next</a>
+    <div
+        class="flex items-center justify-center mx-auto md:mr-0 gap-2 mt-2 md:mt-0"
+        x-data="{
+            channel: $persist('{{ selected_channel }}').using({
+                getItem(key) {
+                    const cookie = document.cookie
+                        .split('; ')
+                        .find((item) => item.startsWith(key + '='));
+                    return cookie ? decodeURIComponent(cookie.slice(key.length + 1)) : null;
+                },
+                setItem(key, value) {
+                    document.cookie = key + '=' + encodeURIComponent(value) + '; path=/; SameSite=Lax';
+                }
+            }).as('photo_calendar_channel'),
+            changeChannel() {
+                const params = new URLSearchParams(window.location.search);
+                params.set('channel', this.channel);
+                window.location.assign(`${window.location.pathname}?${params.toString()}`);
+            },
+            changeYear(year) {
+                const params = new URLSearchParams(window.location.search);
+                params.set('year', year);
+                params.set('month', '{{ month }}');
+                params.set('channel', this.channel);
+                window.location.assign(`${window.location.pathname}?${params.toString()}`);
+            }
+        }"
+        x-init="const params = new URLSearchParams(window.location.search); if (params.has('channel') && channel !== '{{ selected_channel }}') channel = '{{ selected_channel }}'; else if (!params.has('channel') && channel !== '{{ selected_channel }}') changeChannel()"
+    >
+        <a href="?year={{ prev_year }}&month={{ prev_month }}&channel={{ selected_channel }}" class="btn btn-primary">Prev</a>
+        <a href="?year={{ next_year }}&month={{ next_month }}&channel={{ selected_channel }}" class="btn btn-primary">Next</a>
 
-        <select onchange="location = '?year=' + this.value + '&month={{ month }}'" class="select select-bordered">
+        <select @change="changeYear($event.target.value)" class="select" aria-label="Calendar year">
             {% for y in years %}
                 <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
             {% endfor %}
         </select>
 
-        <a href="?year={{ today.year }}&month={{ today.month }}" class="btn">Today</a>
+        <a href="?year={{ today.year }}&month={{ today.month }}&channel={{ selected_channel }}" class="btn">Today</a>
+
+        <select x-model="channel" @change="changeChannel()" class="select" aria-label="Photo channel">
+            <option value="{{ default_channel.pk }}">Default</option>
+            <option value="{{ all_channels_value }}">All</option>
+            {% for channel in channels %}
+                <option value="{{ channel.pk }}">{{ channel.name }}</option>
+            {% endfor %}
+        </select>
     </div>
 </div>
 
@@ -34,8 +70,8 @@
                 <div class="p-2 {% if day.is_today %}bg-accent text-accent-content{% elif not day.in_month %}opacity-50{% else %}bg-base-100{% endif %}">
                     <div class="font-semibold">{{ day.date|date:"D, M j" }}</div>
                     <div class="flex flex-wrap gap-1 mt-2">
-                        {% for photo in day.photos %}
-                            <a href="{% url 'photo-detail' photo.pk %}" class="badge badge-primary underline decoration-dotted">{{ photo.title }}</a>
+                        {% for channel_photo in day.photos %}
+                            <a href="{% url 'photo-detail' channel_photo.photo.pk %}" class="badge badge-primary underline decoration-dotted">{% if show_channel_names %}{{ channel_photo.channel.name }}: {% endif %}{{ channel_photo.photo.title }}</a>
                         {% empty %}
                             <span class="font-light opacity-50">No photos</span>
                         {% endfor %}
@@ -61,8 +97,8 @@
                         <div class="text-xs font-semibold">{{ day.day }}</div>
                     </div>
                     <div class="flex flex-col gap-1 mt-2 max-h-40 overflow-auto">
-                        {% for photo in day.photos %}
-                            <a href="{% url 'photo-detail' photo.pk %}" class="badge badge-sm badge-primary underline decoration-dotted text-ellipsis overflow-hidden whitespace-nowrap" title="{{ photo.title }}">{{ photo.title }}</a>
+                        {% for channel_photo in day.photos %}
+                            <a href="{% url 'photo-detail' channel_photo.photo.pk %}" class="badge badge-sm badge-primary underline decoration-dotted text-ellipsis overflow-hidden whitespace-nowrap" title="{% if show_channel_names %}{{ channel_photo.channel.name }}: {% endif %}{{ channel_photo.photo.title }}">{% if show_channel_names %}{{ channel_photo.channel.name }}: {% endif %}{{ channel_photo.photo.title }}</a>
                         {% empty %}
                             <span class="font-light opacity-50 text-xs">No photos</span>
                         {% endfor %}

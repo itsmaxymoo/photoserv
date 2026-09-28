@@ -35,6 +35,17 @@ class ChannelTests(TestCase):
             self.assertFalse(channel_photo.published)
             mock_publish.assert_not_called()
 
+    def test_photo_does_not_publish_until_all_sizes_are_generated(self):
+        self.channel.add_photo(self.photo)
+        PhotoMetadata.objects.create(photo=self.photo, camera_make="Canon")
+        channel_photo = self.channel.photos.first()
+
+        with mock.patch("media.signals.channel_photo_published.send") as mock_publish:
+            channel_photo.update_published()
+
+        self.assertFalse(channel_photo.published)
+        mock_publish.assert_not_called()
+
     def test_publish_when_healthy(self):
         self.channel.add_photo(self.photo)
 

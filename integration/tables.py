@@ -1,5 +1,6 @@
 import django_tables2 as tables
-from .models import *
+
+from .models import IntegrationPlugin, RunResult
 
 
 class IntegrationRunResultTable(tables.Table):
@@ -18,28 +19,23 @@ class IntegrationRunResultTable(tables.Table):
         order_by = ("-start_timestamp",)
 
 
-class WebRequestTable(tables.Table):
-    request = tables.Column(accessor='id', verbose_name="Request", linkify=True)
+class IntegrationPluginTable(tables.Table):
+    module = tables.Column(linkify=True)
+    nickname = tables.Column(linkify=True)
     active = tables.BooleanColumn()
+    valid = tables.BooleanColumn(accessor="valid", verbose_name="Valid")
 
-    def render_request(self, record):
+    def render_integration(self, record):
         return str(record)
 
     class Meta:
-        model = WebRequest
-        fields = ("request", "active", "last_run_timestamp")
-        order_by = ("url",)
-
-
-class PythonPluginTable(tables.Table):
-    plugin = tables.Column(accessor='id', verbose_name="Plugin", linkify=True)
-    active = tables.BooleanColumn()
-    valid = tables.BooleanColumn(accessor='valid', verbose_name="Valid")
-
-    def render_plugin(self, record):
-        return str(record)
-
-    class Meta:
-        model = PythonPlugin
-        fields = ("plugin", "valid", "active", "last_run_timestamp")
-        order_by = ("module",)
+        model = IntegrationPlugin
+        fields = (
+            "module",
+            "nickname",
+            "channel",
+            "valid",
+            "active",
+            "last_run_timestamp",
+        )
+        order_by = ("module","nickname")

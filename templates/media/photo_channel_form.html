@@ -18,7 +18,7 @@
                 {% endfor %}
                 <tr class="bg-base-200">
                     <td class="italic">Set all</td>
-                    <td><input type="checkbox" class="input checkbox" aria-label="Set all channels" @change="$root.querySelectorAll('[data-channel-publish]').forEach(input => input.checked = $event.target.checked); $event.target.blur()"></td>
+                    <td><input type="checkbox" class="input checkbox" aria-label="Set all channels" @change="$root.querySelectorAll('[data-channel-publish]').forEach(input => input.checked = $event.target.checked);"></td>
                     <td><input type="datetime-local" class="input date w-full" aria-label="Set all publish dates" @change="$root.querySelectorAll('[data-channel-publish-date]').forEach(input => input.value = $event.target.value)"></td>
                 </tr>
             </tbody>

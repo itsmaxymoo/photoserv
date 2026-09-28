@@ -95,16 +95,7 @@ class PhotoCreateView(CRUDGenericMixin, CreateView):
                     or context['form'].fields['canonical_publish_date'].initial
                 ),
             )
-        # Add exclusion form to context
-        try:
-            from integration.forms import IntegrationPhotoForm
-            if 'integration_photo_form' not in context:
-                context['integration_photo_form'] = IntegrationPhotoForm(
-                    self.request.POST if self.request.method == 'POST' else None,
-                    photo_instance=None
-                )
-        except ImportError:
-            pass
+
         return context
 
     def form_valid(self, form):
@@ -116,24 +107,9 @@ class PhotoCreateView(CRUDGenericMixin, CreateView):
             context = self.get_context_data(form=form)
             context['photo_channel_form'] = photo_channel_form
             return self.render_to_response(context)
-        # Get exclusion form
-        integration_photo_form = None
-        try:
-            from integration.forms import IntegrationPhotoForm
-            integration_photo_form = IntegrationPhotoForm(
-                self.request.POST,
-                photo_instance=None
-            )
-            if not integration_photo_form.is_valid():
-                # Pass the exclusion form with errors back to the template
-                context = self.get_context_data(form=form)
-                context['integration_photo_form'] = integration_photo_form
-                return self.render_to_response(context)
-        except ImportError:
-            pass
         
         # Save with exclusion form
-        self.object = form.save(commit=True, integration_photo_form=integration_photo_form)
+        self.object = form.save(commit=True)
         photo_channel_form.save(self.object)
         return redirect(self.get_success_url())
 
@@ -141,24 +117,11 @@ class PhotoCreateView(CRUDGenericMixin, CreateView):
         return reverse('photo-detail', kwargs={'pk': self.object.pk})
 
 
-class PhotoCreateMultipleView(CRUDGenericMixin, View):
-    template_name = "media/photo_formset.html"
-
-    def get(self, request, *args, **kwargs):
-        formset = PhotoFormSet(queryset=Photo.objects.none())  # empty forms
-        return render(request, self.template_name, {"formset": formset})
-
-    def post(self, request, *args, **kwargs):
-        formset = PhotoFormSet(request.POST, request.FILES, queryset=Photo.objects.none())
-        if formset.is_valid():
-            formset.save()
-            return redirect(reverse("photo-list"))
-        return render(request, self.template_name, {"formset": formset})
-
-
 class PhotoCalendarView(CRUDGenericMixin, TemplateView):
     template_name = "media/photo_calendar.html"
     model = Photo
+
+    all_channels_value = "all"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -178,23 +141,41 @@ class PhotoCalendarView(CRUDGenericMixin, TemplateView):
         # Build contiguous weeks (list of 7-date lists)
         weeks_raw = [month_dates[i : i + 7] for i in range(0, len(month_dates), 7)]
 
-        # Preload photos that fall within the displayed range
+        default_channel = Channel.get_default_channel()
+        channels = Channel.objects.exclude(pk=default_channel.pk).order_by("name")
+        selected_channel = req.GET.get("channel", str(default_channel.pk))
+        show_channel_names = selected_channel == self.all_channels_value
+
+        if not show_channel_names:
+            try:
+                selected_channel_id = int(selected_channel)
+            except (TypeError, ValueError):
+                selected_channel_id = default_channel.pk
+                selected_channel = str(default_channel.pk)
+
+            if not Channel.objects.filter(pk=selected_channel_id).exists():
+                selected_channel_id = default_channel.pk
+                selected_channel = str(default_channel.pk)
+
         range_start = month_dates[0]
         range_end = month_dates[-1]
-        photos_qs = (
-            Photo.objects.filter(publish_date__date__range=(range_start, range_end))
-            .order_by('publish_date')
+        channel_photos_qs = (
+            ChannelPhoto.objects.select_related("photo", "channel")
+            .filter(publish_date__date__range=(range_start, range_end))
+            .order_by("publish_date")
         )
+        if not show_channel_names:
+            channel_photos_qs = channel_photos_qs.filter(channel_id=selected_channel_id)
 
-        # Group photos by local date
+        # Group channel-specific publication dates by local date.
         photos_map = defaultdict(list)
-        for p in photos_qs:
+        for channel_photo in channel_photos_qs:
             try:
-                pd = timezone.localtime(p.publish_date).date()
+                pd = timezone.localtime(channel_photo.publish_date).date()
             except Exception:
                 # Fallback to naive date if timezone conversion fails
-                pd = p.publish_date.date()
-            photos_map[pd].append(p)
+                pd = channel_photo.publish_date.date()
+            photos_map[pd].append(channel_photo)
 
         # Build week/days data structure for template convenience
         weeks = []
@@ -220,8 +201,8 @@ class PhotoCalendarView(CRUDGenericMixin, TemplateView):
         else:
             next_month, next_year = month + 1, year
 
-        # Years dropdown population from photo publish dates
-        years_qs = Photo.objects.dates('publish_date', 'year')
+        # Years dropdown population from channel publication dates.
+        years_qs = ChannelPhoto.objects.dates('publish_date', 'year')
         years = sorted({d.year for d in years_qs})
         if not years:
             years = [today.year]
@@ -239,6 +220,11 @@ class PhotoCalendarView(CRUDGenericMixin, TemplateView):
                 'years': years,
                 'weekdays': ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
                 'today': today,
+                'channels': channels,
+                'default_channel': default_channel,
+                'selected_channel': selected_channel,
+                'all_channels_value': self.all_channels_value,
+                'show_channel_names': show_channel_names,
             }
         )
         return context
@@ -255,17 +241,6 @@ class PhotoUpdateView(CRUDGenericMixin, UpdateView):
                 self.request.POST if self.request.method == 'POST' else None,
                 photo_instance=self.object,
             )
-        # Add exclusion form to context
-        try:
-            from integration.forms import IntegrationPhotoForm
-            if 'integration_photo_form' not in context:
-                context['integration_photo_form'] = IntegrationPhotoForm(
-                    self.request.POST if self.request.method == 'POST' else None,
-                    photo_instance=self.object
-                )
-        except ImportError:
-            pass
-        return context
 
     def form_valid(self, form):
         photo_channel_form = PhotoChannelForm(self.request.POST, photo_instance=self.object)
@@ -273,24 +248,9 @@ class PhotoUpdateView(CRUDGenericMixin, UpdateView):
             context = self.get_context_data(form=form)
             context['photo_channel_form'] = photo_channel_form
             return self.render_to_response(context)
-        # Get exclusion form
-        integration_photo_form = None
-        try:
-            from integration.forms import IntegrationPhotoForm
-            integration_photo_form = IntegrationPhotoForm(
-                self.request.POST,
-                photo_instance=self.object
-            )
-            if not integration_photo_form.is_valid():
-                # Pass the exclusion form with errors back to the template
-                context = self.get_context_data(form=form)
-                context['integration_photo_form'] = integration_photo_form
-                return self.render_to_response(context)
-        except ImportError:
-            pass
         
         # Save with exclusion form
-        self.object = form.save(commit=True, integration_photo_form=integration_photo_form)
+        self.object = form.save(commit=True)
         photo_channel_form.save(self.object)
         return redirect(self.get_success_url())
 
