@@ -27,9 +27,12 @@ class APIKeyCreateView(APIKeyMixin, CreateView):
     template_name = "generic_crud_form.html"
 
     def form_valid(self, form):
-        # Use your custom creation logic
-        name = form.cleaned_data["name"]
-        secret_key = APIKey.create_key(name)
+        secret_key = APIKey.create_key(
+            form.cleaned_data["name"],
+            user=form.cleaned_data["user"],
+            is_active=form.cleaned_data["is_active"],
+            expires_on=form.cleaned_data["expires_on"],
+        )
 
         # Add success message with just the API key
         messages.success(self.request, secret_key)

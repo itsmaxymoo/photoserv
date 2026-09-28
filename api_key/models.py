@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password, check_password
 import secrets
 from django.utils import timezone
@@ -11,11 +12,14 @@ def default_expiration() -> timezone:
 
 
 class APIKey(models.Model):
+    user = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE,
+        related_name="api_keys",
+    )
     name = models.CharField(max_length=128, unique=True)
     hash = models.CharField(max_length=128, unique=True)
     is_active = models.BooleanField(default=True)
-    admin_access = models.BooleanField(default=False, help_text="Grants access to the Admin API")
-    write_access = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     expires_on = models.DateTimeField(default=default_expiration)
 
@@ -26,14 +30,19 @@ class APIKey(models.Model):
         return timezone.now() >= self.expires_on
 
     @staticmethod
-    def create_key(name: str, write=False) -> str:
+    def create_key(name: str, user, **kwargs) -> str:
         """
         Generates a raw API key and saves its hash in the DB.
         Returns the raw key (only shown once).
         """
         secret_key = secrets.token_urlsafe(32)
         hash = make_password(secret_key)
-        APIKey.objects.create(name=name, hash=hash, write_access=write)
+        APIKey.objects.create(
+            name=name,
+            hash=hash,
+            user=user,
+            **kwargs,
+        )
         return secret_key
 
     def check_key(self, raw_key: str) -> bool:

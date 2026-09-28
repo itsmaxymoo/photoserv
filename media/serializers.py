@@ -3,6 +3,7 @@ from django.db.models import Q
 from rest_framework import serializers
 from drf_spectacular.utils import extend_schema_field
 
+from .api_access import get_public_entity, has_internal_identifier_access
 from .models import (
     Album,
     Channel,
@@ -27,10 +28,42 @@ def published_in_builtin_channel():
     return Q(channels__channel__builtin=True, channels__published=True)
 
 
-class UUIDModelSerializer(serializers.ModelSerializer):
-    """Base serializer which makes the API's UUID-only identity explicit."""
+class PublicEntitySerializerMixin:
+    """Expose internal IDs only to trusted API requests."""
 
+    def get_fields(self):
+        fields = super().get_fields()
+        if has_internal_identifier_access(self.context.get("request")):
+            fields["id"] = serializers.IntegerField(read_only=True)
+        return fields
+
+
+class UUIDModelSerializer(PublicEntitySerializerMixin, serializers.ModelSerializer):
     uuid = serializers.UUIDField(read_only=True)
+
+
+class PublicEntityRelatedField(serializers.RelatedField):
+    """Resolve a PublicEntity UUID, with conditional database-ID fallback."""
+
+    default_error_messages = {
+        "does_not_exist": "No matching object was found for this identifier.",
+    }
+
+    def to_internal_value(self, data):
+        queryset = self.get_queryset()
+        try:
+            return get_public_entity(
+                queryset,
+                data,
+                self.context.get("request"),
+            )
+        except queryset.model.DoesNotExist:
+            self.fail("does_not_exist")
+
+    def to_representation(self, value):
+        if has_internal_identifier_access(self.context.get("request")):
+            return value.pk
+        return str(value.uuid)
 
 
 class SizeReferenceSerializer(UUIDModelSerializer):
@@ -179,9 +212,8 @@ class PhotoUpdateSerializer(PhotoSerializer):
 
 class AlbumSerializer(UUIDModelSerializer):
     parent = AlbumSummarySerializer(read_only=True)
-    parent_uuid = serializers.SlugRelatedField(
+    parent_uuid = PublicEntityRelatedField(
         source="parent",
-        slug_field="uuid",
         queryset=Album.objects.all(),
         allow_null=True,
         required=False,
@@ -267,14 +299,12 @@ class TagDetailSerializer(TagSerializer):
 
 
 class TagCreateSerializer(TagSerializer):
-    photo = serializers.SlugRelatedField(
-        slug_field="uuid",
+    photo = PublicEntityRelatedField(
         queryset=Photo.objects.all(),
         required=False,
         write_only=True,
     )
-    photos = serializers.SlugRelatedField(
-        slug_field="uuid",
+    photos = PublicEntityRelatedField(
         queryset=Photo.objects.all(),
         many=True,
         required=False,
@@ -372,7 +402,7 @@ class ChannelDetailSerializer(ChannelSerializer):
 
 
 class PhotoRelationshipSerializer(serializers.Serializer):
-    photo = serializers.UUIDField()
+    photo = PublicEntityRelatedField(queryset=Photo.objects.all())
 
 
 class ChannelPhotoRelationshipSerializer(PhotoRelationshipSerializer):

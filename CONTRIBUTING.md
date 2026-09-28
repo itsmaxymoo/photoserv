@@ -14,6 +14,7 @@
     * Session Auth supported
     * Read/write endpoints for resources (admin api)
     * Write requires permission on API key
+    * User based API
 * Authentication is now enforced; no anonymous mode.
 * Implement publishing channels; publishing logic fully owned by Media
 * A photo shall not be published until all sizes are generated

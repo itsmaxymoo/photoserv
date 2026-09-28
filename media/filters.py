@@ -1,9 +1,57 @@
+import uuid
+
 import django_filters
 from django import forms
+from django_filters.constants import EMPTY_VALUES
 from django_filters.widgets import RangeWidget
+from rest_framework.exceptions import ValidationError as DRFValidationError
+
+from .api_access import get_public_entity, has_internal_identifier_access
 from .models import Album, Channel, ChannelPhoto, Photo, PhotoMetadata, Tag
 from .widgets import *
 from .fields import *
+
+
+class PublicEntityIdentifierFilter(django_filters.CharFilter):
+    """Filter a relationship by UUID, or by ID for trusted requests."""
+
+    def __init__(self, *args, entity_model, **kwargs):
+        self.entity_model = entity_model
+        super().__init__(*args, **kwargs)
+
+    def filter(self, queryset, value):
+        if value in EMPTY_VALUES:
+            return queryset
+        request = getattr(self.parent, "request", None)
+        try:
+            entity = get_public_entity(
+                self.entity_model._default_manager.all(),
+                value,
+                request,
+            )
+        except self.entity_model.DoesNotExist:
+            try:
+                valid_uuid = uuid.UUID(str(value))
+            except (AttributeError, TypeError, ValueError):
+                valid_uuid = None
+            try:
+                valid_id = int(value)
+            except (TypeError, ValueError):
+                valid_id = None
+            if valid_uuid is not None or (
+                has_internal_identifier_access(request)
+                and valid_id is not None
+                and valid_id > 0
+            ):
+                return queryset.none()
+            raise DRFValidationError(
+                {self.field_name: "Enter a valid UUID or permitted database ID."}
+            )
+
+        pk_field_name = self.field_name.removesuffix("uuid") + "pk"
+        lookup = "__".join([pk_field_name, self.lookup_expr])
+        queryset = queryset.filter(**{lookup: entity.pk})
+        return queryset.distinct() if self.distinct else queryset
 
 
 class ShutterSpeedRangeFilter(django_filters.RangeFilter):
@@ -184,8 +232,15 @@ class AlbumFilter(django_filters.FilterSet):
     title = django_filters.CharFilter(lookup_expr="icontains")
     slug = django_filters.CharFilter(lookup_expr="icontains")
     description = django_filters.CharFilter(lookup_expr="icontains")
-    parent = django_filters.UUIDFilter(field_name="parent__uuid")
-    photos = django_filters.UUIDFilter(field_name="_photos__uuid", distinct=True)
+    parent = PublicEntityIdentifierFilter(
+        field_name="parent__uuid",
+        entity_model=Album,
+    )
+    photos = PublicEntityIdentifierFilter(
+        field_name="_photos__uuid",
+        entity_model=Photo,
+        distinct=True,
+    )
 
     class Meta:
         model = Album
@@ -194,7 +249,11 @@ class AlbumFilter(django_filters.FilterSet):
 
 class TagFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(lookup_expr="icontains")
-    photos = django_filters.UUIDFilter(field_name="photos__uuid", distinct=True)
+    photos = PublicEntityIdentifierFilter(
+        field_name="photos__uuid",
+        entity_model=Photo,
+        distinct=True,
+    )
 
     class Meta:
         model = Tag
@@ -204,8 +263,9 @@ class TagFilter(django_filters.FilterSet):
 class ChannelFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(lookup_expr="icontains")
     description = django_filters.CharFilter(lookup_expr="icontains")
-    photos = django_filters.UUIDFilter(
+    photos = PublicEntityIdentifierFilter(
         field_name="photos__photo__uuid",
+        entity_model=Photo,
         distinct=True,
     )
 
@@ -217,8 +277,14 @@ class ChannelFilter(django_filters.FilterSet):
 class ChannelPhotoFilter(django_filters.FilterSet):
     """Filter channel-membership headers without exposing their database IDs."""
 
-    channel = django_filters.UUIDFilter(field_name="channel__uuid")
-    photo = django_filters.UUIDFilter(field_name="photo__uuid")
+    channel = PublicEntityIdentifierFilter(
+        field_name="channel__uuid",
+        entity_model=Channel,
+    )
+    photo = PublicEntityIdentifierFilter(
+        field_name="photo__uuid",
+        entity_model=Photo,
+    )
     publish_date = django_filters.DateTimeFromToRangeFilter()
 
     class Meta:
@@ -229,16 +295,19 @@ class ChannelPhotoFilter(django_filters.FilterSet):
 class PhotoAPIFilter(PhotoFilter):
     """PhotoFilter variant whose relationships accept public UUIDs."""
 
-    albums = django_filters.UUIDFilter(
+    albums = PublicEntityIdentifierFilter(
         field_name="albums__uuid",
+        entity_model=Album,
         distinct=True,
     )
-    tags = django_filters.UUIDFilter(
+    tags = PublicEntityIdentifierFilter(
         field_name="tags__uuid",
+        entity_model=Tag,
         distinct=True,
     )
-    channels = django_filters.UUIDFilter(
+    channels = PublicEntityIdentifierFilter(
         field_name="channels__channel__uuid",
+        entity_model=Channel,
         distinct=True,
     )
     published = django_filters.BooleanFilter(field_name="channels__published")

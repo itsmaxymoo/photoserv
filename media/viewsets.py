@@ -1,5 +1,4 @@
 import mimetypes
-import uuid as uuid_module
 
 from django.http import FileResponse, Http404
 from django.db import transaction
@@ -12,6 +11,7 @@ from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 from drf_spectacular.utils import OpenApiParameter, OpenApiTypes, extend_schema
 
+from .api_access import MediaAPIViewSetMixin, get_public_entity
 from .filters import (
     AlbumFilter,
     ChannelFilter,
@@ -55,9 +55,8 @@ def _relationship_value(request, key):
     return request.data.get(key) or request.query_params.get(key)
 
 
-class UUIDModelViewSet(viewsets.ModelViewSet):
-    lookup_field = "uuid"
-    lookup_url_kwarg = "uuid"
+class UUIDModelViewSet(MediaAPIViewSetMixin, viewsets.ModelViewSet):
+    pass
 
 
 class PhotoViewSet(UUIDModelViewSet):
@@ -145,14 +144,17 @@ class PhotoViewSet(UUIDModelViewSet):
         photo_size = None
 
         try:
-            size_uuid = uuid_module.UUID(size)
-        except (TypeError, ValueError, AttributeError):
-            size_uuid = None
+            requested_size = get_public_entity(
+                Size.objects.filter(public=True),
+                size,
+                request,
+            )
+        except Size.DoesNotExist:
+            requested_size = None
 
-        if size_uuid is not None:
+        if requested_size is not None:
             photo_size = photo.sizes.filter(
-                size__uuid=size_uuid,
-                size__public=True,
+                size=requested_size,
             ).first()
         if photo_size is None:
             photo_size = photo.sizes.filter(
@@ -228,9 +230,12 @@ class AlbumViewSet(UUIDModelViewSet):
     def photos(self, request, uuid=None):
         album = self.get_object()
         raw_photo = _relationship_value(request, "photo")
-        serializer = PhotoRelationshipSerializer(data={"photo": raw_photo})
+        serializer = PhotoRelationshipSerializer(
+            data={"photo": raw_photo},
+            context=self.get_serializer_context(),
+        )
         serializer.is_valid(raise_exception=True)
-        photo = get_object_or_404(Photo, uuid=serializer.validated_data["photo"])
+        photo = serializer.validated_data["photo"]
 
         if request.method == "POST":
             maximum = PhotoInAlbum.objects.filter(album=album).aggregate(
@@ -255,6 +260,7 @@ class AlbumViewSet(UUIDModelViewSet):
 
 
 class TagViewSet(
+    MediaAPIViewSetMixin,
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
@@ -262,8 +268,6 @@ class TagViewSet(
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet,
 ):
-    lookup_field = "uuid"
-    lookup_url_kwarg = "uuid"
     filterset_class = TagFilter
     http_method_names = ["get", "post", "put", "delete", "head", "options"]
     queryset = Tag.objects.prefetch_related("photos__sizes__size").order_by(
@@ -311,26 +315,25 @@ class TagViewSet(
         tag = self.get_object()
         raw_photo = _relationship_value(request, "photo")
         if raw_photo:
-            serializer = PhotoRelationshipSerializer(data={"photo": raw_photo})
-            serializer.is_valid(raise_exception=True)
-            photo = get_object_or_404(
-                Photo,
-                uuid=serializer.validated_data["photo"],
+            serializer = PhotoRelationshipSerializer(
+                data={"photo": raw_photo},
+                context=self.get_serializer_context(),
             )
+            serializer.is_valid(raise_exception=True)
+            photo = serializer.validated_data["photo"]
             get_object_or_404(PhotoTag, photo=photo, tag=tag).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         return super().destroy(request, *args, **kwargs)
 
 
 class SizeViewSet(
+    MediaAPIViewSetMixin,
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
     mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet,
 ):
-    lookup_field = "uuid"
-    lookup_url_kwarg = "uuid"
     serializer_class = SizeSerializer
     filterset_fields = {
         "slug": ["exact", "icontains"],
@@ -364,6 +367,7 @@ class ChannelViewSet(UUIDModelViewSet):
             memberships = ChannelPhotoFilter(
                 self.request.query_params,
                 queryset=memberships,
+                request=self.request,
             ).qs
         return (
             Channel.objects.prefetch_related(
@@ -409,12 +413,12 @@ class ChannelViewSet(UUIDModelViewSet):
     def photos(self, request, uuid=None):
         channel = self.get_object()
         if request.method == "POST":
-            serializer = ChannelPhotoRelationshipSerializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-            photo = get_object_or_404(
-                Photo,
-                uuid=serializer.validated_data["photo"],
+            serializer = ChannelPhotoRelationshipSerializer(
+                data=request.data,
+                context=self.get_serializer_context(),
             )
+            serializer.is_valid(raise_exception=True)
+            photo = serializer.validated_data["photo"]
             publish_date = serializer.validated_data["publish_date"]
             if publish_date is None:
                 publish_date = timezone.now()
@@ -436,8 +440,11 @@ class ChannelViewSet(UUIDModelViewSet):
             )
 
         raw_photo = _relationship_value(request, "photo")
-        serializer = PhotoRelationshipSerializer(data={"photo": raw_photo})
+        serializer = PhotoRelationshipSerializer(
+            data={"photo": raw_photo},
+            context=self.get_serializer_context(),
+        )
         serializer.is_valid(raise_exception=True)
-        photo = get_object_or_404(Photo, uuid=serializer.validated_data["photo"])
+        photo = serializer.validated_data["photo"]
         get_object_or_404(ChannelPhoto, channel=channel, photo=photo).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

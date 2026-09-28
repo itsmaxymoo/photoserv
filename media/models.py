@@ -20,6 +20,17 @@ class PublicEntity(models.Model):
         abstract = True
 
 
+class GlobalPermissions(models.Model):
+    """Permission-only model for media API capabilities."""
+
+    class Meta:
+        managed = False
+        default_permissions = ()
+        permissions = (
+            ("full_api_access", "Can access internal media API identifiers"),
+        )
+
+
 class PhotoQuerySet(models.QuerySet):
     def published(self, channel=None):
         channel = channel or Channel.get_default_channel()

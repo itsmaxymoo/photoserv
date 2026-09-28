@@ -20,9 +20,12 @@ class APIKeyAuthentication(BaseAuthentication):
         key = match.group(1)
 
         # Check all active API keys
-        for api_key in APIKey.objects.filter(is_active=True):
+        for api_key in APIKey.objects.select_related("user").filter(
+            is_active=True,
+            user__is_active=True,
+        ):
             if api_key.check_key(key):
-                return (None, api_key)  # valid key
+                return (api_key.user, api_key)
 
         raise AuthenticationFailed("Invalid API key.")
 

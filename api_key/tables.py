@@ -24,5 +24,14 @@ class APIKeyTable(tables.Table):
 
     class Meta:
         model = APIKey
-        fields = ("id", 'name', 'is_active', 'write_access', "created_at", 'expires_on', "edit", "delete")
+        fields = (
+            "id",
+            "name",
+            "user",
+            "is_active",
+            "created_at",
+            "expires_on",
+            "edit",
+            "delete",
+        )
         order_by = ("id",)

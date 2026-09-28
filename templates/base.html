@@ -49,6 +49,7 @@
                         <li><a href="{% url 'integration-list' %}">Integrations</a></li>
                         <li><a href="{% url 'job-list' %}">Jobs</a></li>
                         <li><a href="{% url 'user-list' %}">Users</a></li>
+                        <li><a href="{% url 'group-list' %}">Groups</a></li>
                         <li>
                             <form method="post" action="{% url 'logout' %}">
                                 {% csrf_token %}

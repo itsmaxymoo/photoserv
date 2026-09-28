@@ -118,4 +118,15 @@ class Migration(migrations.Migration):
             name='uuid',
             field=models.UUIDField(db_index=True, default=uuid.uuid4, editable=False, unique=True),
         ),
+        migrations.CreateModel(
+            name='GlobalPermissions',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+            ],
+            options={
+                'permissions': (('full_api_access', 'Can access internal media API identifiers'),),
+                'managed': False,
+                'default_permissions': (),
+            },
+        ),
     ]

@@ -1,17 +1,21 @@
 import io
 import tempfile
+import uuid
 
 from PIL import Image
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from api_key.models import APIKey
 from media.models import (
     Album,
     Channel,
     ChannelPhoto,
+    GlobalPermissions,
     Photo,
     PhotoInAlbum,
     PhotoSize,
@@ -21,12 +25,18 @@ from media.models import (
 )
 
 
+MODEL_AUTH_BACKEND = "django.contrib.auth.backends.ModelBackend"
+
+
 @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
 class MediaAPITests(TestCase):
     def setUp(self):
         self.client = APIClient()
-        key = APIKey.create_key("media api tests", write=True)
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {key}")
+        self.user = get_user_model().objects.create_superuser(
+            username="media-api-session-user",
+            password="test-password",
+        )
+        self.client.force_login(self.user, backend=MODEL_AUTH_BACKEND)
 
         self.photo = Photo.objects.create(title="API photo", raw_image="raw.jpg")
         self.size = Size.objects.create(
@@ -48,16 +58,6 @@ class MediaAPITests(TestCase):
             publish_date=self.photo.canonical_publish_date,
             published=True,
         )
-
-    def assert_no_numeric_identity(self, value):
-        if isinstance(value, dict):
-            self.assertNotIn("id", value)
-            self.assertNotIn("pk", value)
-            for child in value.values():
-                self.assert_no_numeric_identity(child)
-        elif isinstance(value, list):
-            for child in value:
-                self.assert_no_numeric_identity(child)
 
     def create_image_upload(self, filename="upload.jpg"):
         image_bytes = io.BytesIO()
@@ -84,8 +84,12 @@ class MediaAPITests(TestCase):
         self.assertNotIn("image", detail_response.data["sizes"][0])
         self.assertNotIn("raw_image", detail_response.data)
         self.assertNotIn("image", detail_response.data)
-        self.assert_no_numeric_identity(list_response.data)
-        self.assert_no_numeric_identity(detail_response.data)
+        self.assertEqual(list_response.data["results"][0]["id"], self.photo.id)
+        self.assertEqual(detail_response.data["id"], self.photo.id)
+        self.assertEqual(
+            detail_response.data["sizes"][0]["size"]["id"],
+            self.size.id,
+        )
 
     def test_photo_create_accepts_binary_image_field(self):
         included_channel = Channel.objects.create(
@@ -96,14 +100,22 @@ class MediaAPITests(TestCase):
             name="Manual channel",
             include_new_photos=False,
         )
+        supplied_uuid = uuid.uuid4()
         response = self.client.post(
             "/api/photos/",
-            {"title": "Uploaded photo", "image": self.create_image_upload()},
+            {
+                "id": 999999,
+                "uuid": str(supplied_uuid),
+                "title": "Uploaded photo",
+                "image": self.create_image_upload(),
+            },
             format="multipart",
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         photo = Photo.objects.get(uuid=response.data["uuid"])
+        self.assertNotEqual(photo.id, 999999)
+        self.assertNotEqual(photo.uuid, supplied_uuid)
         self.assertTrue(photo.raw_image.name)
         self.assertNotIn("raw_image", response.data)
         self.assertNotIn("image", response.data)
@@ -505,4 +517,216 @@ class MediaAPITests(TestCase):
         self.assertEqual(
             self.client.get(f"/api/sizes/{self.size.uuid}/").status_code,
             status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
+
+
+@override_settings(CELERY_TASK_ALWAYS_EAGER=True)
+class MediaAPIAccessTests(TestCase):
+    def setUp(self):
+        self.photo = Photo.objects.create(
+            title="Permission test photo",
+            raw_image="permission-test.jpg",
+        )
+        self.size = Size.objects.create(
+            slug="permission-test-size",
+            max_dimension=900,
+        )
+        PhotoSize.objects.create(
+            photo=self.photo,
+            size=self.size,
+            image="permission-test-size.jpg",
+        )
+        self.channel = Channel.objects.create(
+            name="Permission test channel",
+            builtin=True,
+        )
+        ChannelPhoto.objects.create(
+            channel=self.channel,
+            photo=self.photo,
+            published=True,
+        )
+        content_type = ContentType.objects.get_for_model(GlobalPermissions)
+        self.full_api_access, _ = Permission.objects.get_or_create(
+            content_type=content_type,
+            codename="full_api_access",
+            defaults={"name": "Can access internal media API identifiers"},
+        )
+
+    def create_user(self, username, *permissions):
+        user = get_user_model().objects.create_user(username=username)
+        user.user_permissions.add(*permissions)
+        return user
+
+    def model_permission(self, model, action):
+        content_type = ContentType.objects.get_for_model(model)
+        return Permission.objects.get(
+            content_type=content_type,
+            codename=f"{action}_{model._meta.model_name}",
+        )
+
+    def assert_no_numeric_identity(self, value):
+        if isinstance(value, dict):
+            self.assertNotIn("id", value)
+            self.assertNotIn("pk", value)
+            for child in value.values():
+                self.assert_no_numeric_identity(child)
+        elif isinstance(value, list):
+            for child in value:
+                self.assert_no_numeric_identity(child)
+
+    def test_session_authentication_exposes_ids_and_accepts_id_urls(self):
+        user = self.create_user(
+            "session-api-user",
+            self.model_permission(Photo, "view"),
+        )
+        self.assertFalse(user.has_perm("media.full_api_access"))
+        client = APIClient()
+        client.force_login(user, backend=MODEL_AUTH_BACKEND)
+
+        response = client.get(f"/api/photos/{self.photo.id}/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["uuid"], str(self.photo.uuid))
+        self.assertEqual(response.data["id"], self.photo.id)
+        self.assertEqual(response.data["sizes"][0]["size"]["id"], self.size.id)
+        self.assertEqual(response.data["channels"][0]["channel"]["id"], self.channel.id)
+
+    def test_non_session_user_without_full_access_is_uuid_only(self):
+        user = self.create_user(
+            "uuid-only-api-user",
+            self.model_permission(Photo, "view"),
+        )
+        client = APIClient()
+        client.force_authenticate(user=user)
+
+        response = client.get(f"/api/photos/{self.photo.uuid}/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assert_no_numeric_identity(response.data)
+        self.assertEqual(
+            client.get(f"/api/photos/{self.photo.id}/").status_code,
+            status.HTTP_404_NOT_FOUND,
+        )
+        self.assertEqual(
+            client.get(f"/api/photos/?channels={self.channel.id}").status_code,
+            status.HTTP_400_BAD_REQUEST,
+        )
+
+    def test_full_access_permission_exposes_and_resolves_ids(self):
+        user = self.create_user(
+            "full-api-user",
+            self.full_api_access,
+            self.model_permission(Photo, "view"),
+            self.model_permission(Album, "add"),
+        )
+        client = APIClient()
+        client.force_authenticate(user=user)
+        album = Album.objects.create(title="Numeric relationship album")
+
+        detail = client.get(f"/api/photos/{self.photo.id}/")
+        filtered = client.get(f"/api/photos/?channels={self.channel.id}")
+        relationship = client.post(
+            f"/api/albums/{album.id}/photo/",
+            {"photo": self.photo.id},
+            format="json",
+        )
+
+        self.assertEqual(detail.status_code, status.HTTP_200_OK)
+        self.assertEqual(detail.data["id"], self.photo.id)
+        self.assertEqual(filtered.status_code, status.HTTP_200_OK)
+        self.assertEqual(filtered.data["count"], 1)
+        self.assertEqual(relationship.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(
+            PhotoInAlbum.objects.filter(album=album, photo=self.photo).exists()
+        )
+
+    def test_numeric_relationship_identifier_requires_full_or_session_access(self):
+        user = self.create_user(
+            "restricted-relationship-user",
+            self.model_permission(Album, "add"),
+        )
+        client = APIClient()
+        client.force_authenticate(user=user)
+        album = Album.objects.create(title="Restricted relationship album")
+
+        response = client.post(
+            f"/api/albums/{album.uuid}/photo/",
+            {"photo": self.photo.id},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(
+            PhotoInAlbum.objects.filter(album=album, photo=self.photo).exists()
+        )
+
+    def test_each_endpoint_uses_its_resource_model_permissions(self):
+        album = Album.objects.create(title="Permission scoped album")
+        user = self.create_user(
+            "album-viewer",
+            self.model_permission(Album, "view"),
+        )
+        client = APIClient()
+        client.force_authenticate(user=user)
+
+        self.assertEqual(
+            client.get(f"/api/albums/{album.uuid}/").status_code,
+            status.HTTP_200_OK,
+        )
+        self.assertEqual(
+            client.get(f"/api/photos/{self.photo.uuid}/").status_code,
+            status.HTTP_403_FORBIDDEN,
+        )
+        self.assertEqual(
+            client.post(
+                "/api/albums/",
+                {"title": "Not allowed"},
+                format="json",
+            ).status_code,
+            status.HTTP_403_FORBIDDEN,
+        )
+
+    def test_write_methods_use_add_change_and_delete_permissions(self):
+        add_user = self.create_user(
+            "album-creator",
+            self.model_permission(Album, "add"),
+        )
+        add_client = APIClient()
+        add_client.force_authenticate(user=add_user)
+        created = add_client.post(
+            "/api/albums/",
+            {"title": "Permission-created album"},
+            format="json",
+        )
+        self.assertEqual(created.status_code, status.HTTP_201_CREATED)
+
+        album = Album.objects.get(uuid=created.data["uuid"])
+        change_user = self.create_user(
+            "album-editor",
+            self.model_permission(Album, "change"),
+        )
+        change_client = APIClient()
+        change_client.force_authenticate(user=change_user)
+        changed = change_client.put(
+            f"/api/albums/{album.uuid}/",
+            {"title": "Permission-edited album"},
+            format="json",
+        )
+        self.assertEqual(changed.status_code, status.HTTP_200_OK)
+
+        delete_user = self.create_user(
+            "album-deleter",
+            self.model_permission(Album, "delete"),
+        )
+        delete_client = APIClient()
+        delete_client.force_authenticate(user=delete_user)
+        deleted = delete_client.delete(f"/api/albums/{album.uuid}/")
+        self.assertEqual(deleted.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_unauthenticated_requests_are_denied(self):
+        response = APIClient().get("/api/photos/")
+
+        self.assertIn(
+            response.status_code,
+            {status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN},
         )
