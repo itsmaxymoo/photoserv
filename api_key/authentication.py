@@ -11,7 +11,7 @@ class APIKeyAuthentication(BaseAuthentication):
     def authenticate(self, request):
         auth = request.headers.get("Authorization")
         if not auth:
-            raise AuthenticationFailed("No API key provided.")
+            return None
 
         match = self.auth_regex.match(auth)
         if not match:

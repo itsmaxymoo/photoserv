@@ -2,7 +2,6 @@
 
 # 1.0 Change List (TODO):
 
-* FIX: id showing when it shouldn't
 * UI/frontend permissions
 * Publishing Schedule
 
@@ -21,6 +20,7 @@
 * Implement publishing channels; publishing logic fully owned by Media
 * A photo shall not be published until all sizes are generated
 * Remove "Create Multiple" photos.
+* Official icon
 
 ## Architecture
 

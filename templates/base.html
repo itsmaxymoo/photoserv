@@ -13,6 +13,7 @@
     {% load static %}
 
     <link href="{% static 'css/style.css' %}" rel="stylesheet" type="text/css" />
+    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon" />
     <script src="{% static 'js/bundle.js' %}" defer></script>
 </head>
 
@@ -20,7 +21,8 @@
     <header>
         <div class="navbar p-4 bg-base-200 shadow-sm flex-col md:flex-row md:justify-between">
             <div class="navbar-start flex justify-center md:justify-start">
-                <a href="{% url 'home' %}">
+                <a href="{% url 'home' %}" class="flex flex-row items-center">
+                    <img src="{% static 'logo.png' %}" alt="Photoserv Logo" class="h-6 mr-2" />
                     <h1 class="text-xl">Photoserv</h1>
                 </a>
             </div>
