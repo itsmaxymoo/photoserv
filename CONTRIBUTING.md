@@ -22,7 +22,8 @@
 * Implement publishing channels; publishing logic fully owned by Media
 * A photo shall not be published until all sizes are generated
 * Remove "Create Multiple" photos.
-* Official icon
+* Official icon/logo
+* new namespace
 
 ## Architecture
 
