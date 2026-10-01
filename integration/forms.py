@@ -3,6 +3,7 @@ import json
 from django import forms
 
 from .models import IntegrationPlugin
+from .services import discover_plugin_modules
 
 
 class IntegrationPluginForm(forms.ModelForm):
@@ -28,6 +29,17 @@ class IntegrationPluginForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["module"].widget = forms.TextInput(attrs={
+            "class": "input input-bordered w-full",
+            "list": "integration-plugin-modules",
+            "type": "search",
+        })
+        self.valid_plugin_modules = [
+            module_name
+            for module_name in discover_plugin_modules()
+            if IntegrationPlugin(module=module_name).valid
+        ]
+
         # Pre-populate config field with pretty-printed JSON
         if self.instance and self.instance.pk and self.instance.config:
             self.initial['config'] = json.dumps(self.instance.config, indent=2)

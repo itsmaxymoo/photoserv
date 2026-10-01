@@ -3,7 +3,11 @@
 {% block header_buttons %}
 
 
-<!-- Add stuff here to appear after the photo table -->
+{% if perms.media.add_channelphoto %}
+<a href="{% url 'channel-publication-helper' %}" class="btn btn-primary">
+    Publication Helper
+</a>
+{% endif %}
 
 <a href="{% url 'photo-calendar' %}" class="btn btn-secondary">
     Photo Calendar

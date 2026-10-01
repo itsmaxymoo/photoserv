@@ -162,7 +162,7 @@ class MediaAPITests(TestCase):
         self.assertTrue(membership["published"])
         self.assertIn("publish_date", membership)
 
-    def test_include_unpublished_controls_all_photo_get_responses(self):
+    def test_session_access_includes_unpublished_photos_in_all_responses(self):
         unpublished = Photo.objects.create(
             title="Unpublished photo",
             raw_image="unpublished.jpg",
@@ -183,26 +183,13 @@ class MediaAPITests(TestCase):
         ChannelPhoto.objects.create(channel=secondary_channel, photo=unpublished)
 
         photo_list = self.client.get("/api/photos/")
-        all_photo_list = self.client.get(
-            "/api/photos/?include_unpublished=true"
-        )
-        self.assertNotIn(
-            str(unpublished.uuid),
-            [item["uuid"] for item in photo_list.data["results"]],
-        )
         self.assertIn(
             str(unpublished.uuid),
-            [item["uuid"] for item in all_photo_list.data["results"]],
+            [item["uuid"] for item in photo_list.data["results"]],
         )
 
         self.assertEqual(
             self.client.get(f"/api/photos/{unpublished.uuid}/").status_code,
-            status.HTTP_404_NOT_FOUND,
-        )
-        self.assertEqual(
-            self.client.get(
-                f"/api/photos/{unpublished.uuid}/?include_unpublished=true"
-            ).status_code,
             status.HTTP_200_OK,
         )
         self.assertEqual(
@@ -219,18 +206,13 @@ class MediaAPITests(TestCase):
             f"/api/tags/{tag.uuid}/",
             f"/api/channels/{secondary_channel.uuid}/",
         ):
-            default_response = self.client.get(url)
-            all_response = self.client.get(f"{url}?include_unpublished=true")
-            default_photos = default_response.data["photos"]
-            all_photos = all_response.data["photos"]
+            response = self.client.get(url)
+            photos = response.data["photos"]
             if url.startswith("/api/channels/"):
-                default_uuids = [item["photo"]["uuid"] for item in default_photos]
-                all_uuids = [item["photo"]["uuid"] for item in all_photos]
+                photo_uuids = [item["photo"]["uuid"] for item in photos]
             else:
-                default_uuids = [item["uuid"] for item in default_photos]
-                all_uuids = [item["uuid"] for item in all_photos]
-            self.assertNotIn(str(unpublished.uuid), default_uuids)
-            self.assertIn(str(unpublished.uuid), all_uuids)
+                photo_uuids = [item["uuid"] for item in photos]
+            self.assertIn(str(unpublished.uuid), photo_uuids)
 
     def test_channel_detail_includes_photos_with_sizes_and_header(self):
         response = self.client.get(f"/api/channels/{self.channel.uuid}/")
@@ -409,7 +391,7 @@ class MediaAPITests(TestCase):
             self.assertEqual(by_slug.status_code, status.HTTP_200_OK)
             self.assertTrue(b"".join(by_slug.streaming_content))
 
-    def test_unpublished_photo_size_download_requires_include_unpublished(self):
+    def test_session_access_can_download_unpublished_photo_size(self):
         unpublished = Photo.objects.create(
             title="Unpublished download",
             raw_image="unpublished-download.jpg",
@@ -424,16 +406,12 @@ class MediaAPITests(TestCase):
             )
             url = f"/api/photos/{unpublished.uuid}/sizes/{self.size.uuid}/"
 
-            self.assertEqual(
-                self.client.get(url).status_code,
-                status.HTTP_404_NOT_FOUND,
-            )
-            response = self.client.get(f"{url}?include_unpublished=true")
+            response = self.client.get(url)
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             self.assertTrue(b"".join(response.streaming_content))
             photo_size.image.close()
 
-    def test_private_photo_size_download_always_returns_not_found(self):
+    def test_session_access_can_download_private_photo_size(self):
         private_size = Size.objects.create(
             slug="private-download",
             max_dimension=500,
@@ -449,14 +427,10 @@ class MediaAPITests(TestCase):
             )
 
             for size_identifier in (private_size.uuid, private_size.slug):
-                url = (
-                    f"/api/photos/{self.photo.uuid}/sizes/{size_identifier}/"
-                    "?include_unpublished=true"
-                )
-                self.assertEqual(
-                    self.client.get(url).status_code,
-                    status.HTTP_404_NOT_FOUND,
-                )
+                url = f"/api/photos/{self.photo.uuid}/sizes/{size_identifier}/"
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, status.HTTP_200_OK)
+                self.assertTrue(b"".join(response.streaming_content))
             photo_size.image.close()
 
     def test_tag_post_accepts_photo_and_photos_together(self):
@@ -611,6 +585,145 @@ class MediaAPIAccessTests(TestCase):
             client.get(f"/api/photos/?channels={self.channel.id}").status_code,
             status.HTTP_400_BAD_REQUEST,
         )
+
+    def test_api_key_user_without_full_access_only_sees_public_media(self):
+        unpublished = Photo.objects.create(
+            title="Restricted unpublished photo",
+            raw_image="restricted-unpublished.jpg",
+        )
+        ChannelPhoto.objects.create(
+            channel=self.channel,
+            photo=unpublished,
+            published=False,
+        )
+        secondary_channel = Channel.objects.create(name="Restricted channel")
+        ChannelPhoto.objects.create(
+            channel=secondary_channel,
+            photo=self.photo,
+            published=True,
+        )
+        private_size = Size.objects.create(
+            slug="restricted-private-size",
+            max_dimension=1200,
+            public=False,
+        )
+        PhotoSize.objects.create(
+            photo=self.photo,
+            size=private_size,
+            image="restricted-private-size.jpg",
+        )
+        user = self.create_user(
+            "restricted-media-user",
+            self.model_permission(Photo, "view"),
+            self.model_permission(Channel, "view"),
+            self.model_permission(Size, "view"),
+        )
+        client = APIClient()
+        client.force_authenticate(user=user)
+
+        photo_list = client.get("/api/photos/")
+        self.assertEqual(photo_list.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            [item["uuid"] for item in photo_list.data["results"]],
+            [str(self.photo.uuid)],
+        )
+        self.assertEqual(
+            client.get(f"/api/photos/{unpublished.uuid}/").status_code,
+            status.HTTP_404_NOT_FOUND,
+        )
+
+        photo_detail = client.get(f"/api/photos/{self.photo.uuid}/")
+        self.assertEqual(
+            [item["size"]["uuid"] for item in photo_detail.data["sizes"]],
+            [str(self.size.uuid)],
+        )
+        self.assertEqual(
+            [item["channel"]["uuid"] for item in photo_detail.data["channels"]],
+            [str(self.channel.uuid)],
+        )
+        self.assertEqual(
+            client.get(
+                f"/api/photos/{self.photo.uuid}/sizes/{private_size.uuid}/"
+            ).status_code,
+            status.HTTP_404_NOT_FOUND,
+        )
+
+        channel_list = client.get("/api/channels/")
+        channel_uuids = [item["uuid"] for item in channel_list.data["results"]]
+        self.assertIn(str(self.channel.uuid), channel_uuids)
+        self.assertNotIn(str(secondary_channel.uuid), channel_uuids)
+        self.assertEqual(
+            client.get(f"/api/channels/{secondary_channel.uuid}/").status_code,
+            status.HTTP_404_NOT_FOUND,
+        )
+        size_list = client.get("/api/sizes/")
+        size_uuids = [item["uuid"] for item in size_list.data["results"]]
+        self.assertIn(str(self.size.uuid), size_uuids)
+        self.assertNotIn(str(private_size.uuid), size_uuids)
+
+    def test_full_access_api_key_user_sees_all_media(self):
+        unpublished = Photo.objects.create(
+            title="Full-access unpublished photo",
+            raw_image="full-access-unpublished.jpg",
+        )
+        ChannelPhoto.objects.create(
+            channel=self.channel,
+            photo=unpublished,
+            published=False,
+        )
+        secondary_channel = Channel.objects.create(name="Full-access channel")
+        ChannelPhoto.objects.create(
+            channel=secondary_channel,
+            photo=self.photo,
+            published=False,
+        )
+        private_size = Size.objects.create(
+            slug="full-access-private-size",
+            max_dimension=1200,
+            public=False,
+        )
+        PhotoSize.objects.create(
+            photo=self.photo,
+            size=private_size,
+            image="full-access-private-size.jpg",
+        )
+        user = self.create_user(
+            "full-access-media-user",
+            self.full_api_access,
+            self.model_permission(Photo, "view"),
+            self.model_permission(Channel, "view"),
+            self.model_permission(Size, "view"),
+        )
+        client = APIClient()
+        client.force_authenticate(user=user)
+
+        photo_list = client.get("/api/photos/")
+        self.assertCountEqual(
+            [item["uuid"] for item in photo_list.data["results"]],
+            [str(self.photo.uuid), str(unpublished.uuid)],
+        )
+        self.assertEqual(
+            client.get(f"/api/photos/{unpublished.uuid}/").status_code,
+            status.HTTP_200_OK,
+        )
+        photo_detail = client.get(f"/api/photos/{self.photo.uuid}/")
+        self.assertCountEqual(
+            [item["size"]["uuid"] for item in photo_detail.data["sizes"]],
+            [str(self.size.uuid), str(private_size.uuid)],
+        )
+        self.assertCountEqual(
+            [item["channel"]["uuid"] for item in photo_detail.data["channels"]],
+            [str(self.channel.uuid), str(secondary_channel.uuid)],
+        )
+
+        channel_list = client.get("/api/channels/")
+        channel_uuids = [item["uuid"] for item in channel_list.data["results"]]
+        self.assertIn(str(self.channel.uuid), channel_uuids)
+        self.assertIn(str(secondary_channel.uuid), channel_uuids)
+        size_list = client.get("/api/sizes/")
+        size_uuids = [item["uuid"] for item in size_list.data["results"]]
+        self.assertIn(str(self.size.uuid), size_uuids)
+        self.assertIn(str(private_size.uuid), size_uuids)
 
     def test_full_access_permission_exposes_and_resolves_ids(self):
         user = self.create_user(

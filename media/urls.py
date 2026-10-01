@@ -28,6 +28,8 @@ urlpatterns = [
     path("tags/<int:pk>/", TagDetailView.as_view(), name="tag-detail"),
 
     path("channels/", ChannelListView.as_view(), name="channel-list"),
+    path("channels/publication-helper/", ChannelPublicationHelperView.as_view(), name="channel-publication-helper"),
+    path("channels/publication-helper/confirm/", ChannelPublicationHelperConfirmView.as_view(), name="channel-publication-helper-confirm"),
     path("channels/new/", ChannelCreateView.as_view(), name="channel-create"),
     path("channels/<int:pk>/edit/", ChannelUpdateView.as_view(), name="channel-edit"),
     path("channels/<int:pk>/delete/", ChannelDeleteView.as_view(), name="channel-delete"),

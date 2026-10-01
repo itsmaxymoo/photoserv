@@ -1,13 +1,14 @@
 from django.urls import reverse
 from django.shortcuts import redirect, get_object_or_404
 from django.contrib import messages
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.views import View
 from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, TemplateView
 from django_tables2.views import SingleTableView
 from .models import IntegrationCaller, IntegrationPlugin, RunResult
 from .forms import IntegrationPluginForm
 from .tables import IntegrationPluginTable, IntegrationRunResultTable
-from .tasks import scan_plugins, call_queue_global_integrations
+from .tasks import call_queue_global_integrations
 from photoserv.mixins import CRUDGenericMixin
 from django_tables2 import RequestConfig
 import json
@@ -17,7 +18,8 @@ def redirect_to_home(request):
     return redirect(reverse('integration-list'))
 
 
-class IntegrationHomeView(TemplateView):
+class IntegrationHomeView(PermissionRequiredMixin, TemplateView):
+    permission_required = "integration.view_integrationplugin"
     template_name = "integration/integration_home.html"
 
     def get_context_data(self, **kwargs):
@@ -73,6 +75,8 @@ class IntegrationPluginMixin(CRUDGenericMixin):
 
 
 class IntegrationPluginListView(IntegrationPluginMixin, SingleTableView):
+    model = IntegrationPlugin
+
     def get(self, request, *args, **kwargs):
         return redirect(reverse('integration-list'))
 
@@ -132,7 +136,7 @@ class IntegrationPluginDetailView(IntegrationPluginMixin, DetailView):
 class IntegrationPluginCreateView(IntegrationPluginMixin, CreateView):
     model = IntegrationPlugin
     form_class = IntegrationPluginForm
-    template_name = "generic_crud_form.html"
+    template_name = "integration/integration_plugin_form.html"
 
     def get_success_url(self):
         return reverse('integration-plugin-detail', kwargs={'pk': self.object.pk})
@@ -141,7 +145,7 @@ class IntegrationPluginCreateView(IntegrationPluginMixin, CreateView):
 class IntegrationPluginUpdateView(IntegrationPluginMixin, UpdateView):
     model = IntegrationPlugin
     form_class = IntegrationPluginForm
-    template_name = "generic_crud_form.html"
+    template_name = "integration/integration_plugin_form.html"
 
     def get_success_url(self):
         return reverse('integration-plugin-detail', kwargs={'pk': self.object.pk})
@@ -155,10 +159,11 @@ class IntegrationPluginDeleteView(IntegrationPluginMixin, DeleteView):
         return reverse('integration-plugin-list')
 
 
-class IntegrationPluginTestRunView(View):
+class IntegrationPluginTestRunView(PermissionRequiredMixin, View):
     """
     POST-only view to test run an integration plugin and redirect back to its detail page.
     """
+    permission_required = "integration.change_integrationplugin"
     def post(self, request, pk):
         plugin = get_object_or_404(IntegrationPlugin, pk=pk)
         try:
@@ -179,20 +184,11 @@ class IntegrationPluginTestRunView(View):
         return redirect(reverse("integration-plugin-detail", kwargs={"pk": plugin.pk}))
 
 
-class IntegrationPluginScanView(View):
-    """
-    View to manually trigger a scan for integration plugins.
-    """
-    def post(self, request):
-        scan_plugins.delay()
-        messages.success(request, "Scanning for new plugins. Refresh in a few moments.")
-        return redirect(reverse("integration-list"))
-
-
-class QueueGlobalIntegrationsView(View):
+class QueueGlobalIntegrationsView(PermissionRequiredMixin, View):
     """
     View to manually trigger global integrations.
     """
+    permission_required = "integration.change_integrationplugin"
     def post(self, request):
         call_queue_global_integrations()
         messages.success(request, "Queued global integration dispatch.")

@@ -291,7 +291,7 @@ OIDC_ENABLED = all([
 ])
 
 if not (SIMPLE_AUTH or OIDC_ENABLED):
-    raise ValueError("Authentication must be configured.")
+    raise ValueError("An authentication method must be configured and enabled.")
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators

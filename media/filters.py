@@ -311,10 +311,3 @@ class PhotoAPIFilter(PhotoFilter):
         distinct=True,
     )
     published = django_filters.BooleanFilter(field_name="channels__published")
-    include_unpublished = django_filters.BooleanFilter(
-        method="filter_include_unpublished"
-    )
-
-    def filter_include_unpublished(self, queryset, name, value):
-        # Visibility is applied by PhotoViewSet before the regular filters.
-        return queryset

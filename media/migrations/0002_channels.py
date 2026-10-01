@@ -96,6 +96,9 @@ class Migration(migrations.Migration):
                 ('channel', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='photos', to='media.channel')),
                 ('photo', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='channels', to='media.photo')),
             ],
+            options={
+                'unique_together': {('channel', 'photo')},
+            },
         ),
         migrations.RunPython(create_default_channel, reverse_code=migrations.RunPython.noop),
         migrations.RemoveField(

@@ -1,9 +1,12 @@
 from django.db import transaction
-from django.db.models import Q
 from rest_framework import serializers
 from drf_spectacular.utils import extend_schema_field
 
-from .api_access import get_public_entity, has_internal_identifier_access
+from .api_access import (
+    get_public_entity,
+    has_internal_identifier_access,
+    scope_queryset_for_api_access,
+)
 from .models import (
     Album,
     Channel,
@@ -14,18 +17,6 @@ from .models import (
     Size,
     Tag,
 )
-
-
-def include_unpublished_requested(request):
-    if request is None:
-        return False
-    return serializers.BooleanField().run_validation(
-        request.query_params.get("include_unpublished", False)
-    )
-
-
-def published_in_builtin_channel():
-    return Q(channels__channel__builtin=True, channels__published=True)
 
 
 class PublicEntitySerializerMixin:
@@ -80,6 +71,18 @@ class PhotoSizeSerializer(serializers.ModelSerializer):
         fields = ["size", "height", "width", "md5"]
 
 
+def serialize_photo_sizes(serializer, photo):
+    queryset = scope_queryset_for_api_access(
+        photo.sizes.select_related("size"),
+        serializer.context.get("request"),
+    )
+    return PhotoSizeSerializer(
+        queryset,
+        many=True,
+        context=serializer.context,
+    ).data
+
+
 class TagSummarySerializer(UUIDModelSerializer):
     class Meta:
         model = Tag
@@ -95,7 +98,7 @@ class AlbumSummarySerializer(UUIDModelSerializer):
 class ChannelSummarySerializer(UUIDModelSerializer):
     class Meta:
         model = Channel
-        fields = ["uuid", "name"]
+        fields = ["uuid", "name", "builtin"]
 
 
 class PhotoMetadataNestedSerializer(UUIDModelSerializer):
@@ -106,7 +109,7 @@ class PhotoMetadataNestedSerializer(UUIDModelSerializer):
 
 
 class PhotoSummarySerializer(UUIDModelSerializer):
-    sizes = PhotoSizeSerializer(many=True, read_only=True)
+    sizes = serializers.SerializerMethodField()
 
     class Meta:
         model = Photo
@@ -117,6 +120,10 @@ class PhotoSummarySerializer(UUIDModelSerializer):
             "canonical_publish_date",
             "sizes",
         ]
+
+    @extend_schema_field(PhotoSizeSerializer(many=True))
+    def get_sizes(self, obj):
+        return serialize_photo_sizes(self, obj)
 
 
 class PhotoChannelSerializer(serializers.ModelSerializer):
@@ -146,8 +153,8 @@ class PhotoSerializer(UUIDModelSerializer):
     metadata = PhotoMetadataNestedSerializer(read_only=True)
     albums = AlbumSummarySerializer(many=True, read_only=True)
     tags = TagSummarySerializer(many=True, read_only=True)
-    sizes = PhotoSizeSerializer(many=True, read_only=True)
-    channels = PhotoChannelSerializer(many=True, read_only=True)
+    sizes = serializers.SerializerMethodField()
+    channels = serializers.SerializerMethodField()
 
     class Meta:
         model = Photo
@@ -172,6 +179,22 @@ class PhotoSerializer(UUIDModelSerializer):
             "updated_at",
         ]
         read_only_fields = ["slug", "created_at", "updated_at"]
+
+    @extend_schema_field(PhotoSizeSerializer(many=True))
+    def get_sizes(self, obj):
+        return serialize_photo_sizes(self, obj)
+
+    @extend_schema_field(PhotoChannelSerializer(many=True))
+    def get_channels(self, obj):
+        queryset = scope_queryset_for_api_access(
+            obj.channels.select_related("channel"),
+            self.context.get("request"),
+        )
+        return PhotoChannelSerializer(
+            queryset,
+            many=True,
+            context=self.context,
+        ).data
 
     def validate(self, attrs):
         if "raw_image" in self.initial_data:
@@ -255,11 +278,12 @@ class AlbumDetailSerializer(AlbumSerializer):
             recursive = recursive_field.run_validation(
                 request.query_params["recursive"]
             )
-        photos = obj.get_ordered_photos(recursive=recursive)
-        if not include_unpublished_requested(request):
-            photos = photos.filter(published_in_builtin_channel()).distinct()
+        photos = scope_queryset_for_api_access(
+            obj.get_ordered_photos(recursive=recursive),
+            request,
+        )
         return PhotoSummarySerializer(
-            photos.prefetch_related("sizes__size"),
+            photos,
             many=True,
             context=self.context,
         ).data
@@ -288,11 +312,12 @@ class TagDetailSerializer(TagSerializer):
 
     @extend_schema_field(PhotoSummarySerializer(many=True))
     def get_photos(self, obj):
-        photos = obj.photos.all()
-        if not include_unpublished_requested(self.context.get("request")):
-            photos = photos.filter(published_in_builtin_channel()).distinct()
+        photos = scope_queryset_for_api_access(
+            obj.photos.all(),
+            self.context.get("request"),
+        )
         return PhotoSummarySerializer(
-            photos.prefetch_related("sizes__size"),
+            photos,
             many=True,
             context=self.context,
         ).data

@@ -43,7 +43,7 @@ class UserListView(UserMixin, SingleTableView):
     template_name = "generic_crud_list.html"
 
 
-class UserDetailView(DetailView):
+class UserDetailView(UserMixin, DetailView):
     model = User
 
 
@@ -65,7 +65,7 @@ class UserUpdateView(UserMixin, UpdateView):
         return reverse('user-detail', kwargs={'pk': self.object.pk})
 
 
-class UserDeleteView(DeleteView):
+class UserDeleteView(UserMixin, DeleteView):
     model = User
     template_name = 'confirm_delete_generic.html'
 

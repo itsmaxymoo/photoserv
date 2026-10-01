@@ -6,7 +6,6 @@ from .views import (
     IntegrationPluginDeleteView,
     IntegrationPluginDetailView,
     IntegrationPluginListView,
-    IntegrationPluginScanView,
     IntegrationPluginTestRunView,
     IntegrationPluginUpdateView,
     RunResultDeleteView,
@@ -23,7 +22,6 @@ urlpatterns = [
 
     path("plugins/", IntegrationPluginListView.as_view(), name="integration-plugin-list"),
     path("plugins/new", IntegrationPluginCreateView.as_view(), name="integration-plugin-create"),
-    path("plugins/scan", IntegrationPluginScanView.as_view(), name="integration-plugin-scan"),
     path("plugins/<pk>/edit/", IntegrationPluginUpdateView.as_view(), name="integration-plugin-edit"),
     path("plugins/<pk>/delete/", IntegrationPluginDeleteView.as_view(), name="integration-plugin-delete"),
     path("plugins/<pk>/test/", IntegrationPluginTestRunView.as_view(), name="integration-plugin-test-run"),

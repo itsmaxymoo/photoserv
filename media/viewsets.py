@@ -11,7 +11,11 @@ from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 from drf_spectacular.utils import OpenApiParameter, OpenApiTypes, extend_schema
 
-from .api_access import MediaAPIViewSetMixin, get_public_entity
+from .api_access import (
+    MediaAPIViewSetMixin,
+    get_public_entity,
+    scope_queryset_for_api_access,
+)
 from .filters import (
     AlbumFilter,
     ChannelFilter,
@@ -44,8 +48,6 @@ from .serializers import (
     TagDetailSerializer,
     TagSerializer,
     TagUpdateSerializer,
-    include_unpublished_requested,
-    published_in_builtin_channel,
 )
 
 
@@ -77,44 +79,10 @@ class PhotoViewSet(UUIDModelViewSet):
             .prefetch_related(
                 "albums",
                 "tags",
-                "sizes__size",
-                "channels__channel",
             )
             .order_by("uuid")
         )
-        if self.action in {"list", "retrieve", "size_image"} and not (
-            include_unpublished_requested(getattr(self, "request", None))
-        ):
-            queryset = queryset.filter(published_in_builtin_channel()).distinct()
         return queryset
-
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name="include_unpublished",
-                type=OpenApiTypes.BOOL,
-                location=OpenApiParameter.QUERY,
-                required=False,
-                default=False,
-            )
-        ]
-    )
-    def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
-
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name="include_unpublished",
-                type=OpenApiTypes.BOOL,
-                location=OpenApiParameter.QUERY,
-                required=False,
-                default=False,
-            )
-        ]
-    )
-    def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
 
     @extend_schema(
         parameters=[
@@ -123,13 +91,6 @@ class PhotoViewSet(UUIDModelViewSet):
                 type=OpenApiTypes.STR,
                 location=OpenApiParameter.PATH,
                 description="Size UUID or slug.",
-            ),
-            OpenApiParameter(
-                name="include_unpublished",
-                type=OpenApiTypes.BOOL,
-                location=OpenApiParameter.QUERY,
-                required=False,
-                default=False,
             ),
         ],
         responses={(200, "application/octet-stream"): OpenApiTypes.BINARY},
@@ -142,10 +103,11 @@ class PhotoViewSet(UUIDModelViewSet):
     def size_image(self, request, uuid=None, size=None):
         photo = self.get_object()
         photo_size = None
+        size_queryset = scope_queryset_for_api_access(Size.objects.all(), request)
 
         try:
             requested_size = get_public_entity(
-                Size.objects.filter(public=True),
+                size_queryset,
                 size,
                 request,
             )
@@ -157,9 +119,11 @@ class PhotoViewSet(UUIDModelViewSet):
                 size=requested_size,
             ).first()
         if photo_size is None:
-            photo_size = photo.sizes.filter(
+            photo_size = scope_queryset_for_api_access(
+                photo.sizes.all(),
+                request,
+            ).filter(
                 size__slug=size,
-                size__public=True,
             ).first()
         if photo_size is None or not photo_size.image:
             raise Http404("Requested size not found.")
@@ -190,13 +154,6 @@ class AlbumViewSet(UUIDModelViewSet):
         parameters=[
             OpenApiParameter(
                 name="recursive",
-                type=OpenApiTypes.BOOL,
-                location=OpenApiParameter.QUERY,
-                required=False,
-                default=False,
-            ),
-            OpenApiParameter(
-                name="include_unpublished",
                 type=OpenApiTypes.BOOL,
                 location=OpenApiParameter.QUERY,
                 required=False,
@@ -286,20 +243,6 @@ class TagViewSet(
     @extend_schema(
         parameters=[
             OpenApiParameter(
-                name="include_unpublished",
-                type=OpenApiTypes.BOOL,
-                location=OpenApiParameter.QUERY,
-                required=False,
-                default=False,
-            )
-        ]
-    )
-    def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
-
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
                 name="photo",
                 type=OpenApiTypes.UUID,
                 location=OpenApiParameter.QUERY,
@@ -355,15 +298,11 @@ class ChannelViewSet(UUIDModelViewSet):
         return ChannelSerializer
 
     def get_queryset(self):
-        memberships = ChannelPhoto.objects.select_related("photo").prefetch_related(
-            "photo__sizes__size"
+        memberships = scope_queryset_for_api_access(
+            ChannelPhoto.objects.select_related("photo"),
+            self.request,
         )
         if self.action == "retrieve":
-            if not include_unpublished_requested(self.request):
-                memberships = memberships.filter(
-                    photo__channels__channel__builtin=True,
-                    photo__channels__published=True,
-                ).distinct()
             memberships = ChannelPhotoFilter(
                 self.request.query_params,
                 queryset=memberships,
@@ -375,20 +314,6 @@ class ChannelViewSet(UUIDModelViewSet):
             )
             .order_by("uuid")
         )
-
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name="include_unpublished",
-                type=OpenApiTypes.BOOL,
-                location=OpenApiParameter.QUERY,
-                required=False,
-                default=False,
-            )
-        ]
-    )
-    def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
 
     @extend_schema(
         methods=["POST"],

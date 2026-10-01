@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Confirm Channel Publications{% endblock %}
+
+{% block content %}
+<div>
+    <h2 class="text-3xl font-light">Confirm publications to {{ channel }}</h2>
+    <p class="mt-2 opacity-70">Review the action and final publication date for each selected photo.</p>
+</div>
+
+<div class="alert alert-info">
+    <div>
+        <p>
+            {{ plan.scheduled_count }} photo{{ plan.scheduled_count|pluralize }} use{{ plan.scheduled_count|pluralize:"s," }} the new schedule:
+            <strong>{{ plan.rates.per_day|floatformat:2 }}</strong> per selected day,
+            <strong>{{ plan.rates.per_week|floatformat:2 }}</strong> per week, and
+            <strong>{{ plan.rates.per_month|floatformat:2 }}</strong> per month.
+        </p>
+        {% if plan.copied_count %}
+        <p class="mt-1">
+            {{ plan.copied_count }} additional photo{{ plan.copied_count|pluralize }} will copy the unpublished date from the default channel.
+        </p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="overflow-x-scroll">
+    <table class="table table-zebra">
+        <thead>
+            <tr>
+                <th>Photo</th>
+                <th>Title</th>
+                <th>Action</th>
+                <th>Publication date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+            <tr>
+                <td>{% include "media/partials/photo_small_thumbnail.html" with record=row.photo %}</td>
+                <td><a class="link" href="{% url 'photo-detail' row.photo.pk %}">{{ row.photo.title }}</a></td>
+                <td>
+                    <span class="badge {% if row.action == 'skip' %}badge-ghost{% elif row.action == 'republish' %}badge-warning{% else %}badge-success{% endif %}">
+                        {{ row.action_label }}
+                    </span>
+                </td>
+                <td>
+                    {% if row.publish_date %}
+                        {{ row.publish_date }}
+                        {% if row.date_source == 'default_channel' %}
+                        <span class="badge badge-outline ml-2">Default channel</span>
+                        {% endif %}
+                    {% else %}
+                        &mdash;
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4">No photos remain in this plan.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<form method="post" class="flex justify-end gap-2">
+    {% csrf_token %}
+    <input type="hidden" name="token" value="{{ token }}" />
+    <a href="{% url 'channel-publication-helper' %}?channel={{ channel.pk }}" class="btn btn-ghost">Back</a>
+    <button type="submit" class="btn btn-primary">Confirm publications</button>
+</form>
+{% endblock %}

@@ -1,18 +1,26 @@
 from django.urls import reverse
 from django.shortcuts import render, redirect
 from django.views import View
+from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.contrib import messages
 from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, TemplateView
 from django_tables2.views import SingleTableView
+from django_tables2 import RequestConfig
 from django_filters.views import FilterView
 from django_tables2 import SingleTableMixin
+from django.db import transaction
 from django.db.models import Count, Q
+from django.http import FileResponse, Http404, QueryDict
 from django.utils import timezone
+from urllib.parse import urlencode
+import secrets
+from datetime import datetime
 from .models import *
 from .forms import *
 from .tables import *
 from .filters import PhotoFilter
+from . import services
 from photoserv.mixins import CRUDGenericMixin
-from django.http import FileResponse, Http404
 import calendar
 from collections import defaultdict
 import json
@@ -39,6 +47,7 @@ class PhotoListView(CRUDGenericMixin, FilterView, SingleTableView):
                     filter=Q(channels__published=True),
                 ),
             )
+            .order_by('-canonical_publish_date', 'pk')
         )
 
 
@@ -65,7 +74,8 @@ class PhotoDetailView(CRUDGenericMixin, DetailView):
         return context
 
 
-class PhotoImageView(DetailView):
+class PhotoImageView(PermissionRequiredMixin, DetailView):
+    permission_required = "media.view_photo"
     model = Photo
 
     def get(self, request, *args, **kwargs):
@@ -241,6 +251,7 @@ class PhotoUpdateView(CRUDGenericMixin, UpdateView):
                 self.request.POST if self.request.method == 'POST' else None,
                 photo_instance=self.object,
             )
+        return context
 
     def form_valid(self, form):
         photo_channel_form = PhotoChannelForm(self.request.POST, photo_instance=self.object)
@@ -409,7 +420,7 @@ class TagListView(TagMixin, SingleTableView):
         return Tag.objects.annotate(photo_count=Count("photos"))
 
 
-class TagDetailView(DetailView):
+class TagDetailView(TagMixin, DetailView):
     model = Tag
 
     def get_context_data(self, **kwargs):
@@ -445,6 +456,302 @@ class TagDeleteView(TagMixin, DeleteView):
 #endregion
 
 #region Channels
+
+class ChannelPublicationHelperView(PermissionRequiredMixin, View):
+    """Select filtered photos and prepare a channel-publication plan."""
+
+    permission_required = (
+        "media.view_channel",
+        "media.view_photo",
+        "media.add_channelphoto",
+    )
+    template_name = "media/channel_publication_helper.html"
+    session_key = "channel_publication_helper_plans"
+
+    @staticmethod
+    def _filter_data(query_string):
+        data = QueryDict(query_string or "", mutable=True)
+        for key in ("channel", "page", "sort"):
+            data.pop(key, None)
+        return data
+
+    @staticmethod
+    def _ordered_photos(photo_filter):
+        return photo_filter.qs.distinct().order_by("canonical_publish_date", "pk")
+
+    def _initial_channel(self):
+        channel_id = self.request.GET.get("channel")
+        if channel_id:
+            return Channel.objects.filter(pk=channel_id).first()
+        return Channel.objects.order_by("name").first()
+
+    def _render(self, form, photo_filter, filter_query):
+        photos = self._ordered_photos(photo_filter)
+        table = ChannelPublicationSelectionTable(photos)
+        RequestConfig(self.request, paginate={"per_page": 5}).configure(table)
+        channel = form["channel"].value() or self.request.GET.get("channel")
+        helper_url = reverse("channel-publication-helper")
+        start_value = form.fields["start_datetime"].widget.format_value(
+            form["start_datetime"].value()
+        )
+        end_value = form.fields["end_datetime"].widget.format_value(
+            form["end_datetime"].value()
+        )
+        time_start_value = form.fields["time_start"].widget.format_value(
+            form["time_start"].value()
+        )
+        time_end_value = form.fields["time_end"].widget.format_value(
+            form["time_end"].value()
+        )
+        return render(
+            self.request,
+            self.template_name,
+            {
+                "form": form,
+                "filter": photo_filter,
+                "filter_query": filter_query,
+                "photo_table": table,
+                "selected_photo_count": photos.count(),
+                "channel_prefill": channel,
+                "filter_clear_url": (
+                    f"{helper_url}?{urlencode({'channel': channel})}"
+                    if channel
+                    else helper_url
+                ),
+                "start_value": start_value,
+                "end_value": end_value,
+                "time_start_value": time_start_value,
+                "time_end_value": time_end_value,
+            },
+        )
+
+    def get(self, request):
+        filter_data = self._filter_data(request.GET.urlencode())
+        filter_query = filter_data.urlencode()
+        photo_filter = PhotoFilter(
+            data=filter_data if filter_data else None,
+            queryset=Photo.objects.all(),
+        )
+        form = ChannelPublicationHelperForm(
+            channel=self._initial_channel(),
+            initial={"filter_query": filter_query},
+        )
+        return self._render(form, photo_filter, filter_query)
+
+    def post(self, request):
+        form = ChannelPublicationHelperForm(request.POST)
+        filter_query = request.POST.get("filter_query", "")
+        filter_data = self._filter_data(filter_query)
+        photo_filter = PhotoFilter(data=filter_data, queryset=Photo.objects.all())
+
+        form_is_valid = form.is_valid()
+        filter_is_valid = photo_filter.is_valid()
+        if not filter_is_valid:
+            form.add_error(None, "Correct the photo filter errors before continuing.")
+
+        photos = list(self._ordered_photos(photo_filter)) if filter_is_valid else []
+        if form_is_valid and not photos:
+            form.add_error(None, "The current filter does not select any photos.")
+            form_is_valid = False
+        if not form_is_valid or not filter_is_valid:
+            return self._render(form, photo_filter, filter_query)
+
+        channel = form.cleaned_data["channel"]
+        conflict_resolution = form.cleaned_data["conflict_resolution"]
+        existing_photo_ids = set(
+            ChannelPhoto.objects.filter(channel=channel, photo__in=photos)
+            .values_list("photo_id", flat=True)
+        )
+
+        default_publications = {}
+        if form.cleaned_data["respect_default_channel"]:
+            default_channel = Channel.get_default_channel()
+            if default_channel is not None:
+                default_publications = {
+                    channel_photo.photo_id: channel_photo
+                    for channel_photo in ChannelPhoto.objects.filter(
+                        channel=default_channel,
+                        photo__in=photos,
+                    ).order_by("pk")
+                }
+
+        entries = []
+        scheduled_entries = []
+        copied_count = 0
+        for photo in photos:
+            if photo.pk in existing_photo_ids:
+                action = "republish" if conflict_resolution == "recreate" else "skip"
+            else:
+                action = "publish"
+            entry = {
+                "photo_id": photo.pk,
+                "action": action,
+                "publish_date": None,
+                "date_source": None,
+            }
+            entries.append(entry)
+            if action == "skip":
+                continue
+
+            default_publication = default_publications.get(photo.pk)
+            if default_publication is not None and not default_publication.published:
+                entry["publish_date"] = default_publication.publish_date.isoformat()
+                entry["date_source"] = "default_channel"
+                copied_count += 1
+            else:
+                scheduled_entries.append(entry)
+
+        try:
+            schedule = services.calculate_publication_schedule(
+                len(scheduled_entries),
+                form.cleaned_data["start_datetime"],
+                form.cleaned_data["end_datetime"],
+                form.cleaned_data["weekdays"],
+                form.cleaned_data["time_start"],
+                form.cleaned_data["time_end"],
+                form.cleaned_data["jitter"],
+            )
+            rates = services.calculate_publication_rates(
+                len(scheduled_entries),
+                form.cleaned_data["start_datetime"],
+                form.cleaned_data["end_datetime"],
+                form.cleaned_data["weekdays"],
+            )
+        except ValueError as error:
+            form.add_error(None, str(error))
+            return self._render(form, photo_filter, filter_query)
+
+        for entry, publish_date in zip(scheduled_entries, schedule):
+            entry["publish_date"] = publish_date.isoformat()
+            entry["date_source"] = "schedule"
+
+        token = secrets.token_urlsafe(18)
+        plans = request.session.get(self.session_key, {})
+        if len(plans) >= 5:
+            plans.pop(next(iter(plans)))
+        plans[token] = {
+            "channel_id": channel.pk,
+            "entries": entries,
+            "scheduled_count": len(scheduled_entries),
+            "copied_count": copied_count,
+            "rates": {
+                "per_day": rates.per_day,
+                "per_week": rates.per_week,
+                "per_month": rates.per_month,
+                "eligible_days": rates.eligible_days,
+            },
+        }
+        request.session[self.session_key] = plans
+        confirmation_url = reverse("channel-publication-helper-confirm")
+        return redirect(f"{confirmation_url}?{urlencode({'token': token})}")
+
+
+class ChannelPublicationHelperConfirmView(PermissionRequiredMixin, View):
+    """Preview and apply a server-side channel-publication plan."""
+
+    permission_required = ChannelPublicationHelperView.permission_required
+    template_name = "media/channel_publication_helper_confirm.html"
+    session_key = ChannelPublicationHelperView.session_key
+
+    def _get_plan(self, request):
+        token = request.GET.get("token") or request.POST.get("token")
+        return token, request.session.get(self.session_key, {}).get(token)
+
+    def _discard_plan(self, request, token):
+        plans = request.session.get(self.session_key, {})
+        plans.pop(token, None)
+        request.session[self.session_key] = plans
+
+    def get(self, request):
+        token, plan = self._get_plan(request)
+        if not plan:
+            messages.error(request, "That publication plan is missing or has expired.")
+            return redirect("channel-publication-helper")
+
+        channel = Channel.objects.filter(pk=plan["channel_id"]).first()
+        if channel is None:
+            self._discard_plan(request, token)
+            messages.error(request, "The selected channel no longer exists.")
+            return redirect("channel-publication-helper")
+
+        photos = Photo.objects.in_bulk(entry["photo_id"] for entry in plan["entries"])
+        rows = []
+        action_labels = {
+            "publish": "Publish",
+            "republish": "Republish",
+            "skip": "Skip",
+        }
+        for entry in plan["entries"]:
+            photo = photos.get(entry["photo_id"])
+            if photo is None:
+                continue
+            rows.append(
+                {
+                    "photo": photo,
+                    "action": entry["action"],
+                    "action_label": action_labels[entry["action"]],
+                    "publish_date": (
+                        datetime.fromisoformat(entry["publish_date"])
+                        if entry["publish_date"]
+                        else None
+                    ),
+                    "date_source": entry["date_source"],
+                }
+            )
+        return render(
+            request,
+            self.template_name,
+            {
+                "token": token,
+                "plan": plan,
+                "channel": channel,
+                "rows": rows,
+            },
+        )
+
+    def post(self, request):
+        token, plan = self._get_plan(request)
+        if not plan:
+            messages.error(request, "That publication plan is missing or has expired.")
+            return redirect("channel-publication-helper")
+
+        channel = Channel.objects.filter(pk=plan["channel_id"]).first()
+        if channel is None:
+            self._discard_plan(request, token)
+            messages.error(request, "The selected channel no longer exists.")
+            return redirect("channel-publication-helper")
+
+        published = republished = skipped = 0
+        with transaction.atomic():
+            for entry in plan["entries"]:
+                if entry["action"] == "skip":
+                    skipped += 1
+                    continue
+                photo = Photo.objects.filter(pk=entry["photo_id"]).first()
+                if photo is None:
+                    skipped += 1
+                    continue
+                existing = ChannelPhoto.objects.filter(channel=channel, photo=photo)
+                if entry["action"] == "publish" and existing.exists():
+                    skipped += 1
+                    continue
+                if entry["action"] == "republish":
+                    existing.delete()
+                    republished += 1
+                else:
+                    published += 1
+                ChannelPhoto.objects.create(
+                    channel=channel,
+                    photo=photo,
+                    publish_date=datetime.fromisoformat(entry["publish_date"]),
+                )
+
+        self._discard_plan(request, token)
+        messages.success(
+            request,
+            f"Published {published}, republished {republished}, and skipped {skipped} photos.",
+        )
+        return redirect("channel-detail", pk=channel.pk)
 
 class ChannelListView(CRUDGenericMixin, SingleTableView):
     model = Channel

@@ -1,7 +1,12 @@
 from unittest import mock
+from django.template import Context
 from django.test import TestCase
+from django.urls import reverse
+from django.db import IntegrityError, transaction
+from media import UI_THUMBNAIL_SMALL
 from media import services
 from media.models import *
+from media.tables import ChannelPhotoTable
 from datetime import timedelta
 
 
@@ -23,6 +28,38 @@ class ChannelTests(TestCase):
         self.channel.add_photo(self.photo)
         self.assertFalse(self.photo.is_published(self.channel))
         self.assertEqual(self.channel.photos.all()[0].photo.canonical_publish_date, self.photo.channels.all()[0].publish_date)
+
+    def test_channel_and_photo_are_unique_together(self):
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                ChannelPhoto.objects.create(
+                    channel=self.default_channel,
+                    photo=self.photo,
+                )
+
+    def test_channel_photo_table_thumbnail_uses_photo_id(self):
+        other_photo = Photo.objects.create(
+            title="Other Photo",
+            raw_image="other.jpg",
+        )
+        ChannelPhoto.objects.create(channel=self.channel, photo=self.photo)
+        channel_photo = ChannelPhoto.objects.create(
+            channel=self.channel,
+            photo=other_photo,
+        )
+
+        table = ChannelPhotoTable([channel_photo])
+        table.context = Context({"UI_THUMBNAIL_SMALL": UI_THUMBNAIL_SMALL})
+        thumbnail = table.rows[0].get_cell("thumbnail")
+
+        self.assertNotEqual(channel_photo.pk, other_photo.pk)
+        self.assertIn(
+            reverse(
+                "photo-image",
+                kwargs={"pk": other_photo.pk, "size": UI_THUMBNAIL_SMALL},
+            ),
+            thumbnail,
+        )
 
     def test_no_publish_when_unhealthy(self):
         self.channel.add_photo(self.photo)

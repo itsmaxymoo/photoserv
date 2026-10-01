@@ -27,8 +27,37 @@ def has_internal_identifier_access(request):
     )
 
 
+def scope_queryset_for_api_access(queryset, request):
+    """Limit private media records for API-key users without full access."""
+
+    if has_internal_identifier_access(request):
+        return queryset
+
+    model_name = queryset.model._meta.model_name
+    visibility_filters = {
+        "photo": {
+            "channels__channel__builtin": True,
+            "channels__published": True,
+        },
+        "channel": {"builtin": True},
+        "size": {"public": True},
+        "photosize": {"size__public": True},
+        "channelphoto": {
+            "channel__builtin": True,
+            "published": True,
+        },
+    }
+    filters = visibility_filters.get(model_name)
+    if filters is None:
+        return queryset
+    queryset = queryset.filter(**filters)
+    return queryset.distinct() if model_name == "photo" else queryset
+
+
 def get_public_entity(queryset, identifier, request):
     """Resolve a PublicEntity by UUID, then by ID for trusted requests."""
+
+    queryset = scope_queryset_for_api_access(queryset, request)
 
     try:
         entity_uuid = uuid.UUID(str(identifier))
@@ -69,6 +98,10 @@ class MediaAPIViewSetMixin:
     permission_classes = [IsAuthenticated, ViewDjangoModelPermissions]
     lookup_field = "uuid"
     lookup_url_kwarg = "uuid"
+
+    def filter_queryset(self, queryset):
+        queryset = scope_queryset_for_api_access(queryset, self.request)
+        return super().filter_queryset(queryset)
 
     def get_object(self):
         queryset = self.filter_queryset(self.get_queryset())

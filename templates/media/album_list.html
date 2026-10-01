@@ -11,7 +11,7 @@
     <div>
         {% block header_buttons %}
         {% endblock %}
-        {% if can_directly_create %}
+        {% if can_directly_create and perms.media.add_album %}
         <a href="{% url object_url_name_slug|add:'-create' %}" class="btn btn-primary">
             Create
         </a>

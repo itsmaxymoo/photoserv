@@ -99,10 +99,12 @@ Integration Plugin: {{ object }}
         <h2>Test Integration</h2>
         <p class="text-sm mb-4">This dispatches a global change event to this integration plugin.</p>
         <div class="flex justify-center">
+            {% if perms.integration.change_integrationplugin %}
             <form method="post" action="{% url 'integration-plugin-test-run' object.pk %}">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-primary mt-4">Test Run</button>
             </form>
+            {% endif %}
         </div>
 
         {% if messages %}

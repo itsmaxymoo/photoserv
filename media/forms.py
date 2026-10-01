@@ -3,6 +3,7 @@ from django.utils import timezone
 from crispy_forms.helper import FormHelper
 from .models import *
 from .tasks import post_photo_create
+from datetime import time
 import json
 
 
@@ -301,3 +302,119 @@ class ChannelForm(forms.ModelForm):
     class Meta:
         model = Channel
         fields = ["name", "description", "include_new_photos"]
+
+
+class ChannelPublicationHelperForm(forms.Form):
+    """Scheduling and conflict choices for the channel publication helper."""
+
+    WEEKDAY_CHOICES = (
+        (0, "Monday"),
+        (1, "Tuesday"),
+        (2, "Wednesday"),
+        (3, "Thursday"),
+        (4, "Friday"),
+        (5, "Saturday"),
+        (6, "Sunday"),
+    )
+    CONFLICT_CHOICES = (
+        ("skip", "Ignore the existing publication"),
+        ("recreate", "Delete and recreate it with the new date"),
+    )
+
+    channel = forms.ModelChoiceField(
+        queryset=Channel.objects.all().order_by("name"),
+        empty_label=None,
+    )
+    start_datetime = forms.DateTimeField(
+        widget=forms.DateTimeInput(
+            attrs={
+                "type": "datetime-local",
+                "x-model": "startDateTime",
+                "@change": "if (!endDateTime || endDateTime < startDateTime) endDateTime = startDateTime",
+            },
+            format="%Y-%m-%dT%H:%M",
+        ),
+        input_formats=["%Y-%m-%dT%H:%M"],
+    )
+    end_datetime = forms.DateTimeField(
+        widget=forms.DateTimeInput(
+            attrs={
+                "type": "datetime-local",
+                "x-model": "endDateTime",
+                "x-bind:min": "startDateTime",
+                "@change": "if (endDateTime < startDateTime) endDateTime = startDateTime",
+            },
+            format="%Y-%m-%dT%H:%M",
+        ),
+        input_formats=["%Y-%m-%dT%H:%M"],
+    )
+    weekdays = forms.TypedMultipleChoiceField(
+        choices=WEEKDAY_CHOICES,
+        coerce=int,
+        initial=tuple(range(7)),
+        widget=forms.CheckboxSelectMultiple,
+        label="Days of week",
+    )
+    time_start = forms.TimeField(
+        initial=time(0, 0),
+        widget=forms.TimeInput(
+            attrs={"type": "time", "x-model": "timeStart"},
+            format="%H:%M",
+        ),
+        input_formats=["%H:%M"],
+        label="Earliest time",
+    )
+    time_end = forms.TimeField(
+        initial=time(23, 59),
+        widget=forms.TimeInput(
+            attrs={"type": "time", "x-model": "timeEnd"},
+            format="%H:%M",
+        ),
+        input_formats=["%H:%M"],
+        label="Latest time",
+    )
+    jitter = forms.IntegerField(
+        min_value=0,
+        initial=0,
+        label="Jitter (minutes)",
+        help_text="Each calculated time is shifted randomly by up to this many minutes.",
+    )
+    respect_default_channel = forms.BooleanField(
+        required=False,
+        initial=False,
+        label="Respect Default Channel",
+        help_text=(
+            "For photos not yet published in the default channel, copy that "
+            "channel's publication date instead of applying this schedule."
+        ),
+        widget=forms.CheckboxInput(attrs={"x-model": "respectDefaultChannel"}),
+    )
+    conflict_resolution = forms.ChoiceField(
+        choices=CONFLICT_CHOICES,
+        initial="skip",
+        widget=forms.RadioSelect,
+        label="Existing publication",
+    )
+    filter_query = forms.CharField(required=False, widget=forms.HiddenInput)
+
+    def __init__(self, *args, channel=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.is_bound:
+            now = timezone.localtime().replace(second=0, microsecond=0)
+            self.initial.setdefault("start_datetime", now)
+            self.initial.setdefault("end_datetime", now)
+            if channel is not None:
+                self.initial.setdefault("channel", channel)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start = cleaned_data.get("start_datetime")
+        end = cleaned_data.get("end_datetime")
+        if start and end and end < start:
+            self.add_error("end_datetime", "End datetime must be greater than or equal to start datetime.")
+
+        day_start = cleaned_data.get("time_start")
+        day_end = cleaned_data.get("time_end")
+        if day_start and day_end and day_end <= day_start:
+            self.add_error("time_end", "Latest time must be later than earliest time.")
+        return cleaned_data

@@ -509,6 +509,9 @@ class ChannelPhoto(models.Model):
     publish_date = models.DateTimeField(default=timezone.now, blank=True, null=False, help_text="Publish date")
     published = models.BooleanField(default=False)
 
+    class Meta:
+        unique_together = ("channel", "photo")
+
     def __str__(self):
         return f"{self.channel.name}: {self.photo.title}"
 

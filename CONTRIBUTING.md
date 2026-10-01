@@ -2,11 +2,12 @@
 
 # 1.0 Change List (TODO):
 
-* UI/frontend permissions
-* Publishing Schedule
 
 # 1.0 Branch Committed Changes:
 
+* Publishing Schedule
+* Remove integration: scan for plugins
+* UI/frontend permissions
 * Integrations subscribe to a publishing channel
 * All integrations shall be python based
 * Photo calendar shall be based on publishing channels
@@ -16,6 +17,7 @@
     * Read/write endpoints for resources (admin api)
     * Write requires permission on API key
     * User based API
+    * media.full_api_access
 * Authentication is now enforced; no anonymous mode.
 * Implement publishing channels; publishing logic fully owned by Media
 * A photo shall not be published until all sizes are generated

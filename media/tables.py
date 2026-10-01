@@ -101,10 +101,12 @@ class ChannelTable(tables.Table):
 
 class ChannelPhotoTable(tables.Table):
     thumbnail = tables.TemplateColumn(
-        template_name="media/partials/photo_small_thumbnail.html",
+        template_code=(
+            '{% include "media/partials/photo_small_thumbnail.html" '
+            "with record=record.photo %}"
+        ),
         verbose_name="Thumbnail",
         orderable=False,
-        accessor="photo__thumbnail"
     )
     photo_title = tables.Column(
         accessor="photo__title",
@@ -118,3 +120,21 @@ class ChannelPhotoTable(tables.Table):
         model = ChannelPhoto
         fields = ("thumbnail", "photo_title", "publish_date", "published")
         order_by = ("-publish_date",)
+
+
+class ChannelPublicationSelectionTable(tables.Table):
+    thumbnail = tables.TemplateColumn(
+        template_name="media/partials/photo_small_thumbnail.html",
+        verbose_name="Thumbnail",
+        orderable=False,
+    )
+    title = tables.Column(linkify=True, orderable=False)
+    canonical_publish_date = tables.DateTimeColumn(
+        verbose_name="Canonical publish date",
+        orderable=False,
+    )
+
+    class Meta:
+        model = Photo
+        fields = ("thumbnail", "title", "canonical_publish_date")
+        order_by = ("canonical_publish_date", "pk")

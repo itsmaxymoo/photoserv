@@ -1,4 +1,8 @@
-class CRUDGenericMixin:
+from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.views.generic import CreateView, UpdateView, DeleteView
+
+
+class CRUDGenericMixin(PermissionRequiredMixin):
     """Provides UI flags and model metadata to generic templates."""
 
     # UI Behavior Flags
@@ -7,6 +11,25 @@ class CRUDGenericMixin:
     can_edit = True
     can_delete = True
     edit_disclaimer = None
+
+    def get_permission_required(self):
+        if self.permission_required is not None:
+            return super().get_permission_required()
+
+        model = self.get_model()
+        if model is None:
+            return ()
+
+        if isinstance(self, CreateView):
+            action = "add"
+        elif isinstance(self, UpdateView):
+            action = "change"
+        elif isinstance(self, DeleteView):
+            action = "delete"
+        else:
+            action = "view"
+
+        return (f"{model._meta.app_label}.{action}_{model._meta.model_name}",)
 
     def get_model(self):
         """Helper to get model class whether view uses self.model or self.get_queryset()"""
@@ -26,6 +49,7 @@ class CRUDGenericMixin:
                 "object_type_name": opts.verbose_name.title(),
                 "object_type_name_plural": opts.verbose_name_plural.title(),
                 "object_url_name_slug": opts.model_name,
+                "object_app_label": opts.app_label,
             })
 
         context.update({

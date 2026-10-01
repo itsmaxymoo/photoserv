@@ -6,7 +6,10 @@
         Filter Photos
     </div>
     <div class="collapse-content">
-        <form method="get">
+        <form method="get"{% if filter_action %} action="{{ filter_action }}"{% endif %}>
+            {% if filter_preserve_channel %}
+            <input type="hidden" name="channel" value="{{ filter_preserve_channel }}" />
+            {% endif %}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <!-- Basic Photo fields -->
                 {{ filter.form.title|as_crispy_field }}
@@ -56,7 +59,11 @@
             <!-- Submit buttons -->
             <div class="flex gap-2 justify-end mt-4">
                 <button type="submit" class="btn btn-primary">Apply Filters</button>
+                {% if filter_clear_url %}
+                <a href="{{ filter_clear_url }}" class="btn btn-ghost">Clear Filters</a>
+                {% else %}
                 <a href="{% url 'photo-list' %}" class="btn btn-ghost">Clear Filters</a>
+                {% endif %}
             </div>
         </form>
     </div>

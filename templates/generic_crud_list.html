@@ -11,7 +11,31 @@
     <div class="flex flex-col gap-2 sm:flex-row">
         {% block header_buttons %}
         {% endblock %}
-        {% if can_directly_create %}
+        {% if can_directly_create and object_url_name_slug == "photo" and perms.media.add_photo %}
+            <a href="{% url object_url_name_slug|add:'-create' %}" class="btn btn-primary">
+                Create
+            </a>
+        {% elif can_directly_create and object_url_name_slug == "size" and perms.media.add_size %}
+            <a href="{% url object_url_name_slug|add:'-create' %}" class="btn btn-primary">
+                Create
+            </a>
+        {% elif can_directly_create and object_url_name_slug == "album" and perms.media.add_album %}
+            <a href="{% url object_url_name_slug|add:'-create' %}" class="btn btn-primary">
+                Create
+            </a>
+        {% elif can_directly_create and object_url_name_slug == "channel" and perms.media.add_channel %}
+            <a href="{% url object_url_name_slug|add:'-create' %}" class="btn btn-primary">
+                Create
+            </a>
+        {% elif can_directly_create and object_url_name_slug == "apikey" and perms.api_key.add_apikey %}
+            <a href="{% url object_url_name_slug|add:'-create' %}" class="btn btn-primary">
+                Create
+            </a>
+        {% elif can_directly_create and object_url_name_slug == "user" and perms.iam.add_user %}
+            <a href="{% url object_url_name_slug|add:'-create' %}" class="btn btn-primary">
+                Create
+            </a>
+        {% elif can_directly_create and object_url_name_slug == "group" and perms.auth.add_group %}
             <a href="{% url object_url_name_slug|add:'-create' %}" class="btn btn-primary">
                 Create
             </a>

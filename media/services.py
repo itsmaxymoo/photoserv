@@ -4,7 +4,9 @@ from io import BytesIO
 from django.core.files.base import ContentFile
 import os
 from PIL.ExifTags import TAGS as ExifTags
-from datetime import datetime
+from dataclasses import dataclass
+from datetime import datetime, time, timedelta
+import random
 import exiftool
 import hashlib
 
@@ -31,6 +33,128 @@ METADATA_EXIF_COPYRIGHT = "EXIF:Copyright"
 
 METADATA_COMPOSITE_LATITUDE = "Composite:GPSLatitude"
 METADATA_COMPOSITE_LONGITUDE = "Composite:GPSLongitude"
+
+
+@dataclass(frozen=True)
+class PublicationRates:
+    """Average publication rates for a constrained weekly schedule."""
+
+    per_day: float
+    per_week: float
+    per_month: float
+    eligible_days: int
+
+
+def publication_windows(start, end, weekdays, day_start, day_end):
+    """Return allowed datetime intervals within an inclusive datetime range.
+
+    ``weekdays`` uses Python's weekday numbering (Monday is 0). Time-of-day
+    intervals must be increasing; overnight intervals are intentionally not
+    inferred so invalid configuration is caught by the form.
+    """
+    if end < start:
+        raise ValueError("End datetime must be greater than or equal to start datetime.")
+    if day_end <= day_start:
+        raise ValueError("End time must be later than start time.")
+
+    weekdays = {int(day) for day in weekdays}
+    if not weekdays or not weekdays.issubset(set(range(7))):
+        raise ValueError("At least one valid weekday is required.")
+
+    tzinfo = start.tzinfo
+    windows = []
+    current_date = start.date()
+    while current_date <= end.date():
+        if current_date.weekday() in weekdays:
+            window_start = datetime.combine(current_date, day_start, tzinfo=tzinfo)
+            window_end = datetime.combine(current_date, day_end, tzinfo=tzinfo)
+            clipped_start = max(start, window_start)
+            clipped_end = min(end, window_end)
+            if clipped_start <= clipped_end:
+                windows.append((clipped_start, clipped_end))
+        current_date += timedelta(days=1)
+    return windows
+
+
+def calculate_publication_schedule(
+    photo_count,
+    start,
+    end,
+    weekdays,
+    day_start=time.min,
+    day_end=time(23, 59),
+    jitter_minutes=0,
+    rng=None,
+):
+    """Evenly distribute publication datetimes across allowed windows.
+
+    Jitter is applied after the constrained times are calculated, as an
+    independent whole-minute offset in the inclusive range ``[-jitter,
+    jitter]``. Pass a random-compatible object for deterministic callers.
+    """
+    if photo_count < 0:
+        raise ValueError("Photo count cannot be negative.")
+    if jitter_minutes < 0:
+        raise ValueError("Jitter cannot be negative.")
+    if photo_count == 0:
+        return []
+
+    windows = publication_windows(start, end, weekdays, day_start, day_end)
+    if not windows:
+        raise ValueError("The selected date range contains no eligible publication times.")
+
+    durations = [(window_end - window_start).total_seconds() for window_start, window_end in windows]
+    total_seconds = sum(durations)
+    if photo_count == 1 or total_seconds == 0:
+        offsets = [0.0] * photo_count
+    else:
+        spacing = total_seconds / (photo_count - 1)
+        offsets = [spacing * index for index in range(photo_count)]
+
+    schedule = []
+    for offset in offsets:
+        remaining = offset
+        calculated = windows[-1][1]
+        for (window_start, window_end), duration in zip(windows, durations):
+            if remaining <= duration:
+                calculated = window_start + timedelta(seconds=remaining)
+                break
+            remaining -= duration
+        schedule.append(calculated)
+
+    jitter_minutes = int(jitter_minutes)
+    if jitter_minutes:
+        rng = rng or random
+        schedule = [
+            publish_date + timedelta(minutes=rng.randint(-jitter_minutes, jitter_minutes))
+            for publish_date in schedule
+        ]
+    return schedule
+
+
+def calculate_publication_rates(photo_count, start, end, weekdays):
+    """Calculate rates without counting unselected weekdays as active days."""
+    weekdays = {int(day) for day in weekdays}
+    if not weekdays or not weekdays.issubset(set(range(7))):
+        raise ValueError("At least one valid weekday is required.")
+    if end < start:
+        raise ValueError("End datetime must be greater than or equal to start datetime.")
+
+    eligible_days = 0
+    current_date = start.date()
+    while current_date <= end.date():
+        if current_date.weekday() in weekdays:
+            eligible_days += 1
+        current_date += timedelta(days=1)
+
+    per_day = photo_count / eligible_days if eligible_days else 0.0
+    per_week = per_day * len(weekdays)
+    return PublicationRates(
+        per_day=per_day,
+        per_week=per_week,
+        per_month=per_week * 52 / 12,
+        eligible_days=eligible_days,
+    )
 
 
 def gen_size(photo, size):

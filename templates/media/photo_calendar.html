@@ -13,7 +13,7 @@
     </h2>
 
     <div
-        class="flex items-center justify-center mx-auto md:mr-0 gap-2 mt-2 md:mt-0"
+        class="flex flex-col md:flex-row items-center justify-center mx-auto md:mr-0 gap-2 mt-2 md:mt-0"
         x-data="{
             channel: $persist('{{ selected_channel }}').using({
                 getItem(key) {
@@ -41,24 +41,27 @@
         }"
         x-init="const params = new URLSearchParams(window.location.search); if (params.has('channel') && channel !== '{{ selected_channel }}') channel = '{{ selected_channel }}'; else if (!params.has('channel') && channel !== '{{ selected_channel }}') changeChannel()"
     >
-        <a href="?year={{ prev_year }}&month={{ prev_month }}&channel={{ selected_channel }}" class="btn btn-primary">Prev</a>
-        <a href="?year={{ next_year }}&month={{ next_month }}&channel={{ selected_channel }}" class="btn btn-primary">Next</a>
+        <div class="flex w-full items-center justify-center gap-2 md:contents">
+            <a href="?year={{ prev_year }}&month={{ prev_month }}&channel={{ selected_channel }}" class="btn btn-primary order-1">Prev</a>
+            <a href="?year={{ today.year }}&month={{ today.month }}&channel={{ selected_channel }}" class="btn order-2 md:order-4">Today</a>
+            <a href="?year={{ next_year }}&month={{ next_month }}&channel={{ selected_channel }}" class="btn btn-primary order-3 md:order-2">Next</a>
+        </div>
 
-        <select @change="changeYear($event.target.value)" class="select" aria-label="Calendar year">
-            {% for y in years %}
-                <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
-            {% endfor %}
-        </select>
+        <div class="flex w-full items-center justify-center gap-2 md:contents">
+            <select @change="changeYear($event.target.value)" class="select order-4 md:order-3" aria-label="Calendar year">
+                {% for y in years %}
+                    <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
 
-        <a href="?year={{ today.year }}&month={{ today.month }}&channel={{ selected_channel }}" class="btn">Today</a>
-
-        <select x-model="channel" @change="changeChannel()" class="select" aria-label="Photo channel">
-            <option value="{{ default_channel.pk }}">Default</option>
-            <option value="{{ all_channels_value }}">All</option>
-            {% for channel in channels %}
-                <option value="{{ channel.pk }}">{{ channel.name }}</option>
-            {% endfor %}
-        </select>
+            <select x-model="channel" @change="changeChannel()" class="select order-5" aria-label="Photo channel">
+                <option value="{{ default_channel.pk }}">Default</option>
+                <option value="{{ all_channels_value }}">All</option>
+                {% for channel in channels %}
+                    <option value="{{ channel.pk }}">{{ channel.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
     </div>
 </div>
 
@@ -67,6 +70,7 @@
     <div class="space-y-4">
         {% for week in weeks %}
             {% for day in week %}
+                {% if day.in_month %}
                 <div class="p-2 {% if day.is_today %}bg-accent text-accent-content{% elif not day.in_month %}opacity-50{% else %}bg-base-100{% endif %}">
                     <div class="font-semibold">{{ day.date|date:"D, M j" }}</div>
                     <div class="flex flex-wrap gap-1 mt-2">
@@ -77,6 +81,7 @@
                         {% endfor %}
                     </div>
                 </div>
+                {% endif %}
             {% endfor %}
         {% endfor %}
     </div>
