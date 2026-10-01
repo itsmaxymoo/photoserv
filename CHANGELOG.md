@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.10](https://github.com/itsmaxymoo/photoserv/compare/0.9.9...0.9.10) (2026-10-01)
+
+
+### Bug Fixes
+
+* New container namespace ([73f5448](https://github.com/itsmaxymoo/photoserv/commit/73f5448c16b2427b3e8030aefd18b069e3710fd6))
+
 ## [0.9.9](https://github.com/photoserv/photoserv/compare/0.9.8...0.9.9) (2026-07-11)
 
 
