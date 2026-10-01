@@ -4,5 +4,6 @@
             "release-type": "python",
             "include-v-in-tag": false
         }
-    }
+    },
+    "bootstrap-sha": "39758b3d03289c42cb8e830922f14b407fe1d56e"
 }
