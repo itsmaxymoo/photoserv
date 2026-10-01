@@ -2,6 +2,9 @@
 
 # 1.0 Change List (TODO):
 
+* update plugins, integrations
+* test
+* update refs to old repo
 
 # 1.0 Branch Committed Changes:
 
