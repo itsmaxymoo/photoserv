@@ -36,7 +36,7 @@ def call_integration_plugin_signal(signal_name, data=None, channel_id=None):
         try:
             # Build method args based on signal name
             if signal_name != "on_global_change":
-                method_args = (data, {}) if data else (None, {})
+                method_args = (data,)
             else:
                 method_args = (data,) if data else ()
             

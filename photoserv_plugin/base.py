@@ -25,7 +25,7 @@ class PluginConfigManager:
     Automatically prefixes keys with plugin UUID.
     """
     
-    def __init__(self, plugin_uuid: str):
+    def __init__(self, plugin_uuid: str, storage_prefix: str = None):
         """
         Initialize the config manager.
         
@@ -33,9 +33,12 @@ class PluginConfigManager:
             plugin_uuid: UUID of the plugin (used to prefix keys)
         """
         self.plugin_uuid = plugin_uuid
+        self.storage_prefix = storage_prefix
     
     def _make_key(self, key: str) -> str:
         """Create a prefixed key with plugin UUID."""
+        if self.storage_prefix:
+            return f"{self.plugin_uuid}_{self.storage_prefix}_{key}"
         return f"{self.plugin_uuid}_{key}"
     
     def get(self, key: str, default: Any = None) -> Any:
@@ -90,7 +93,7 @@ class PhotoservInstance:
     Passed to plugins during registration.
     """
     
-    def __init__(self, plugin_uuid: str, logger: logging.Logger):
+    def __init__(self, plugin_uuid: str, storage_prefix: str, logger: logging.Logger):
         """
         Initialize the photoserv instance.
         
@@ -99,7 +102,7 @@ class PhotoservInstance:
             logger: Logger instance for the plugin
         """
         self.logger = logger
-        self.config = PluginConfigManager(plugin_uuid)
+        self.config = PluginConfigManager(plugin_uuid, storage_prefix)
     
     def get_photo_image(self, photo: Union[str, Dict[str, Any]], size: str) -> Optional[BinaryIO]:
         """
@@ -183,17 +186,13 @@ class PhotoservPlugin:
         """
         pass
 
-    def on_photo_publish(self, data: Dict[str, Any], params: Dict[str, Any], **kwargs) -> None:
+    def on_photo_publish(self, data: Dict[str, Any], **kwargs) -> None:
         """
         Called when a photo is published.
         
         Args:
             data: Serialized photo data (dict) matching the public API format.
                   This is a read-only snapshot and cannot modify the database.
-            params: Per-entity parameters configured for this specific photo.
-                    Dictionary of custom parameters from PluginEntityParameters.
-                    This is a JSON object (dict) provided by the user per entity.
-                    Values can be strings, numbers, booleans, lists, or nested objects.
             **kwargs: Additional parameters for future compatibility
         
         Raises:
@@ -201,17 +200,13 @@ class PhotoservPlugin:
         """
         pass
 
-    def on_photo_unpublish(self, data: Dict[str, Any], params: Dict[str, Any], **kwargs) -> None:
+    def on_photo_unpublish(self, data: Dict[str, Any], **kwargs) -> None:
         """
         Called when a photo is unpublished.
         
         Args:
             data: Serialized photo data (dict) matching the public API format.
                   This is a read-only snapshot and cannot modify the database.
-            params: Per-entity parameters configured for this specific photo.
-                    Dictionary of custom parameters from PluginEntityParameters.
-                    This is a JSON object (dict) provided by the user per entity.
-                    Values can be strings, numbers, booleans, lists, or nested objects.
             **kwargs: Additional parameters for future compatibility
         
         Raises:

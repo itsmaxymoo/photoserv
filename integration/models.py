@@ -42,6 +42,7 @@ class IntegrationPlugin(models.Model):
     module = models.CharField(max_length=255, help_text="Python module name (without .py extension)")
     config = models.JSONField(blank=True, null=True, default=dict, help_text="JSON object containing plugin configuration with environment variable support")
     channel = models.ForeignKey(Channel, on_delete=models.SET_NULL, null=True, blank=True, help_text="Subscribe to a photo publication channel.")
+    storage_prefix = models.CharField(max_length=255, blank=True, null=True, help_text="Optional prefix for persistent storage keys; use if multiple instances of the same plugin module.")
 
     def _load_module(self):
         """Load the integration module from the configured plugin paths."""
@@ -116,6 +117,7 @@ class IntegrationPlugin(models.Model):
             from photoserv_plugin import PhotoservInstance
             photoserv_instance = PhotoservInstance(
                 plugin_uuid=str(self.uuid),
+                storage_prefix=self.storage_prefix,
                 logger=plugin_logger
             )
             

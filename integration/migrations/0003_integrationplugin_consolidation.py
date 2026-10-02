@@ -157,4 +157,9 @@ class Migration(migrations.Migration):
             remove_obsolete_content_types,
             migrations.RunPython.noop,
         ),
+        migrations.AddField(
+            model_name='integrationplugin',
+            name='storage_prefix',
+            field=models.CharField(blank=True, help_text='Optional prefix for persistent storage keys; use if multiple instances of the same plugin module.', max_length=255, null=True),
+        ),
     ]

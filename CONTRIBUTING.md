@@ -2,7 +2,6 @@
 
 # 1.0 Change List (TODO):
 
-* update plugins, integrations
 * test
 * update refs to old repo
 
@@ -27,6 +26,7 @@
 * Remove "Create Multiple" photos.
 * Official icon/logo
 * new namespace
+* breaking: most api endpoints return results in results element
 
 ## Architecture
 

@@ -12,9 +12,10 @@ from django.db import IntegrityError, transaction
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.utils import timezone
 
+from media.forms import PhotoChannelForm
 from media.models import Album, Channel, ChannelPhoto, Photo
 from media.signals import channel_photo_published
-from photoserv_plugin import PhotoservPlugin
+from photoserv_plugin import PhotoservPlugin, PluginConfigManager
 
 from .forms import IntegrationPluginForm
 from .models import IntegrationCaller, IntegrationPlugin, PluginStorage, RunResult
@@ -40,7 +41,7 @@ class TestPlugin(PhotoservPlugin):
     def on_global_change(self, **kwargs):
         pass
 
-    def on_photo_publish(self, data, params, **kwargs):
+    def on_photo_publish(self, data, **kwargs):
         pass
 '''
 
@@ -138,6 +139,19 @@ class IntegrationPluginModelTests(TestCase):
 
 
 class PluginStorageTests(TestCase):
+    def test_generated_key_without_storage_prefix_uses_plugin_uuid_and_key(self):
+        config = PluginConfigManager("plugin-uuid")
+
+        self.assertEqual(config._make_key("setting"), "plugin-uuid_setting")
+
+    def test_generated_key_with_storage_prefix_includes_prefix(self):
+        config = PluginConfigManager("plugin-uuid", storage_prefix="instance")
+
+        self.assertEqual(
+            config._make_key("setting"),
+            "plugin-uuid_instance_setting",
+        )
+
     def test_storage_keys_are_unique(self):
         PluginStorage.objects.create(key="plugin:key", value={"value": 1})
 
@@ -237,6 +251,38 @@ class IntegrationReceiverTests(TestCase):
         self.assertEqual(kwargs["data"]["uuid"], str(photo.uuid))
         queue_global.assert_called()
 
+    def test_unselecting_photo_channel_queues_unpublish_dispatch(self):
+        channel = Channel.objects.create(name="Unpublishing Channel")
+        photo = Photo.objects.create(title="Unpublished Photo", raw_image="unpublished.jpg")
+        ChannelPhoto.objects.create(
+            channel=channel,
+            photo=photo,
+            published=True,
+        )
+        form = PhotoChannelForm(
+            {
+                PhotoChannelForm.publish_field_name(channel): "",
+                PhotoChannelForm.date_field_name(channel): "",
+            },
+            photo_instance=photo,
+        )
+        self.assertTrue(form.is_valid(), form.errors)
+
+        with patch(
+            "integration.receivers.call_integration_plugin_signal.delay"
+        ) as dispatch, patch(
+            "integration.receivers.call_queue_global_integrations"
+        ):
+            with self.captureOnCommitCallbacks(execute=True):
+                form.save(photo)
+
+        dispatch.assert_called_once()
+        args, kwargs = dispatch.call_args
+        self.assertEqual(args, ("on_photo_unpublish",))
+        self.assertEqual(kwargs["channel_id"], channel.pk)
+        self.assertEqual(kwargs["data"]["uuid"], str(photo.uuid))
+        self.assertFalse(ChannelPhoto.objects.filter(channel=channel, photo=photo).exists())
+
 
 class IntegrationTaskTests(TestCase):
     def setUp(self):
@@ -275,7 +321,7 @@ class IntegrationTaskTests(TestCase):
 
         self.assertEqual(run.call_count, 1)
         self.assertEqual(run.call_args.kwargs["method_name"], "on_photo_publish")
-        self.assertEqual(run.call_args.kwargs["method_args"], (photo_data, {}))
+        self.assertEqual(run.call_args.kwargs["method_args"], (photo_data,))
         self.assertEqual(result, "Called on_photo_publish on 1 plugins")
 
     def test_global_change_calls_every_active_valid_plugin(self):

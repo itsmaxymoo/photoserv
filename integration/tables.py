@@ -31,8 +31,9 @@ class IntegrationPluginTable(tables.Table):
     class Meta:
         model = IntegrationPlugin
         fields = (
-            "module",
             "nickname",
+            "module",
+            "storage_prefix",
             "channel",
             "valid",
             "active",

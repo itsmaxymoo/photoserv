@@ -222,12 +222,13 @@ class PhotoChannelForm(forms.Form):
         """Create, update, or remove each selected channel-photo relationship."""
         for channel in self.channels:
             channel_photos = ChannelPhoto.objects.filter(channel=channel, photo=photo)
+            channel_photo = channel_photos.first()
             if not self.cleaned_data[self.publish_field_name(channel)]:
-                channel_photos.delete()
+                if channel_photo is not None:
+                    channel_photo.delete()
                 continue
 
             publish_date = self.cleaned_data[self.date_field_name(channel)]
-            channel_photo = channel_photos.first()
             if channel_photo is None:
                 ChannelPhoto.objects.create(
                     channel=channel,

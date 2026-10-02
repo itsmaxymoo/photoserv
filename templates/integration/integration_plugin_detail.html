@@ -45,6 +45,10 @@ Integration Plugin: {{ object }}
                     <th>Module</th>
                     <td><code class="bg-base-200 p-1 text-sm">{{ object.module }}</code></td>
                 </tr>
+                <tr>
+                    <th>Storage Prefix</th>
+                    <td><code class="bg-base-200 p-1 text-sm">{{ object.storage_prefix|default:"(none)" }}</code></td>
+                </tr>
                 {% if plugin_name %}
                 <tr>
                     <th>Plugin Name</th>

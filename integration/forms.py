@@ -22,6 +22,7 @@ class IntegrationPluginForm(forms.ModelForm):
         fields = [
             "nickname",
             "module",
+            "storage_prefix",
             "config",
             "channel",
             "active",
