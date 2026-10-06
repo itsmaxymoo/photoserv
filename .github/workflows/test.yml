@@ -27,6 +27,7 @@ jobs:
       REDIS_HOST: localhost
       REDIS_PORT: 6379
       DEBUG: true
+      SIMPLE_AUTH: true
 
     steps:
       - name: Checkout code
