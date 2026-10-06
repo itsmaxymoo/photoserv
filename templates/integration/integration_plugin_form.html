@@ -1,0 +1,16 @@
+{% extends "generic_crud_form.html" %}
+
+{% load crispy_forms_tags %}
+
+{% block form_fields %}
+{% for field in form %}
+{{ field|as_crispy_field }}
+{% if field.name == "module" %}
+<datalist id="integration-plugin-modules">
+    {% for module_name in form.valid_plugin_modules %}
+    <option value="{{ module_name }}"></option>
+    {% endfor %}
+</datalist>
+{% endif %}
+{% endfor %}
+{% endblock %}

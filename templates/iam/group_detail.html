@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Group: {{ object.name }}{% endblock %}
+
+{% block content %}
+<h2 class="text-3xl inline-flex gap-2">
+    <span class="font-extralight">
+        {% include "partials/back_button.html" %}
+        Group:
+    </span>
+    {{ object.name }}
+</h2>
+
+<div class="grid grid-cols-1 gap-4">
+    <div class="box">
+        <table class="table table-zebra table-auto">
+            <tr>
+                <th>Name</th>
+                <td>{{ object.name }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+        {% for app_name, permissions in permission_groups %}
+        <section class="box">
+            <h3>{{ app_name }}</h3>
+            <ul class="list-disc pl-6">
+                {% for permission in permissions %}
+                <li>{{ permission.display_name }}</li>
+                {% endfor %}
+            </ul>
+        </section>
+        {% empty %}
+        <div class="box">
+            <p>No permissions granted.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div>
+    {% include "partials/model_view_modify_buttons.html" %}
+</div>
+{% endblock %}

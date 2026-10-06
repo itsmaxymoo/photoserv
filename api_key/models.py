@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password, check_password
 import secrets
 from django.utils import timezone
@@ -11,6 +12,11 @@ def default_expiration() -> timezone:
 
 
 class APIKey(models.Model):
+    user = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE,
+        related_name="api_keys",
+    )
     name = models.CharField(max_length=128, unique=True)
     hash = models.CharField(max_length=128, unique=True)
     is_active = models.BooleanField(default=True)
@@ -18,20 +24,25 @@ class APIKey(models.Model):
     expires_on = models.DateTimeField(default=default_expiration)
 
     def get_absolute_url(self):
-        return reverse("api-key-edit", kwargs={"pk": self.pk})
+        return reverse("apikey-edit", kwargs={"pk": self.pk})
     
     def is_expired(self) -> bool:
         return timezone.now() >= self.expires_on
 
     @staticmethod
-    def create_key(name: str) -> str:
+    def create_key(name: str, user, **kwargs) -> str:
         """
         Generates a raw API key and saves its hash in the DB.
         Returns the raw key (only shown once).
         """
         secret_key = secrets.token_urlsafe(32)
         hash = make_password(secret_key)
-        APIKey.objects.create(name=name, hash=hash)
+        APIKey.objects.create(
+            name=name,
+            hash=hash,
+            user=user,
+            **kwargs,
+        )
         return secret_key
 
     def check_key(self, raw_key: str) -> bool:
@@ -39,3 +50,6 @@ class APIKey(models.Model):
 
     def __str__(self):
         return f"API Key: {self.name}"
+
+    class Meta:
+        verbose_name = "API Key"

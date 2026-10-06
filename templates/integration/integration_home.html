@@ -7,52 +7,25 @@
 <h2>Integrations</h2>
 
 <div class="grid grid-cols-1 gap-6">
-    <!-- Web Requests Section -->
     <div>
         <div class="flex justify-between mb-4">
-            <h3 class="text-2xl">Web Requests</h3>
+            <h3 class="text-2xl">Integration Plugins</h3>
             <div class="flex gap-2 flex-row">
-                <form method="post" action="{% url 'web-request-queue-global' %}" class="inline">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-secondary">
-                        Queue Global Integrations
-                    </button>
-                </form>
-                <a href="{% url 'web-request-create' %}" class="btn btn-primary">
+                {% if perms.integration.add_integrationplugin %}
+                <a href="{% url 'integration-plugin-create' %}" class="btn btn-primary">
                     Create
                 </a>
+                {% endif %}
             </div>
         </div>
 
         <div class="overflow-x-hidden">
-            {% render_table web_requests_table %}
-        </div>
-    </div>
-
-    <!-- Python Plugins Section -->
-    <div>
-        <div class="flex justify-between mb-4">
-            <h3 class="text-2xl">Python Plugins</h3>
-            <div class="flex gap-2 flex-row">
-                <form method="post" action="{% url 'python-plugin-scan' %}" class="inline">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-secondary">
-                        Scan for Plugins
-                    </button>
-                </form>
-                <a href="{% url 'python-plugin-create' %}" class="btn btn-primary">
-                    Create
-                </a>
-            </div>
-        </div>
-
-        <div class="overflow-x-hidden">
-            {% render_table python_plugins_table %}
+            {% render_table integrations_table %}
         </div>
     </div>
 
     <div class="flex justify-center">
-        <a href="https://github.com/photoserv/python-plugins" target="_blank" class="mx-auto btn btn-wide">
+        <a href="https://github.com/itsmaxymoo/photoserv-plugins" target="_blank" class="mx-auto btn btn-wide">
             Get Official Plugins
         </a>
     </div>

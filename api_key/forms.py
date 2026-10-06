@@ -20,4 +20,9 @@ class APIKeyForm(forms.ModelForm):
 
     class Meta:
         model = APIKey
-        fields = ['name', 'is_active', 'expires_on']
+        fields = [
+            'name',
+            'user',
+            'is_active',
+            'expires_on',
+        ]

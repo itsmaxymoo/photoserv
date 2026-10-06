@@ -1,5 +1,8 @@
 from django import forms
+from django.contrib.auth.models import Group, Permission
 from crispy_forms.helper import FormHelper
+
+from .permissions import group_permissions_by_app, permission_display_name
 from .models import User
 
 
@@ -14,6 +17,11 @@ class UserForm(forms.ModelForm):
         widget=forms.PasswordInput,
         required=False
     )
+    groups = forms.ModelMultipleChoiceField(
+        queryset=Group.objects.all(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -21,7 +29,7 @@ class UserForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ["username", "email", "first_name", "last_name"]
+        fields = ["username", "email", "first_name", "last_name", "is_active", "is_superuser", "groups"]
 
     def clean(self):
         cleaned_data = super().clean()
@@ -44,4 +52,53 @@ class UserForm(forms.ModelForm):
 
         if commit:
             user.save()
+            self.save_m2m()
         return user
+
+
+class GroupForm(forms.ModelForm):
+    """Edit a group and its complete set of Django permissions."""
+
+    permission_field_prefix = "permission_"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        selected_permission_ids = set()
+        if self.instance.pk:
+            selected_permission_ids = set(
+                self.instance.permissions.values_list("pk", flat=True)
+            )
+
+        self.permission_ids_by_field = {}
+        permission_groups = []
+        permissions = Permission.objects.select_related("content_type")
+        for app_name, app_permissions in group_permissions_by_app(permissions):
+            permission_fields = []
+            for permission in app_permissions:
+                field_name = self.permission_field_name(permission)
+                self.fields[field_name] = forms.BooleanField(
+                    required=False,
+                    label=permission_display_name(permission),
+                    initial=permission.pk in selected_permission_ids,
+                )
+                self.permission_ids_by_field[field_name] = permission.pk
+                permission_fields.append(self[field_name])
+            permission_groups.append((app_name, permission_fields))
+        self.permission_groups = permission_groups
+
+    class Meta:
+        model = Group
+        fields = ["name"]
+
+    @classmethod
+    def permission_field_name(cls, permission):
+        return f"{cls.permission_field_prefix}{permission.pk}"
+
+    def _save_m2m(self):
+        super()._save_m2m()
+        self.instance.permissions.set(
+            permission_id
+            for field_name, permission_id in self.permission_ids_by_field.items()
+            if self.cleaned_data.get(field_name)
+        )

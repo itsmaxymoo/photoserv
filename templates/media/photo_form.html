@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% load crispy_forms_tags %}
+{% load daisyui_filters %}
+
+{% block title %}
+Editing {{ object|default:object_type_name }}
+{% endblock %}
+
+{% block content %}
+
+<form method="post" enctype="multipart/form-data" x-data="{% if object is None %}{ canonicalPublishDate: '{% if form.is_bound %}{{ form.data.canonical_publish_date|escapejs }}{% else %}{{ form.canonical_publish_date.value|date:'Y-m-d\\TH:i' }}{% endif %}' }{% else %}{}{% endif %}"{% if object is None %} x-init="$watch('canonicalPublishDate', value => $root.querySelectorAll('[data-channel-publish-date]').forEach(input => input.value = value))"{% endif %}>
+    {% csrf_token %}
+
+    <div class="grid grid-cols-1 gap-4">
+        <div>
+            <h2>Editing {{ object|default:object_type_name }}</h2>
+        </div>
+        {% if edit_disclaimer is not None %}
+        <div>
+            <p>
+                <strong>Note:</strong> {{ edit_disclaimer }}
+            </p>
+        </div>
+        {% endif %}
+
+        {% if form.non_field_errors %}
+        <div class="alert alert-error" id="form-errors">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+
+        <div>
+            {% for field in form %}
+            {{ field|as_crispy_field }}
+            {% if field.name == "publish_date" %}
+                <div class="w-full text-right">
+                    <a href="{% url 'photo-calendar' %}" class="link text-sm" target="_blank" rel="noopener noreferrer">
+                        View Photo Calendar
+                    </a>
+                </div>
+            {% endif %}
+            {% endfor %}
+
+            {% include './partials/tag_input.html' %}
+
+            {% include 'partials/map/pin_input.html' with initial=form.initial.location locked=False zoom=10 %}
+            <p class="text-center">
+                Click once to unlock.
+                Geotag this photo or override the metadata location.
+                Remove (click) the pin to revert to metadata.
+            </p>
+        </div>
+
+        {% if photo_channel_form %}
+        <hr class="my-2" />
+        {% include 'media/photo_channel_form.html' %}
+        {% endif %}
+
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <div>
+                <a href="{% if not no_object_detail_page or object is None %}../{% else %}../../{% endif %}"
+                    class="btn btn-secondary w-full sm:w-auto">
+                    Cancel
+                </a>
+            </div>
+            <div>
+                <button type="submit" class="btn btn-primary w-full sm:w-auto">
+                    Save
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+{% endblock %}

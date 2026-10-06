@@ -13,6 +13,7 @@
     {% load static %}
 
     <link href="{% static 'css/style.css' %}" rel="stylesheet" type="text/css" />
+    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon" />
     <script src="{% static 'js/bundle.js' %}" defer></script>
 </head>
 
@@ -20,17 +21,28 @@
     <header>
         <div class="navbar p-4 bg-base-200 shadow-sm flex-col md:flex-row md:justify-between">
             <div class="navbar-start flex justify-center md:justify-start">
-                <a href="{% url 'home' %}">
+                <a href="{% url 'home' %}" class="flex flex-row items-center">
+                    <img src="{% static 'logo.png' %}" alt="Photoserv Logo" class="h-6 mr-2" />
                     <h1 class="text-xl">Photoserv</h1>
                 </a>
             </div>
 
             <div class="navbar-end mt-2 md:mt-0 w-full md:w-half justify-center md:justify-end">
                 {% block navbar_end %}
+                {% if perms.media.view_photo %}
                 <a href="{% url 'photo-list' %}" class="btn btn-ghost">Photos</a>
+                {% endif %}
+                {% if perms.media.view_album %}
                 <a href="{% url 'album-list' %}" class="btn btn-ghost">Albums</a>
+                {% endif %}
+                {% if perms.media.view_tag %}
                 <a href="{% url 'tag-list' %}" class="btn btn-ghost">Tags</a>
+                {% endif %}
+                {% if perms.media.view_channel %}
+                <a href="{% url 'channel-list' %}" class="btn btn-ghost">Channels</a>
+                {% endif %}
 
+                {% if perms.media.view_size or perms.api_key.view_apikey or perms.integration.view_integrationplugin or perms.iam.view_user or perms.auth.view_group or perms.django_celery_results.view_taskresult %}
                 <div class="dropdown dropdown-end" x-data="{ openNavMenu: false }">
                     <button class="btn btn-ghost" @click="openNavMenu = !openNavMenu"
                         :aria-expanded="openNavMenu.toString()" aria-controls="dropdown-menu">
@@ -43,21 +55,37 @@
                     <ul id="dropdown-menu" class="list-none dropdown-content menu min-w-30 bg-base-100 shadow-sm"
                         x-show="openNavMenu" x-transition @click.outside="openNavMenu = false">
 
+                        {% if perms.media.view_size %}
                         <li><a href="{% url 'size-list' %}">Sizes</a></li>
-                        <li><a href="{% url 'api-key-list' %}">Public API</a></li>
+                        {% endif %}
+                        {% if perms.api_key.view_apikey %}
+                        <li><a href="{% url 'apikey-list' %}">API</a></li>
+                        {% endif %}
+                        {% if perms.integration.view_integrationplugin %}
                         <li><a href="{% url 'integration-list' %}">Integrations</a></li>
-                        <li><a href="{% url 'job-list' %}">Jobs</a></li>
-                        {% if AUTH_ENABLED %}
+                        {% endif %}
+                        {% if perms.iam.view_user or perms.auth.view_group %}
+                        <hr class="my-1" />
+                        {% endif %}
+                        {% if perms.iam.view_user %}
                         <li><a href="{% url 'user-list' %}">Users</a></li>
+                        {% endif %}
+                        {% if perms.auth.view_group %}
+                        <li><a href="{% url 'group-list' %}">Groups</a></li>
+                        {% endif %}
+                        {% if perms.django_celery_results.view_taskresult %}
+                        <hr class="my-1" />
+                        <li><a href="{% url 'job-list' %}">Jobs</a></li>
+                        {% endif %}
                         <li>
                             <form method="post" action="{% url 'logout' %}">
                                 {% csrf_token %}
                                 <button type="submit" class="cursor-pointer">Log Out</button>
                             </form>
                         </li>
-                        {% endif %}
                     </ul>
                 </div>
+                {% endif %}
                 {% endblock %}
             </div>
         </div>
@@ -88,7 +116,7 @@
     <footer class="p-4 text-center">
         <p>
             Photoserv version {{ APP_VERSION }} &ndash;
-            <a href="https://github.com/photoserv/photoserv" class="link" target="_blank">View on GitHub</a>
+            <a href="https://github.com/itsmaxymoo/photoserv" class="link" target="_blank">View on GitHub</a>
         </p>
 
         {% if user.is_authenticated %}

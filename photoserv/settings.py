@@ -41,9 +41,9 @@ USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 INSTALLED_APPS = [
+    "media",
     "core",
     "api_key",
-    "public_rest_api",
     "iam",
     "job_overview",
     "integration",
@@ -182,11 +182,11 @@ CACHES = {
 
 CELERY_BEAT_SCHEDULE = {
     'run-consistency': {
-        'task': 'core.tasks.consistency',
+        'task': 'media.tasks.consistency',
         'schedule': 60.0 * 60 * 2,
     },
     'publish-photos': {
-        'task': 'core.tasks.publish_photos',
+        'task': 'media.tasks.publish_photos',
         'schedule': 60.0 * 10 if not DEBUG else 30.0,
     },
     'integration-consistency': {
@@ -221,8 +221,12 @@ REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
     'DEFAULT_PERMISSION_CLASSES': [
-        'api_key.permissions.HasAPIKey'
+        'rest_framework.permissions.DjangoModelPermissions',
     ],
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'api_key.authentication.APIKeyAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ),
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',  # Only JSON, no HTML
     ),
@@ -230,6 +234,8 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend',
     ],
+    'DEFAULT_PAGINATION_CLASS': 'media.pagination.MediaPagination',
+    'PAGE_SIZE': 100,
 }
 
 SPECTACULAR_SETTINGS = {
@@ -251,7 +257,8 @@ SPECTACULAR_SETTINGS = {
             'statusCodes': ['5XX'],
             'retryConnectionErrors': True,
         }
-    }
+    },
+    'SCHEMA_PATH_PREFIX': '/api',
 }
 
 # --- IAM Config
@@ -283,7 +290,8 @@ OIDC_ENABLED = all([
     OIDC_OP_JWKS_ENDPOINT,
 ])
 
-AUTH_ENABLED = SIMPLE_AUTH or OIDC_ENABLED
+if not (SIMPLE_AUTH or OIDC_ENABLED):
+    raise ValueError("An authentication method must be configured and enabled.")
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -311,7 +319,10 @@ AUTHENTICATION_BACKENDS = [
 
 # ------- Integrations
 
-INTEGRATION_QUEUE_DELAY = 60 * 10  # 10 minutes
+INTEGRATION_QUEUE_DELAY = (60 * 10) if not DEBUG else 10  # seconds
 
-# Python plugins path
-PLUGINS_PATH = Path(os.getenv("PLUGINS_PATH", str(Path("/plugins") if IS_CONTAINER else BASE_DIR / "plugins")))
+# Python plugin paths, ordered by precedence.
+PLUGINS_PATH = [
+    Path(os.getenv("PLUGINS_PATH", str(Path("/plugins") if IS_CONTAINER else BASE_DIR / "plugins"))),
+    BASE_DIR / "official_plugins",
+]

@@ -10,7 +10,7 @@ Editing {{ object|default:object_type_name }}
 {% block content %}
 
 <!-- Tailwind Compiler: clearablefileinput file-input-bordered focus:ring file-input focus:outline-none
-textarea textarea-bordered w-full textarea focus:ring focus:outline-none select select-bordered mb-3 text-gray-600
+textarea textarea-bordered w-full textarea focus:ring focus:outline-none select select-bordered mb-3 text-gray-600 radio
 -->
 
 <form method="post" enctype="multipart/form-data">
@@ -35,9 +35,11 @@ textarea textarea-bordered w-full textarea focus:ring focus:outline-none select 
         {% endif %}
 
         <div>
+            {% block form_fields %}
             {% for field in form %}
             {{ field|as_crispy_field }}
             {% endfor %}
+            {% endblock %}
         </div>
 
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
