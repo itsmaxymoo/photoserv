@@ -27,9 +27,12 @@ def drop_initial_media_tables(apps, schema_editor):
         "media_tag",
         "media_size",
     ]
+    cascade = " CASCADE" if schema_editor.connection.vendor == "postgresql" else ""
+
     with schema_editor.connection.cursor() as cursor:
         for table in tables_to_drop:
-            cursor.execute(f"DROP TABLE IF EXISTS {table} CASCADE;")
+            quoted_table = schema_editor.quote_name(table)
+            cursor.execute(f"DROP TABLE IF EXISTS {quoted_table}{cascade};")
 
 
 class Migration(migrations.Migration):
