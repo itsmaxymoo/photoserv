@@ -13,13 +13,15 @@ for their publicly published photos.
 
 * Upload and categorize photos by albums and tags.
 * Extract metadata from photos for consumption in other systems.
+* Publish photos to various publishing channels.
 * Exposes a REST API for applications and integrations to interact with your data.
     * For example, a photo portfolio website in Astro.js can consume this.
     * Swagger API browser included.
 * Define multiple sizes for your photos to be available in.
-* OIDC and simple auth optional.
+* OIDC and/or simple authentication.
+    * As of version 1.0, some kind of authentication is mandatory.
 * Web request dispatch upon global changes.
-* Python plugin system for advanced integrations.
+* Plugin system for advanced integrations w.r.t publishing channels.
 
 ## Installation
 
@@ -64,19 +66,14 @@ OIDC_SIGN_ALGO=RS256 # optional
 ```
 
 OIDC Callback URL: `<your-photoserv-root>/login/oidc/callback/`  
-Example: `https://photoserv.domain.com/login/oidc/callback/`  
-
-> [!IMPORTANT]
-> Be sure to set an OIDC Access Token expiration that is long enough for the duration of time
-you may be working on the multi-photo upload form. I use 1 hour.
+Example: `https://photoserv.domain.com/login/oidc/callback/`
 
 ## API Documentation
 
 Once set up, visit `https://<your-instance/swagger` for an interactive Swagger API browser.
-
-> [!NOTE]
-> You will have to create an API key from within Photoserv (`Settings > Public API`) before
-using Swagger.
+Session authentication is supported for logged-in users. API keys can be used for external access;
+they will inherit the permissions of the user assigned. For long-lived integrations, it's recommended
+to create a user and group with the minimum necessary permissions for the given API key.
 
 ## Security
 
@@ -135,14 +132,12 @@ Assume:
 
 ## Integrations
 
-### Web Requests
+Photoserv supports Python-based plugins to extend functionality.
+Plugins can intercept global changes as well as photo publish events. Use plugins for things like social media integration, dispatching web requests, or more complex workflows.
 
-Photoserv can be configured to dispatch web requests upon a global change.
-This can be useful for triggering a static site generator upon creating content.
+![Plugin example](docs/screenshots/python_plugin.png)
 
-![Web request example](docs/screenshots/web_request.png)
-
-Web requests will be dispatched 10 minutes after the *most recent* Photoserv change to reduce excessive dispatches.
+See the [Photoserv plugin repository](https://github.com/itsmaxymoo/photoserv-plugins) for first-class plugins, examples, and documentation. **Be careful** running Python plugins as they essentially allow arbitrary code execution.
 
 #### Gitea Example
 
@@ -156,22 +151,15 @@ Suppose you have a SSG project set up in a Gitea repo. You can call the `deploy.
 | Body | `{ "ref": "main" }` |
 | Active | Checked |
 
-### Python Plugins
-
-Photoserv supports Python-based plugins to extend functionality beyond web requests.
-Plugins can intercept global changes as well as photo publish events. Use plugins for things like social media integration or more complex workflows.
-
-![Plugin example](docs/screenshots/python_plugin.png)
-
-See the [Photoserv plugin repository](https://github.com/photoserv/python-plugins) for first-class plugins, examples, and documentation. **Be careful** running Python plugins as they essentially allow arbitrary code execution.
+(Wire this up using the built-in `webrequest` plugin!)
 
 ### Secrets
 
-Both web requests and plugins can use environment variables in the `${ENV_VAR}` format to safely reference secrets. Be careful not to leak secrets with this!
+Plugins can use environment variables in the `${ENV_VAR}` format to safely reference secrets. Be careful not to leak secrets with this!
 
 ### Integrations for Other Projects
 
-* [Astro Loader](https://github.com/photoserv/astro-loader) - For the Astro static site generator.
+* [Astro Loader](https://github.com/itsmaxymoo/photoserv-astro-loader) - For the Astro static site generator.
 
 ## AI Disclosure
 

@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Photo Calendar{% endblock %}
+
+{% block content %}
+
+<div class="flex flex-col md:flex-row md:justify-between items-start md:items-center mb-4">
+    <h2>
+        {% include "partials/back_button.html" %}
+        <span class="text-xl font-semibold">
+            Photo Calendar - {{ month_name }} {{ year }}
+        </span>
+    </h2>
+
+    <div
+        class="flex flex-col md:flex-row items-center justify-center mx-auto md:mr-0 gap-2 mt-2 md:mt-0"
+        x-data="{
+            channel: $persist('{{ selected_channel }}').using({
+                getItem(key) {
+                    const cookie = document.cookie
+                        .split('; ')
+                        .find((item) => item.startsWith(key + '='));
+                    return cookie ? decodeURIComponent(cookie.slice(key.length + 1)) : null;
+                },
+                setItem(key, value) {
+                    document.cookie = key + '=' + encodeURIComponent(value) + '; path=/; SameSite=Lax';
+                }
+            }).as('photo_calendar_channel'),
+            changeChannel() {
+                const params = new URLSearchParams(window.location.search);
+                params.set('channel', this.channel);
+                window.location.assign(`${window.location.pathname}?${params.toString()}`);
+            },
+            changeYear(year) {
+                const params = new URLSearchParams(window.location.search);
+                params.set('year', year);
+                params.set('month', '{{ month }}');
+                params.set('channel', this.channel);
+                window.location.assign(`${window.location.pathname}?${params.toString()}`);
+            }
+        }"
+        x-init="const params = new URLSearchParams(window.location.search); if (params.has('channel') && channel !== '{{ selected_channel }}') channel = '{{ selected_channel }}'; else if (!params.has('channel') && channel !== '{{ selected_channel }}') changeChannel()"
+    >
+        <div class="flex w-full items-center justify-center gap-2 md:contents">
+            <a href="?year={{ prev_year }}&month={{ prev_month }}&channel={{ selected_channel }}" class="btn btn-primary order-1">Prev</a>
+            <a href="?year={{ today.year }}&month={{ today.month }}&channel={{ selected_channel }}" class="btn order-2 md:order-4">Today</a>
+            <a href="?year={{ next_year }}&month={{ next_month }}&channel={{ selected_channel }}" class="btn btn-primary order-3 md:order-2">Next</a>
+        </div>
+
+        <div class="flex w-full items-center justify-center gap-2 md:contents">
+            <select @change="changeYear($event.target.value)" class="select order-4 md:order-3" aria-label="Calendar year">
+                {% for y in years %}
+                    <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+
+            <select x-model="channel" @change="changeChannel()" class="select order-5" aria-label="Photo channel">
+                <option value="{{ default_channel.pk }}">Default</option>
+                <option value="{{ all_channels_value }}">All</option>
+                {% for channel in channels %}
+                    <option value="{{ channel.pk }}">{{ channel.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+</div>
+
+{# Mobile: list view #}
+<div class="block md:hidden">
+    <div class="space-y-4">
+        {% for week in weeks %}
+            {% for day in week %}
+                {% if day.in_month %}
+                <div class="p-2 {% if day.is_today %}bg-accent text-accent-content{% elif not day.in_month %}opacity-50{% else %}bg-base-100{% endif %}">
+                    <div class="font-semibold">{{ day.date|date:"D, M j" }}</div>
+                    <div class="flex flex-wrap gap-1 mt-2">
+                        {% for channel_photo in day.photos %}
+                            <a href="{% url 'photo-detail' channel_photo.photo.pk %}" class="badge badge-primary underline decoration-dotted">{% if show_channel_names %}{{ channel_photo.channel.name }}: {% endif %}{{ channel_photo.photo.title }}</a>
+                        {% empty %}
+                            <span class="font-light opacity-50">No photos</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
+    </div>
+</div>
+
+{# Desktop: calendar grid #}
+<div class="hidden md:block">
+    <div class="grid grid-cols-7 gap-1 text-sm">
+        {# Weekday headers Sun-Sat #}
+        {% for wd in weekdays %}
+            <div class="text-center font-medium py-2">{{ wd }}</div>
+        {% endfor %}
+
+        {% for week in weeks %}
+            {% for day in week %}
+                <div class="min-h-32 p-2 border box-border {% if day.is_today %}bg-accent text-accent-content{% elif not day.in_month %}opacity-50 bg-base-100{% else %}bg-base-100{% endif %}">
+                    <div class="flex justify-between items-start">
+                        <div class="text-xs font-semibold">{{ day.day }}</div>
+                    </div>
+                    <div class="flex flex-col gap-1 mt-2 max-h-40 overflow-auto">
+                        {% for channel_photo in day.photos %}
+                            <a href="{% url 'photo-detail' channel_photo.photo.pk %}" class="badge badge-sm badge-primary underline decoration-dotted text-ellipsis overflow-hidden whitespace-nowrap" title="{% if show_channel_names %}{{ channel_photo.channel.name }}: {% endif %}{{ channel_photo.photo.title }}">{% if show_channel_names %}{{ channel_photo.channel.name }}: {% endif %}{{ channel_photo.photo.title }}</a>
+                        {% empty %}
+                            <span class="font-light opacity-50 text-xs">No photos</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}

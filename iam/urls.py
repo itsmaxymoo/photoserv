@@ -12,4 +12,10 @@ urlpatterns = [
     path("users/<int:pk>/", UserDetailView.as_view(), name="user-detail"),
     path("users/<int:pk>/edit/", UserUpdateView.as_view(), name="user-edit"),
     path("users/<int:pk>/delete/", UserDeleteView.as_view(), name="user-delete"),
+
+    path("groups/", GroupListView.as_view(), name="group-list"),
+    path("groups/new/", GroupCreateView.as_view(), name="group-create"),
+    path("groups/<int:pk>/", GroupDetailView.as_view(), name="group-detail"),
+    path("groups/<int:pk>/edit/", GroupUpdateView.as_view(), name="group-edit"),
+    path("groups/<int:pk>/delete/", GroupDeleteView.as_view(), name="group-delete"),
 ]

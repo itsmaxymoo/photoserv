@@ -1,0 +1,340 @@
+{% extends "base.html" %}
+
+{% load photo_metadata_extras %}
+
+{% block title %}
+Photo: {{ object }}
+{% endblock %}
+
+{% block content %}
+<h2 class="text-3xl inline-flex gap-2">
+    <span class="font-extralight">
+        {% include "partials/back_button.html" %}
+        Photo #{{ object.id }}:
+    </span>
+    {{ object }}
+</h2>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="box">
+        <div class="overflow-x-scroll">
+            <table class="table table-zebra table-auto">
+                <colgroup>
+                    <col class="w-min whitespace-nowrap" />
+                    <col class="w-full" />
+                </colgroup>
+                <tr>
+                    <th>Title</th>
+                    <td>{{ object.title }}</td>
+                </tr>
+                <tr>
+                    <th>Public ID</th>
+                    <td>{{ object.uuid }}</td>
+                </tr>
+                <tr>
+                    <th>Slug</th>
+                    <td>{{ object.slug }}</td>
+                </tr>
+                <tr>
+                    <th>Description</th>
+                    <td class="whitespace-pre-wrap">{{ object.description|default:"(none)" }}</td>
+                </tr>
+                <tr>
+                    <th>Publish Date</th>
+                    <td>{{ object.canonical_publish_date|date:"Y-m-d H:i" }}</td>
+                </tr>
+                <tr>
+                    <th>Capture Date</th>
+                    <td>
+                        {% if object.metadata.capture_date %}
+                        {{ object.metadata.capture_date|date:"Y-m-d H:i" }}
+                        {% else %}
+                        (unknown)
+                        {% endif %}
+                    </td>
+                <tr>
+                    <th>Image</th>
+                    <td>
+                        {% if object.raw_image %}
+                        <img src="{% url 'photo-image' object.pk UI_THUMBNAIL_LARGE %}" alt="{{ object.title }}"
+                            class="max-w-full shadow" />
+                        {% else %}
+                        (No image)
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th>Hidden</th>
+                    <td>
+                        {% if object.canonical_hidden %}
+                        Yes
+                        {% else %}
+                        No
+                        {% endif %}
+                        {% if object.hide_location %}
+                        <span class="font-light">
+                            &ndash; Location Hidden
+                        </span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% if object.albums %}
+                <tr>
+                    <th>
+                        Albums
+                    </th>
+
+                    <td>
+                        {% if object.albums.all %}
+                        <ul class="list-disc list-inside">
+                            {% for album in object.albums.all %}
+                            <li>
+                                <a href="{{ album.get_absolute_url }}" class="link link-hover">
+                                    {{ album }}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        (No albums)
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <th>Tags</th>
+                    <td>
+                        {% if object.tags.all %}
+                        <ul class="flex flex-wrap gap-2">
+                            {% for tag in object.tags.all %}
+                            <li>
+                                <a href="{% url 'tag-detail' tag.id %}">
+                                    <span class="badge badge-secondary">
+                                        {{ tag }}
+                                    </span>
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        (No tags)
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th>Custom Attributes</th>
+                    <td>
+                        {% if object.custom_attributes %}
+                            <pre class="whitespace-pre-wrap bg-base-200 p-2 rounded text-sm font-mono max-h-72 overflow-auto block">{{ custom_attributes }}</pre>
+                        {% else %}
+                            (none)
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th>Location</th>
+                    <td>
+                        <div class="{% if object.latitude is not None and object.longitude is not None %}h-64{% endif %}">
+                            {% if object.latitude is not None and object.longitude is not None %}
+                                {% with map_id="photo-location-map-"|add:object.pk|slugify %}
+                                    {% include "partials/map/pin.html" with latitude=object.latitude longitude=object.longitude zoom=12 locked=True show_zoom_control=True id=map_id %}
+                                {% endwith %}
+                            {% else %}
+                                (none)
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Created</th>
+                    <td>{{ object.created_at | date:"Y-m-d H:i" }}</td>
+                </tr>
+                <tr>
+                    <th>Updated</th>
+                    <td>{{ object.updated_at | date:"Y-m-d H:i" }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="box overflow-x-scroll">
+        <h3 class="text-2xl">Metadata</h3>
+
+        {% if not object.metadata %}
+        <p class="p-4 text-center">
+            Metadata is being generated. Try refreshing the page.
+        </p>
+        {% endif %}
+
+        <table class="table table-zebra">
+            <colgroup>
+                <col class="w-min whitespace-nowrap" />
+                <col class="w-full" />
+            </colgroup>
+            {% if object.metadata.rating %}
+            <tr>
+                <th>Rating</th>
+                <td>{{ object.metadata.rating }}</td>
+            </tr>
+            {% endif %}
+            {% if object.metadata.camera_make %}
+            <tr>
+                <th>Camera Make</th>
+                <td>{{ object.metadata.camera_make }}</td>
+            </tr>
+            {% endif %}
+            {% if object.metadata.camera_model %}
+            <tr>
+                <th>Camera Model</th>
+                <td>{{ object.metadata.camera_model }}</td>
+            </tr>
+            {% endif %}
+            {% if object.metadata.lens_model %}
+            <tr>
+                <th>Lens Model</th>
+                <td>{{ object.metadata.lens_model }}</td>
+            </tr>
+            {% endif %}
+            {% if object.metadata.focal_length %}
+            <tr>
+                <th>Focal Length</th>
+                <td>{{ object.metadata.focal_length|floatformat:"-1" }} mm</td>
+            </tr>
+            {% endif %}
+            {% if object.metadata.focal_length_35mm %}
+            <tr>
+                <th>Focal Length (35mm)</th>
+                <td>{{ object.metadata.focal_length_35mm|floatformat:"-1" }} mm</td>
+            </tr>
+            {% endif %}
+            {% if object.metadata.aperture %}
+            <tr>
+                <th>Aperture</th>
+                <td>f/{{ object.metadata.aperture|floatformat:"-1" }}</td>
+            </tr>
+            {% endif %}
+            {% if object.metadata.shutter_speed %}
+            <tr>
+                <th>Shutter Speed</th>
+                <td>{{ object.metadata.shutter_speed | shutter_speed }}</td>
+            </tr>
+            {% endif %}
+            {% if object.metadata.iso %}
+            <tr>
+                <th>ISO</th>
+                <td>{{ object.metadata.iso }}</td>
+            </tr>
+            {% endif %}
+            {% if object.metadata.exposure_program %}
+            <tr>
+                <th>Exposure Program</th>
+                <td>{{ object.metadata.exposure_program }}</td>
+            </tr>
+            {% endif %}
+            {% if object.metadata and object.metadata.exposure_compensation is not None %}
+            <tr>
+                <th>Exposure Compensation</th>
+                <td>{{ object.metadata.exposure_compensation | exposure_compensation }}</td>
+            </tr>
+            {% endif %}
+            {% if object.metadata.flash %}
+            <tr>
+                <th>Flash</th>
+                <td>
+                    {{ object.metadata.flash }}
+                </td>
+            </tr>
+            {% endif %}
+            {% if object.metadata.copyright %}
+            <tr>
+                <th>Copyright</th>
+                <td>{{ object.metadata.copyright }}</td>
+            </tr>
+            {% endif %}
+            {% if object.metadata.raw_latitude and object.metadata.raw_longitude %}
+            <tr>
+                <th>Raw Location</th>
+                <td>
+                    {% include "partials/map/pin.html" with latitude=object.metadata.raw_latitude longitude=object.metadata.raw_longitude zoom=12 locked=True id="metadata-map" show_zoom_control=True %}
+                </td>
+            </tr>
+            {% endif %}
+        </table>
+    </div>
+
+    <div>
+        <div class="box">
+            <h3 class="text-2xl">Sizes</h3>
+
+            <div class="w-full overflow-x-scroll">
+                <table class="table table-zebra table-auto">
+                    <colgroup>
+                        <col class="w-min whitespace-nowrap" />
+                        <col class="w-min whitespace-nowrap" />
+                        <col class="w-full" />
+                    </colgroup>
+                    {% for size, photo_size in sizes %}
+                    <tr>
+                        <th>{{ size.slug }}</th>
+                        <td>
+                            {% if photo_size %}
+                            <a href="{% url 'photo-image' object.pk size.slug %}" download>
+                                {{ size.slug }}
+                            </a>
+                            {% else %}
+                            <span>(pending)</span>
+                            {% endif %}
+                        </td>
+                        {% if photo_size %}
+                            <td>
+                                <pre><code>{{ photo_size.md5|default:"Pending MD5" }}</code></pre>
+                            </td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+
+            <p class="pt-4">
+                Note: These links are not public! You must use the public API in your clients to access these images.
+            </p>
+        </div>
+    </div>
+
+    <div class="box">
+        <h3 class="text-2xl">Publishing Channels</h3>
+
+        <div class="overflow-x-scroll">
+            <table class="table table-zebra table-auto">
+                <colgroup>
+                    <col class="w-min" />
+                    <col class="w-full whitespace-nowrap" />
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th>Channel</th>
+                        <th>Publish Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for channel, channel_photo in publishing_channels %}
+                    <tr>
+                        <td{% if not channel_photo %} class="font-light"{% endif %}>{{ channel.name }}</td>
+                        <td{% if channel_photo.publish_date and channel_photo.publish_date > now %} class="italic"{% endif %}>
+                            {% if channel_photo and channel_photo.publish_date %}
+                            {{ channel_photo.publish_date|date:"Y-m-d H:i" }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div>
+    {% include "partials/model_view_modify_buttons.html" %}
+</div>
+
+{% endblock %}

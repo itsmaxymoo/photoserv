@@ -1,16 +1,29 @@
 # Contributing to Photoserv
 
-## Architecture
+# 1.0 Branch Committed Changes:
 
-This must be respected when contributing.
-
-* **Core** contains core business logic and models for media. It only depends on "utility" apps.
-    * Caveat: `core.PhotoForm` imports from `integration` because I couldn't find a better way to do this.
-    It is done in such a way to avoid circular dependency and provide loose-ish coupling.
-* **Public REST API** depends on core to expose read-only endpoints for external consumption (including integration).
-* **Integration** depends on core and public_rest_api to extend functionality via plugins and webhooks.
-* **Home** is a placeholder for dashboard functionality and depends on core.
-* **All other apps** are utility apps with no dependencies on core or each other. They can be lifted right into other projects if needed.
+* update refs to old repo
+* Publishing Schedule
+* Remove integration: scan for plugins
+* UI/frontend permissions
+* Integrations subscribe to a publishing channel
+* All integrations shall be python based
+* Photo calendar shall be based on publishing channels
+* Rename 'core' to 'media'
+* Newer API schema
+    * Session Auth supported
+    * Read/write endpoints for resources (admin api)
+    * Write requires permission on API key
+    * User based API
+    * media.full_api_access
+* Authentication is now enforced; no anonymous mode.
+* Implement publishing channels; publishing logic fully owned by Media
+* A photo shall not be published until all sizes are generated
+* Remove "Create Multiple" photos.
+* Official icon/logo
+* new namespace
+* breaking: most api endpoints return results in results element
+* Channel fork
 
 ## Development
 
@@ -46,7 +59,6 @@ Run tests before every commit.
 ### Python
 
 * Follow PEP 8 for imports (top of file)
-* Exception: Importing `integration` within `core.PhotoForm` is allowed to avoid circular dependency and loose-ish coupling.
 
 ### Templates
 
@@ -89,21 +101,25 @@ Example:
 
 ```
 photoserv/
-├── api_key/           # API key management
-├── core/              # Photos, albums, tags (core logic)
-├── iam/               # User authentication
-├── integration/       # Plugins & webhooks
-├── job_overview/      # Celery task monitoring frontend
-├── public_rest_api/   # REST API endpoints
-├── home/              # Dashboard (placeholder)
-├── photoserv/         # Django settings
-├── photoserv_plugin/  # Plugin base classes
+├── api_key/           # API key management and DRF authentication
+├── core/              # Legacy migration bridge retained for upgrades to 1.0
+├── errorhtml/         # Custom HTTP error handlers
+├── home/              # Root URL redirect
+├── iam/               # Users, authentication, groups, and permissions
+├── integration/       # Integration plugin configuration, execution, and history
+├── job_overview/      # Celery task monitoring UI
+├── media/             # Photos, albums, tags, sizes, channels, and REST API
+├── official_plugins/  # Integration plugins bundled with Photoserv
+├── photoserv/         # Project settings, URL configuration, and Celery setup
+├── photoserv_plugin/  # Plugin API and base classes
+├── plugins/           # Locally installed integration plugins (don't upload stuff here)
 ├── templates/         # HTML templates
-├── static/            # CSS/JS assets
+├── static/            # CSS, JavaScript, images, and other static assets
+└── docs/              # Project documentation and screenshots
 ```
 
 ## Resources
 
 * **README.md** - Installation and configuration
 * **Swagger** - `https://<your-instance>/swagger` (API documentation)
-* **GitHub** - https://github.com/photoserv/photoserv
+* **GitHub** - https://github.com/itsmaxymoo/photoserv

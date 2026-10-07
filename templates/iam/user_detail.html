@@ -34,8 +34,16 @@ User: {{ object }}
                     <td>{{ object.last_name }}</td>
                 </tr>
                 <tr>
-                    <th>email</th>
+                    <th>Email</th>
                     <td>{{ object.email }}</td>
+                </tr>
+                <tr>
+                    <th>Active</th>
+                    <td>{{ object.is_active }}</td>
+                </tr>
+                <tr>
+                    <th>Superuser</th>
+                    <td>{{ object.is_superuser }}</td>
                 </tr>
                 <tr>
                     <th>Joined</th>
@@ -44,6 +52,20 @@ User: {{ object }}
                 <tr>
                     <th>Last Login</th>
                     <td>{{ object.last_login }}</td>
+                </tr>
+                <tr>
+                    <th>Groups</th>
+                    <td>
+                        {% if object.groups.all %}
+                        <ul class="list-disc list-inside">
+                            {% for group in object.groups.all %}
+                            <li>{{ group.name }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <span class="text-gray-500">No groups</span>
+                        {% endif %}
+                    </td>
                 </tr>
             </table>
         </div>

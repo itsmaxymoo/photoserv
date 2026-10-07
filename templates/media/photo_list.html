@@ -1,0 +1,24 @@
+{% extends "generic_crud_list.html" %}
+
+{% block header_buttons %}
+
+
+{% if perms.media.add_channelphoto %}
+<a href="{% url 'channel-publication-helper' %}" class="btn btn-primary">
+    Publication Helper
+</a>
+{% endif %}
+
+<a href="{% url 'photo-calendar' %}" class="btn btn-secondary">
+    Photo Calendar
+</a>
+
+{% endblock %}
+
+{% block content %}
+{{ block.super }}
+
+<!-- Filter Form -->
+{% include "media/partials/photo_filter_form.html" %}
+
+{% endblock %}

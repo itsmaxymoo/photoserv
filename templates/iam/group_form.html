@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% load crispy_forms_tags %}
+{% load daisyui_filters %}
+
+{% block title %}Editing {{ object|default:"Group" }}{% endblock %}
+
+{% block content %}
+<form method="post">
+    {% csrf_token %}
+
+    <div class="grid grid-cols-1 gap-4">
+        <h2>Editing {{ object|default:"Group" }}</h2>
+
+        {% if form.non_field_errors %}
+        <div class="alert alert-error" id="form-errors">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+
+        <div>
+            {{ form.name|as_crispy_field }}
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {% for app_name, permission_fields in form.permission_groups %}
+            <section class="box">
+                <h3>{{ app_name }}</h3>
+                <div class="grid grid-cols-1 gap-2 pt-2">
+                    {% for permission_field in permission_fields %}
+                    {{ permission_field|as_crispy_field }}
+                    {% endfor %}
+                </div>
+            </section>
+            {% endfor %}
+        </div>
+
+        <div class="flex flex-col justify-center gap-4 sm:flex-row">
+            <a href="{% if object %}../{% else %}../{% endif %}" class="btn btn-secondary w-full sm:w-auto">
+                Cancel
+            </a>
+            <button type="submit" class="btn btn-primary w-full sm:w-auto">Save</button>
+        </div>
+    </div>
+</form>
+{% endblock %}

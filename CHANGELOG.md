@@ -7,281 +7,281 @@
 
 * New container namespace ([73f5448](https://github.com/itsmaxymoo/photoserv/commit/73f5448c16b2427b3e8030aefd18b069e3710fd6))
 
-## [0.9.9](https://github.com/photoserv/photoserv/compare/0.9.8...0.9.9) (2026-07-11)
+## [0.9.9](https://github.com/itsmaxymoo/photoserv/compare/0.9.8...0.9.9) (2026-07-11)
 
 
 ### Dependencies
 
-* **js:** bump @codemirror/view from 6.42.1 to 6.43.4 ([0b2a4d3](https://github.com/photoserv/photoserv/commit/0b2a4d3ffb376243cd10dedd101374c4629279a7))
-* **js:** bump @tailwindcss/cli from 4.2.4 to 4.3.2 ([ffe432a](https://github.com/photoserv/photoserv/commit/ffe432a41cbe7f7913b62458b7e2b6b301b78ec1))
-* **js:** bump daisyui from 5.5.19 to 5.6.6 ([797594a](https://github.com/photoserv/photoserv/commit/797594a435c333728450e6d4542e4a1928d544e6))
-* **js:** bump esbuild from 0.28.0 to 0.28.1 ([6ef9402](https://github.com/photoserv/photoserv/commit/6ef9402fc574abdfa11a36103c7cd898ae771d82))
-* **js:** bump tailwindcss from 4.2.4 to 4.3.2 ([d7e6686](https://github.com/photoserv/photoserv/commit/d7e66868429b2be6bbc048ae171a0932dc9f6ab3))
-* **python:** bump django from 6.0.4 to 6.0.6 ([26d74fd](https://github.com/photoserv/photoserv/commit/26d74fd85a27dcdd10a50dfa628307105d9034f6))
-* **python:** bump gunicorn from 25.3.0 to 26.0.0 ([8d8672b](https://github.com/photoserv/photoserv/commit/8d8672b1ee7f51bce7ec5868b8d097d50cede14d))
-* **python:** bump redis from 7.4.0 to 8.0.1 ([fa19c9d](https://github.com/photoserv/photoserv/commit/fa19c9df5a312b4dc2897098fc3fcc374b79ebb9))
+* **js:** bump @codemirror/view from 6.42.1 to 6.43.4 ([0b2a4d3](https://github.com/itsmaxymoo/photoserv/commit/0b2a4d3ffb376243cd10dedd101374c4629279a7))
+* **js:** bump @tailwindcss/cli from 4.2.4 to 4.3.2 ([ffe432a](https://github.com/itsmaxymoo/photoserv/commit/ffe432a41cbe7f7913b62458b7e2b6b301b78ec1))
+* **js:** bump daisyui from 5.5.19 to 5.6.6 ([797594a](https://github.com/itsmaxymoo/photoserv/commit/797594a435c333728450e6d4542e4a1928d544e6))
+* **js:** bump esbuild from 0.28.0 to 0.28.1 ([6ef9402](https://github.com/itsmaxymoo/photoserv/commit/6ef9402fc574abdfa11a36103c7cd898ae771d82))
+* **js:** bump tailwindcss from 4.2.4 to 4.3.2 ([d7e6686](https://github.com/itsmaxymoo/photoserv/commit/d7e66868429b2be6bbc048ae171a0932dc9f6ab3))
+* **python:** bump django from 6.0.4 to 6.0.6 ([26d74fd](https://github.com/itsmaxymoo/photoserv/commit/26d74fd85a27dcdd10a50dfa628307105d9034f6))
+* **python:** bump gunicorn from 25.3.0 to 26.0.0 ([8d8672b](https://github.com/itsmaxymoo/photoserv/commit/8d8672b1ee7f51bce7ec5868b8d097d50cede14d))
+* **python:** bump redis from 7.4.0 to 8.0.1 ([fa19c9d](https://github.com/itsmaxymoo/photoserv/commit/fa19c9df5a312b4dc2897098fc3fcc374b79ebb9))
 
-## [0.9.8](https://github.com/photoserv/photoserv/compare/0.9.7...0.9.8) (2026-05-17)
+## [0.9.8](https://github.com/itsmaxymoo/photoserv/compare/0.9.7...0.9.8) (2026-05-17)
 
 
 ### Bug Fixes
 
-* Code changes for django-tables2 3.0.0 ([8f875fc](https://github.com/photoserv/photoserv/commit/8f875fc24865116b6fdacea8f90bb143f6d51f51))
+* Code changes for django-tables2 3.0.0 ([8f875fc](https://github.com/itsmaxymoo/photoserv/commit/8f875fc24865116b6fdacea8f90bb143f6d51f51))
 
 
 ### Dependencies
 
-* **js:** bump @alpinejs/sort from 3.15.10 to 3.15.12 ([5d08442](https://github.com/photoserv/photoserv/commit/5d08442cd0a7b95e165df039ae10f965364b4a52))
-* **js:** bump @codemirror/view from 6.40.0 to 6.42.1 ([c2f0914](https://github.com/photoserv/photoserv/commit/c2f0914e57cbae7a517c1e0447711453cf11a658))
-* **js:** bump @tailwindcss/cli from 4.2.2 to 4.2.4 ([b43797d](https://github.com/photoserv/photoserv/commit/b43797de7bf5e6351412fc18ecd43e058a6d9c25))
-* **js:** bump alpinejs from 3.15.9 to 3.15.12 ([a0439b0](https://github.com/photoserv/photoserv/commit/a0439b0f77a40788ec8fb68332fee06a75ba2c1d))
-* **js:** bump esbuild from 0.27.2 to 0.28.0 ([ac20328](https://github.com/photoserv/photoserv/commit/ac20328a0da58623375c9127e19efd1532fea82b))
-* **python:** bump django from 6.0.3 to 6.0.4 ([c3130bb](https://github.com/photoserv/photoserv/commit/c3130bb3d444b469f7ef36c149059e0dd35e06b7))
-* **python:** bump django-tables2 from 2.8.0 to 3.0.0 ([7aa17b3](https://github.com/photoserv/photoserv/commit/7aa17b31dba026e256e6657ee3369ef73874c092))
-* **python:** bump psycopg2-binary from 2.9.11 to 2.9.12 ([c330f5f](https://github.com/photoserv/photoserv/commit/c330f5f86d5ae2d3d79115d7366ed93951a615ea))
-* **python:** bump redis from 7.2.1 to 7.4.0 ([f799f69](https://github.com/photoserv/photoserv/commit/f799f697d2ebc8ecc1c33a85868c26476117c7c2))
-* **python:** update pillow requirement from &lt;=12.1.1 to &lt;=12.2.0 ([659b858](https://github.com/photoserv/photoserv/commit/659b8587c8386ba6aaa1a791beefaa92b077dc03))
+* **js:** bump @alpinejs/sort from 3.15.10 to 3.15.12 ([5d08442](https://github.com/itsmaxymoo/photoserv/commit/5d08442cd0a7b95e165df039ae10f965364b4a52))
+* **js:** bump @codemirror/view from 6.40.0 to 6.42.1 ([c2f0914](https://github.com/itsmaxymoo/photoserv/commit/c2f0914e57cbae7a517c1e0447711453cf11a658))
+* **js:** bump @tailwindcss/cli from 4.2.2 to 4.2.4 ([b43797d](https://github.com/itsmaxymoo/photoserv/commit/b43797de7bf5e6351412fc18ecd43e058a6d9c25))
+* **js:** bump alpinejs from 3.15.9 to 3.15.12 ([a0439b0](https://github.com/itsmaxymoo/photoserv/commit/a0439b0f77a40788ec8fb68332fee06a75ba2c1d))
+* **js:** bump esbuild from 0.27.2 to 0.28.0 ([ac20328](https://github.com/itsmaxymoo/photoserv/commit/ac20328a0da58623375c9127e19efd1532fea82b))
+* **python:** bump django from 6.0.3 to 6.0.4 ([c3130bb](https://github.com/itsmaxymoo/photoserv/commit/c3130bb3d444b469f7ef36c149059e0dd35e06b7))
+* **python:** bump django-tables2 from 2.8.0 to 3.0.0 ([7aa17b3](https://github.com/itsmaxymoo/photoserv/commit/7aa17b31dba026e256e6657ee3369ef73874c092))
+* **python:** bump psycopg2-binary from 2.9.11 to 2.9.12 ([c330f5f](https://github.com/itsmaxymoo/photoserv/commit/c330f5f86d5ae2d3d79115d7366ed93951a615ea))
+* **python:** bump redis from 7.2.1 to 7.4.0 ([f799f69](https://github.com/itsmaxymoo/photoserv/commit/f799f697d2ebc8ecc1c33a85868c26476117c7c2))
+* **python:** update pillow requirement from &lt;=12.1.1 to &lt;=12.2.0 ([659b858](https://github.com/itsmaxymoo/photoserv/commit/659b8587c8386ba6aaa1a791beefaa92b077dc03))
 
-## [0.9.7](https://github.com/photoserv/photoserv/compare/0.9.6...0.9.7) (2026-04-05)
-
-
-### Bug Fixes
-
-* Provide referrer to OSM on pin inputs ([c390afd](https://github.com/photoserv/photoserv/commit/c390afd5f8fb53f6fc569001a75de76a74bbe3ef))
-
-## [0.9.6](https://github.com/photoserv/photoserv/compare/0.9.5...0.9.6) (2026-04-05)
+## [0.9.7](https://github.com/itsmaxymoo/photoserv/compare/0.9.6...0.9.7) (2026-04-05)
 
 
 ### Bug Fixes
 
-* Fix queue_global_integrations() takes 0 positional arguments but 1 was given ([4451667](https://github.com/photoserv/photoserv/commit/44516673545ae429a661d8e7b8a4109233856fa0))
-* Integration consistency querying wrong model ([e5e5c4c](https://github.com/photoserv/photoserv/commit/e5e5c4c0cb19b2c76788bb6ea17f367284ff4a87))
+* Provide referrer to OSM on pin inputs ([c390afd](https://github.com/itsmaxymoo/photoserv/commit/c390afd5f8fb53f6fc569001a75de76a74bbe3ef))
 
-## [0.9.5](https://github.com/photoserv/photoserv/compare/0.9.4...0.9.5) (2026-04-04)
+## [0.9.6](https://github.com/itsmaxymoo/photoserv/compare/0.9.5...0.9.6) (2026-04-05)
 
 
 ### Bug Fixes
 
-* Set OSM referrer ([1e604f8](https://github.com/photoserv/photoserv/commit/1e604f8caf69f63cb09a92507efe58e0cd63fe32))
+* Fix queue_global_integrations() takes 0 positional arguments but 1 was given ([4451667](https://github.com/itsmaxymoo/photoserv/commit/44516673545ae429a661d8e7b8a4109233856fa0))
+* Integration consistency querying wrong model ([e5e5c4c](https://github.com/itsmaxymoo/photoserv/commit/e5e5c4c0cb19b2c76788bb6ea17f367284ff4a87))
 
-## [0.9.4](https://github.com/photoserv/photoserv/compare/0.9.3...0.9.4) (2026-04-02)
+## [0.9.5](https://github.com/itsmaxymoo/photoserv/compare/0.9.4...0.9.5) (2026-04-04)
+
+
+### Bug Fixes
+
+* Set OSM referrer ([1e604f8](https://github.com/itsmaxymoo/photoserv/commit/1e604f8caf69f63cb09a92507efe58e0cd63fe32))
+
+## [0.9.4](https://github.com/itsmaxymoo/photoserv/compare/0.9.3...0.9.4) (2026-04-02)
 
 
 ### Dependencies
 
-* **js:** bump @alpinejs/sort from 3.15.8 to 3.15.9 ([4ab82e7](https://github.com/photoserv/photoserv/commit/4ab82e7be91d7e99117aaeded845d1908215fc51))
-* **js:** bump @codemirror/view from 6.39.15 to 6.40.0 ([bc412e7](https://github.com/photoserv/photoserv/commit/bc412e77fc734c8d18bb29afbb8d779b6f2ea8b6))
-* **js:** bump @tailwindcss/cli from 4.2.1 to 4.2.2 ([d479dba](https://github.com/photoserv/photoserv/commit/d479dbaf7dee0ba6d5a10abf24ffbbaff539f399))
-* **js:** bump alpinejs from 3.15.8 to 3.15.9 ([1ea992f](https://github.com/photoserv/photoserv/commit/1ea992f9e0465aff1f14856661c659d3c5880529))
-* **js:** bump tailwindcss from 4.2.1 to 4.2.2 ([1804c39](https://github.com/photoserv/photoserv/commit/1804c391ae1ef8e0bf9c585385873ef3ed51bfdf))
-* **python:** bump celery from 5.6.2 to 5.6.3 ([a8b01b1](https://github.com/photoserv/photoserv/commit/a8b01b1c77b7af2d3f1e09dada06f7916287d4b0))
-* **python:** bump django-crispy-forms from 2.5 to 2.6 ([a0bcef3](https://github.com/photoserv/photoserv/commit/a0bcef3f15ae7b2f25c6d7c02a59a7ed3e32a3ab))
-* **python:** bump djangorestframework from 3.16.1 to 3.17.1 ([e9e4086](https://github.com/photoserv/photoserv/commit/e9e40867372d7ea68a5acfd46359ae543998b4f5))
-* **python:** bump gunicorn from 25.1.0 to 25.3.0 ([49ebd28](https://github.com/photoserv/photoserv/commit/49ebd280f76c0d8f0f5332f86642fc227d7155cc))
-* **python:** bump python-dotenv from 1.2.1 to 1.2.2 ([c7a5cd3](https://github.com/photoserv/photoserv/commit/c7a5cd3a03a7c31f87b05ac1d12868316a0dfe80))
+* **js:** bump @alpinejs/sort from 3.15.8 to 3.15.9 ([4ab82e7](https://github.com/itsmaxymoo/photoserv/commit/4ab82e7be91d7e99117aaeded845d1908215fc51))
+* **js:** bump @codemirror/view from 6.39.15 to 6.40.0 ([bc412e7](https://github.com/itsmaxymoo/photoserv/commit/bc412e77fc734c8d18bb29afbb8d779b6f2ea8b6))
+* **js:** bump @tailwindcss/cli from 4.2.1 to 4.2.2 ([d479dba](https://github.com/itsmaxymoo/photoserv/commit/d479dbaf7dee0ba6d5a10abf24ffbbaff539f399))
+* **js:** bump alpinejs from 3.15.8 to 3.15.9 ([1ea992f](https://github.com/itsmaxymoo/photoserv/commit/1ea992f9e0465aff1f14856661c659d3c5880529))
+* **js:** bump tailwindcss from 4.2.1 to 4.2.2 ([1804c39](https://github.com/itsmaxymoo/photoserv/commit/1804c391ae1ef8e0bf9c585385873ef3ed51bfdf))
+* **python:** bump celery from 5.6.2 to 5.6.3 ([a8b01b1](https://github.com/itsmaxymoo/photoserv/commit/a8b01b1c77b7af2d3f1e09dada06f7916287d4b0))
+* **python:** bump django-crispy-forms from 2.5 to 2.6 ([a0bcef3](https://github.com/itsmaxymoo/photoserv/commit/a0bcef3f15ae7b2f25c6d7c02a59a7ed3e32a3ab))
+* **python:** bump djangorestframework from 3.16.1 to 3.17.1 ([e9e4086](https://github.com/itsmaxymoo/photoserv/commit/e9e40867372d7ea68a5acfd46359ae543998b4f5))
+* **python:** bump gunicorn from 25.1.0 to 25.3.0 ([49ebd28](https://github.com/itsmaxymoo/photoserv/commit/49ebd280f76c0d8f0f5332f86642fc227d7155cc))
+* **python:** bump python-dotenv from 1.2.1 to 1.2.2 ([c7a5cd3](https://github.com/itsmaxymoo/photoserv/commit/c7a5cd3a03a7c31f87b05ac1d12868316a0dfe80))
 
-## [0.9.3](https://github.com/photoserv/photoserv/compare/0.9.2...0.9.3) (2026-03-27)
-
-
-### Bug Fixes
-
-* Fix bug where missing EV comp crashed metadata and size generation ([c7e2032](https://github.com/photoserv/photoserv/commit/c7e2032719330b3110599bc34681680af26d4cba))
-
-## [0.9.2](https://github.com/photoserv/photoserv/compare/0.9.1...0.9.2) (2026-03-15)
+## [0.9.3](https://github.com/itsmaxymoo/photoserv/compare/0.9.2...0.9.3) (2026-03-27)
 
 
 ### Bug Fixes
 
-* Remove "custom attributes" from photo multi-create form ([1410902](https://github.com/photoserv/photoserv/commit/141090231df7cc8530ab9ee562de6d9bcb2344f5))
+* Fix bug where missing EV comp crashed metadata and size generation ([c7e2032](https://github.com/itsmaxymoo/photoserv/commit/c7e2032719330b3110599bc34681680af26d4cba))
 
-## [0.9.1](https://github.com/photoserv/photoserv/compare/0.9.0...0.9.1) (2026-03-09)
+## [0.9.2](https://github.com/itsmaxymoo/photoserv/compare/0.9.1...0.9.2) (2026-03-15)
+
+
+### Bug Fixes
+
+* Remove "custom attributes" from photo multi-create form ([1410902](https://github.com/itsmaxymoo/photoserv/commit/141090231df7cc8530ab9ee562de6d9bcb2344f5))
+
+## [0.9.1](https://github.com/itsmaxymoo/photoserv/compare/0.9.0...0.9.1) (2026-03-09)
 
 
 ### Dependencies
 
-* **js:** bump @alpinejs/sort from 3.15.6 to 3.15.8 ([22adad2](https://github.com/photoserv/photoserv/commit/22adad224e6b7e5e441ad650a12a05e6a1d06828))
-* **js:** bump @codemirror/view from 6.39.12 to 6.39.15 ([6b7540b](https://github.com/photoserv/photoserv/commit/6b7540b8dec23023194ab15fcd7460aaacceca7b))
-* **js:** bump @tailwindcss/cli from 4.1.18 to 4.2.1 ([3eb3610](https://github.com/photoserv/photoserv/commit/3eb3610cb3e7fdd2c3adbb2e252e62e86b731d2e))
-* **js:** bump daisyui from 5.5.14 to 5.5.19 ([41f9430](https://github.com/photoserv/photoserv/commit/41f9430a52b8f5be8c71589ed6a8b02824da3c4e))
-* **js:** bump tailwindcss from 4.1.18 to 4.2.1 ([777ae67](https://github.com/photoserv/photoserv/commit/777ae673bf15b0836533e6bcdfda7a0b28e98c3f))
-* **python:** bump crispy-daisyui from 0.12.1 to 0.13.0 ([5e4d58f](https://github.com/photoserv/photoserv/commit/5e4d58f4b3f94a701c8566fcd0b34858ea17278e))
-* **python:** bump django from 6.0.1 to 6.0.2 ([de0d65b](https://github.com/photoserv/photoserv/commit/de0d65b54e0540d1fa1eb144e1efff3a0a07f9d9))
-* **python:** bump gunicorn from 24.1.1 to 25.1.0 ([d775567](https://github.com/photoserv/photoserv/commit/d7755674efe443b72ef97f2ab575bfcd78b42d10))
-* **python:** bump redis from 7.1.0 to 7.2.1 ([06584d2](https://github.com/photoserv/photoserv/commit/06584d2d9fd6a041838300a84961832e7cfec421))
-* **python:** update pillow requirement from &lt;=12.1.0 to &lt;=12.1.1 ([b8091ff](https://github.com/photoserv/photoserv/commit/b8091ffad73020917c4e962c8929b51a75058373))
+* **js:** bump @alpinejs/sort from 3.15.6 to 3.15.8 ([22adad2](https://github.com/itsmaxymoo/photoserv/commit/22adad224e6b7e5e441ad650a12a05e6a1d06828))
+* **js:** bump @codemirror/view from 6.39.12 to 6.39.15 ([6b7540b](https://github.com/itsmaxymoo/photoserv/commit/6b7540b8dec23023194ab15fcd7460aaacceca7b))
+* **js:** bump @tailwindcss/cli from 4.1.18 to 4.2.1 ([3eb3610](https://github.com/itsmaxymoo/photoserv/commit/3eb3610cb3e7fdd2c3adbb2e252e62e86b731d2e))
+* **js:** bump daisyui from 5.5.14 to 5.5.19 ([41f9430](https://github.com/itsmaxymoo/photoserv/commit/41f9430a52b8f5be8c71589ed6a8b02824da3c4e))
+* **js:** bump tailwindcss from 4.1.18 to 4.2.1 ([777ae67](https://github.com/itsmaxymoo/photoserv/commit/777ae673bf15b0836533e6bcdfda7a0b28e98c3f))
+* **python:** bump crispy-daisyui from 0.12.1 to 0.13.0 ([5e4d58f](https://github.com/itsmaxymoo/photoserv/commit/5e4d58f4b3f94a701c8566fcd0b34858ea17278e))
+* **python:** bump django from 6.0.1 to 6.0.2 ([de0d65b](https://github.com/itsmaxymoo/photoserv/commit/de0d65b54e0540d1fa1eb144e1efff3a0a07f9d9))
+* **python:** bump gunicorn from 24.1.1 to 25.1.0 ([d775567](https://github.com/itsmaxymoo/photoserv/commit/d7755674efe443b72ef97f2ab575bfcd78b42d10))
+* **python:** bump redis from 7.1.0 to 7.2.1 ([06584d2](https://github.com/itsmaxymoo/photoserv/commit/06584d2d9fd6a041838300a84961832e7cfec421))
+* **python:** update pillow requirement from &lt;=12.1.0 to &lt;=12.1.1 ([b8091ff](https://github.com/itsmaxymoo/photoserv/commit/b8091ffad73020917c4e962c8929b51a75058373))
 
-## [0.9.0](https://github.com/photoserv/photoserv/compare/0.8.0...0.9.0) (2026-02-20)
+## [0.9.0](https://github.com/itsmaxymoo/photoserv/compare/0.8.0...0.9.0) (2026-02-20)
 
 
 ### Features
 
-* Custom, user-defined attributes on photos and albums ([524ca61](https://github.com/photoserv/photoserv/commit/524ca618a0bccb4434e3f5b6e8c02992fd7a444e))
-* Filter photos on any field in the Web UI and REST API ([daaf2cd](https://github.com/photoserv/photoserv/commit/daaf2cd0b1eeef21d1b906617ba678c1f53377f5))
-* Photo geotagging ([524ca61](https://github.com/photoserv/photoserv/commit/524ca618a0bccb4434e3f5b6e8c02992fd7a444e))
-* Query album photos recursively in the REST API ([16731ce](https://github.com/photoserv/photoserv/commit/16731ce0a7e74968597a3c22daa56bb363be83be))
-* Set entires per-page on tables ([4fda8ef](https://github.com/photoserv/photoserv/commit/4fda8ef5ff6a267182e60932c72684a50c4657d6))
-* Specify an album sort mode in the REST API ([16731ce](https://github.com/photoserv/photoserv/commit/16731ce0a7e74968597a3c22daa56bb363be83be))
-* Stylized error pages ([897c320](https://github.com/photoserv/photoserv/commit/897c3209a6177070382ac0fff0938c6fda1d7f66))
+* Custom, user-defined attributes on photos and albums ([524ca61](https://github.com/itsmaxymoo/photoserv/commit/524ca618a0bccb4434e3f5b6e8c02992fd7a444e))
+* Filter photos on any field in the Web UI and REST API ([daaf2cd](https://github.com/itsmaxymoo/photoserv/commit/daaf2cd0b1eeef21d1b906617ba678c1f53377f5))
+* Photo geotagging ([524ca61](https://github.com/itsmaxymoo/photoserv/commit/524ca618a0bccb4434e3f5b6e8c02992fd7a444e))
+* Query album photos recursively in the REST API ([16731ce](https://github.com/itsmaxymoo/photoserv/commit/16731ce0a7e74968597a3c22daa56bb363be83be))
+* Set entires per-page on tables ([4fda8ef](https://github.com/itsmaxymoo/photoserv/commit/4fda8ef5ff6a267182e60932c72684a50c4657d6))
+* Specify an album sort mode in the REST API ([16731ce](https://github.com/itsmaxymoo/photoserv/commit/16731ce0a7e74968597a3c22daa56bb363be83be))
+* Stylized error pages ([897c320](https://github.com/itsmaxymoo/photoserv/commit/897c3209a6177070382ac0fff0938c6fda1d7f66))
 
 
 ### Bug Fixes
 
-* Allow users to change the image associated with an existing photo ([3a64697](https://github.com/photoserv/photoserv/commit/3a6469758808681a8ef15f1bb9e34a7435dcc786))
-* Better form element spacing for many edit views. ([885cb46](https://github.com/photoserv/photoserv/commit/885cb462247cee998fe4ef743a7554dff7a49b1a))
-* Fix bug when OIDC is disabled and simple auth is enabled causing crash ([037a9ec](https://github.com/photoserv/photoserv/commit/037a9ec816925600786a901d30ed173114ecbc7f))
-* Improve image thumbnail formatting in photo list ([aef464d](https://github.com/photoserv/photoserv/commit/aef464db00bc2d0c355d52b826c61ef623a4833c))
-* Improve object list header buttons layout on mobile. ([a1c474e](https://github.com/photoserv/photoserv/commit/a1c474eae9e26d000d144bed412e3db1547f0ce0))
-* Order albums alphabetically on the Photo form. ([16731ce](https://github.com/photoserv/photoserv/commit/16731ce0a7e74968597a3c22daa56bb363be83be))
+* Allow users to change the image associated with an existing photo ([3a64697](https://github.com/itsmaxymoo/photoserv/commit/3a6469758808681a8ef15f1bb9e34a7435dcc786))
+* Better form element spacing for many edit views. ([885cb46](https://github.com/itsmaxymoo/photoserv/commit/885cb462247cee998fe4ef743a7554dff7a49b1a))
+* Fix bug when OIDC is disabled and simple auth is enabled causing crash ([037a9ec](https://github.com/itsmaxymoo/photoserv/commit/037a9ec816925600786a901d30ed173114ecbc7f))
+* Improve image thumbnail formatting in photo list ([aef464d](https://github.com/itsmaxymoo/photoserv/commit/aef464db00bc2d0c355d52b826c61ef623a4833c))
+* Improve object list header buttons layout on mobile. ([a1c474e](https://github.com/itsmaxymoo/photoserv/commit/a1c474eae9e26d000d144bed412e3db1547f0ce0))
+* Order albums alphabetically on the Photo form. ([16731ce](https://github.com/itsmaxymoo/photoserv/commit/16731ce0a7e74968597a3c22daa56bb363be83be))
 
 
 ### Dependencies
 
-* **js:** bump @alpinejs/sort from 3.15.3 to 3.15.6 ([5747da5](https://github.com/photoserv/photoserv/commit/5747da525fe382d63b0f13d4c268fd8e971ff6cc))
-* **js:** bump @codemirror/state from 6.5.3 to 6.5.4 ([bc43780](https://github.com/photoserv/photoserv/commit/bc43780c1e80bba38151fd6aa38bccb74e52d643))
-* **js:** bump @codemirror/view from 6.39.7 to 6.39.12 ([25f05e5](https://github.com/photoserv/photoserv/commit/25f05e51dba18f792d417418afee7d5e6b39f396))
-* **js:** bump @tailwindcss/cli from 4.1.11 to 4.1.18 ([1414363](https://github.com/photoserv/photoserv/commit/14143634533b32a3f2ef1ebe1167444fd35ecf27))
-* **js:** bump alpinejs from 3.15.3 to 3.15.6 ([4e412ab](https://github.com/photoserv/photoserv/commit/4e412abfe0cc8f2e118b48c210d0daff94dfc425))
-* **python:** bump celery from 5.5.3 to 5.6.2 ([5d4f6fd](https://github.com/photoserv/photoserv/commit/5d4f6fdcbe4824765a3e9f58ab3cebf844a9fe6b))
-* **python:** bump django-crispy-forms from 2.4 to 2.5 ([d6fbe77](https://github.com/photoserv/photoserv/commit/d6fbe77374a550068523ca4c3fd8e5cf1cbd6428))
-* **python:** bump gunicorn from 23.0.0 to 24.1.1 ([d2c8cea](https://github.com/photoserv/photoserv/commit/d2c8ceaad30a0fee21e205db1cc8ba63972e53aa))
-* **python:** update pillow requirement from &lt;=12.0.0 to &lt;=12.1.0 ([1c124b7](https://github.com/photoserv/photoserv/commit/1c124b7c0d1eb189b6f9c841cdff433c5fd410fc))
+* **js:** bump @alpinejs/sort from 3.15.3 to 3.15.6 ([5747da5](https://github.com/itsmaxymoo/photoserv/commit/5747da525fe382d63b0f13d4c268fd8e971ff6cc))
+* **js:** bump @codemirror/state from 6.5.3 to 6.5.4 ([bc43780](https://github.com/itsmaxymoo/photoserv/commit/bc43780c1e80bba38151fd6aa38bccb74e52d643))
+* **js:** bump @codemirror/view from 6.39.7 to 6.39.12 ([25f05e5](https://github.com/itsmaxymoo/photoserv/commit/25f05e51dba18f792d417418afee7d5e6b39f396))
+* **js:** bump @tailwindcss/cli from 4.1.11 to 4.1.18 ([1414363](https://github.com/itsmaxymoo/photoserv/commit/14143634533b32a3f2ef1ebe1167444fd35ecf27))
+* **js:** bump alpinejs from 3.15.3 to 3.15.6 ([4e412ab](https://github.com/itsmaxymoo/photoserv/commit/4e412abfe0cc8f2e118b48c210d0daff94dfc425))
+* **python:** bump celery from 5.5.3 to 5.6.2 ([5d4f6fd](https://github.com/itsmaxymoo/photoserv/commit/5d4f6fdcbe4824765a3e9f58ab3cebf844a9fe6b))
+* **python:** bump django-crispy-forms from 2.4 to 2.5 ([d6fbe77](https://github.com/itsmaxymoo/photoserv/commit/d6fbe77374a550068523ca4c3fd8e5cf1cbd6428))
+* **python:** bump gunicorn from 23.0.0 to 24.1.1 ([d2c8cea](https://github.com/itsmaxymoo/photoserv/commit/d2c8ceaad30a0fee21e205db1cc8ba63972e53aa))
+* **python:** update pillow requirement from &lt;=12.0.0 to &lt;=12.1.0 ([1c124b7](https://github.com/itsmaxymoo/photoserv/commit/1c124b7c0d1eb189b6f9c841cdff433c5fd410fc))
 
-## [0.8.0](https://github.com/photoserv/photoserv/compare/0.7.7...0.8.0) (2026-01-18)
+## [0.8.0](https://github.com/itsmaxymoo/photoserv/compare/0.7.7...0.8.0) (2026-01-18)
 
 
 ### Features
 
-* Album list tree view ([8b4c8d1](https://github.com/photoserv/photoserv/commit/8b4c8d14433d4a0147dd37cea616bac85d02e585))
-* Photo calendar ([798cfc4](https://github.com/photoserv/photoserv/commit/798cfc4835506f010687f379763e6e35ed2fe5d0))
+* Album list tree view ([8b4c8d1](https://github.com/itsmaxymoo/photoserv/commit/8b4c8d14433d4a0147dd37cea616bac85d02e585))
+* Photo calendar ([798cfc4](https://github.com/itsmaxymoo/photoserv/commit/798cfc4835506f010687f379763e6e35ed2fe5d0))
 
 
 ### Bug Fixes
 
-* Form field errors display red instead of white ([b84a47b](https://github.com/photoserv/photoserv/commit/b84a47b55fb412c8cda80fc510f10ca96f073886))
+* Form field errors display red instead of white ([b84a47b](https://github.com/itsmaxymoo/photoserv/commit/b84a47b55fb412c8cda80fc510f10ca96f073886))
 
-## [0.7.7](https://github.com/photoserv/photoserv/compare/0.7.6...0.7.7) (2026-01-07)
+## [0.7.7](https://github.com/itsmaxymoo/photoserv/compare/0.7.6...0.7.7) (2026-01-07)
 
 
 ### Bug Fixes
 
-* Album manual sort mode ignores asc/desc option ([6661291](https://github.com/photoserv/photoserv/commit/6661291b8b2c99fa5bba430a82aef1a3a40a0f2e))
-* Display album sort asc/desc on detail page ([12476d1](https://github.com/photoserv/photoserv/commit/12476d19ddbc39c937036f40084fdaad1314133d))
-* Make "descending" the default album sort mode ([b56c096](https://github.com/photoserv/photoserv/commit/b56c0962d8240d07cf298c4bb52322eb42b096de))
+* Album manual sort mode ignores asc/desc option ([6661291](https://github.com/itsmaxymoo/photoserv/commit/6661291b8b2c99fa5bba430a82aef1a3a40a0f2e))
+* Display album sort asc/desc on detail page ([12476d1](https://github.com/itsmaxymoo/photoserv/commit/12476d19ddbc39c937036f40084fdaad1314133d))
+* Make "descending" the default album sort mode ([b56c096](https://github.com/itsmaxymoo/photoserv/commit/b56c0962d8240d07cf298c4bb52322eb42b096de))
 
 
 ### Dependencies
 
-* **js:** bump @alpinejs/sort from 3.15.2 to 3.15.3 ([cc6dae9](https://github.com/photoserv/photoserv/commit/cc6dae9d159ff818351f50d8651f7e0b5c6a1403))
-* **js:** bump alpinejs from 3.15.2 to 3.15.3 ([2f5f17e](https://github.com/photoserv/photoserv/commit/2f5f17eaaa43db555c9d803dcd34301ecb9e58b5))
-* **js:** bump daisyui from 5.5.8 to 5.5.14 ([57ce872](https://github.com/photoserv/photoserv/commit/57ce872b89d1c68bafe74844d8e22ac8ba1d1068))
-* **js:** bump esbuild from 0.27.1 to 0.27.2 ([3a304a8](https://github.com/photoserv/photoserv/commit/3a304a8eb79d0714469ed571db5cc7042c0c7cb3))
-* **js:** bump tailwindcss from 4.1.17 to 4.1.18 ([04bd221](https://github.com/photoserv/photoserv/commit/04bd2216fe701517448989e161a0df625892eaf8))
-* **python:** bump crispy-daisyui from 0.8.0 to 0.9.0 ([52c7a51](https://github.com/photoserv/photoserv/commit/52c7a5114b418158a9b9d05fa5b6e20e3de2f5c5))
-* **python:** bump django from 5.2.4 to 6.0 ([10c562e](https://github.com/photoserv/photoserv/commit/10c562e31b27e2fcc56cd99519e4b8fc13386bc6))
-* **python:** bump django-tables2 from 2.7.5 to 2.8.0 ([e7cb815](https://github.com/photoserv/photoserv/commit/e7cb8150059a7b301d8b3d417ec6dfdb858c9252))
-* **python:** bump mozilla-django-oidc from 4.0.1 to 5.0.2 ([82706c4](https://github.com/photoserv/photoserv/commit/82706c404a6dc6309dae87afec53257abc3f9c7e))
-* **python:** update pillow requirement from &lt;=11.3 to &lt;=12.0.0 ([36bf15c](https://github.com/photoserv/photoserv/commit/36bf15c2b19005daa928d82ce544a10ae74c70f1))
+* **js:** bump @alpinejs/sort from 3.15.2 to 3.15.3 ([cc6dae9](https://github.com/itsmaxymoo/photoserv/commit/cc6dae9d159ff818351f50d8651f7e0b5c6a1403))
+* **js:** bump alpinejs from 3.15.2 to 3.15.3 ([2f5f17e](https://github.com/itsmaxymoo/photoserv/commit/2f5f17eaaa43db555c9d803dcd34301ecb9e58b5))
+* **js:** bump daisyui from 5.5.8 to 5.5.14 ([57ce872](https://github.com/itsmaxymoo/photoserv/commit/57ce872b89d1c68bafe74844d8e22ac8ba1d1068))
+* **js:** bump esbuild from 0.27.1 to 0.27.2 ([3a304a8](https://github.com/itsmaxymoo/photoserv/commit/3a304a8eb79d0714469ed571db5cc7042c0c7cb3))
+* **js:** bump tailwindcss from 4.1.17 to 4.1.18 ([04bd221](https://github.com/itsmaxymoo/photoserv/commit/04bd2216fe701517448989e161a0df625892eaf8))
+* **python:** bump crispy-daisyui from 0.8.0 to 0.9.0 ([52c7a51](https://github.com/itsmaxymoo/photoserv/commit/52c7a5114b418158a9b9d05fa5b6e20e3de2f5c5))
+* **python:** bump django from 5.2.4 to 6.0 ([10c562e](https://github.com/itsmaxymoo/photoserv/commit/10c562e31b27e2fcc56cd99519e4b8fc13386bc6))
+* **python:** bump django-tables2 from 2.7.5 to 2.8.0 ([e7cb815](https://github.com/itsmaxymoo/photoserv/commit/e7cb8150059a7b301d8b3d417ec6dfdb858c9252))
+* **python:** bump mozilla-django-oidc from 4.0.1 to 5.0.2 ([82706c4](https://github.com/itsmaxymoo/photoserv/commit/82706c404a6dc6309dae87afec53257abc3f9c7e))
+* **python:** update pillow requirement from &lt;=11.3 to &lt;=12.0.0 ([36bf15c](https://github.com/itsmaxymoo/photoserv/commit/36bf15c2b19005daa928d82ce544a10ae74c70f1))
 
-## [0.7.6](https://github.com/photoserv/photoserv/compare/0.7.5...0.7.6) (2026-01-01)
-
-
-### Bug Fixes
-
-* Better pagination ([29c722e](https://github.com/photoserv/photoserv/commit/29c722e634a5125130f5b55d33b8139e64985e02))
-* Photo pagination ([6056298](https://github.com/photoserv/photoserv/commit/6056298b3b410165401e05f2e268430e4336b521))
-* Set default publish time for new photos ([eb3a187](https://github.com/photoserv/photoserv/commit/eb3a187ae28a224996e39e4b75b075f44a3ac31a))
-
-## [0.7.5](https://github.com/photoserv/photoserv/compare/0.7.4...0.7.5) (2026-01-01)
+## [0.7.6](https://github.com/itsmaxymoo/photoserv/compare/0.7.5...0.7.6) (2026-01-01)
 
 
 ### Bug Fixes
 
-* Round publish date to nearest minute ([2d75640](https://github.com/photoserv/photoserv/commit/2d75640f4c89daeca95bd8a504db970d835e3ee8))
+* Better pagination ([29c722e](https://github.com/itsmaxymoo/photoserv/commit/29c722e634a5125130f5b55d33b8139e64985e02))
+* Photo pagination ([6056298](https://github.com/itsmaxymoo/photoserv/commit/6056298b3b410165401e05f2e268430e4336b521))
+* Set default publish time for new photos ([eb3a187](https://github.com/itsmaxymoo/photoserv/commit/eb3a187ae28a224996e39e4b75b075f44a3ac31a))
 
-## [0.7.4](https://github.com/photoserv/photoserv/compare/0.7.3...0.7.4) (2025-12-31)
-
-
-### Bug Fixes
-
-* "Get Official Plugins" button moved to bottom of page to improve mobile layout ([76614bf](https://github.com/photoserv/photoserv/commit/76614bfe9251e8c365543bc5e156f3477a1280c1))
-* Delete confirmation buttons are full-width on mobile ([edaa789](https://github.com/photoserv/photoserv/commit/edaa78953b72cb40167a34cc87997c56be06a49f))
-* Extremely long config sections are now scrollable on Plugin Detail page ([c4b100d](https://github.com/photoserv/photoserv/commit/c4b100d572c511e13f594435d7980b4996647e79))
-* Photo form submission not working on Firefox Mobile ([a7f98b4](https://github.com/photoserv/photoserv/commit/a7f98b4007c2a64498ed49a81e756b0c632d78cc))
-
-## [0.7.3](https://github.com/photoserv/photoserv/compare/0.7.2...0.7.3) (2025-12-30)
+## [0.7.5](https://github.com/itsmaxymoo/photoserv/compare/0.7.4...0.7.5) (2026-01-01)
 
 
 ### Bug Fixes
 
-* Add a link to the project's GitHub in the footer ([5cdb65c](https://github.com/photoserv/photoserv/commit/5cdb65c42d26a3e73bc0f60cd01862236250c651))
-* Add support for deleting plugin config keys ([5cdb65c](https://github.com/photoserv/photoserv/commit/5cdb65c42d26a3e73bc0f60cd01862236250c651))
-* Display plugin author on detail page ([5cdb65c](https://github.com/photoserv/photoserv/commit/5cdb65c42d26a3e73bc0f60cd01862236250c651))
-* Display plugin website on detail page ([5cdb65c](https://github.com/photoserv/photoserv/commit/5cdb65c42d26a3e73bc0f60cd01862236250c651))
+* Round publish date to nearest minute ([2d75640](https://github.com/itsmaxymoo/photoserv/commit/2d75640f4c89daeca95bd8a504db970d835e3ee8))
 
-## [0.7.2](https://github.com/photoserv/photoserv/compare/0.7.1...0.7.2) (2025-12-27)
+## [0.7.4](https://github.com/itsmaxymoo/photoserv/compare/0.7.3...0.7.4) (2025-12-31)
 
 
 ### Bug Fixes
 
-* Public API showing unpublished photos ([75d4eb4](https://github.com/photoserv/photoserv/commit/75d4eb46c0aea1b1f57a1cbb06b95b00caecc864))
+* "Get Official Plugins" button moved to bottom of page to improve mobile layout ([76614bf](https://github.com/itsmaxymoo/photoserv/commit/76614bfe9251e8c365543bc5e156f3477a1280c1))
+* Delete confirmation buttons are full-width on mobile ([edaa789](https://github.com/itsmaxymoo/photoserv/commit/edaa78953b72cb40167a34cc87997c56be06a49f))
+* Extremely long config sections are now scrollable on Plugin Detail page ([c4b100d](https://github.com/itsmaxymoo/photoserv/commit/c4b100d572c511e13f594435d7980b4996647e79))
+* Photo form submission not working on Firefox Mobile ([a7f98b4](https://github.com/itsmaxymoo/photoserv/commit/a7f98b4007c2a64498ed49a81e756b0c632d78cc))
 
-## [0.7.1](https://github.com/photoserv/photoserv/compare/0.7.0...0.7.1) (2025-12-27)
+## [0.7.3](https://github.com/itsmaxymoo/photoserv/compare/0.7.2...0.7.3) (2025-12-30)
 
 
 ### Bug Fixes
 
-* Misaligned buttons on mobile ([8f86382](https://github.com/photoserv/photoserv/commit/8f8638225c964d75a4d18db5922c3ecc88507b27))
+* Add a link to the project's GitHub in the footer ([5cdb65c](https://github.com/itsmaxymoo/photoserv/commit/5cdb65c42d26a3e73bc0f60cd01862236250c651))
+* Add support for deleting plugin config keys ([5cdb65c](https://github.com/itsmaxymoo/photoserv/commit/5cdb65c42d26a3e73bc0f60cd01862236250c651))
+* Display plugin author on detail page ([5cdb65c](https://github.com/itsmaxymoo/photoserv/commit/5cdb65c42d26a3e73bc0f60cd01862236250c651))
+* Display plugin website on detail page ([5cdb65c](https://github.com/itsmaxymoo/photoserv/commit/5cdb65c42d26a3e73bc0f60cd01862236250c651))
 
-## [0.7.0](https://github.com/photoserv/photoserv/compare/0.6.4...0.7.0) (2025-12-27)
+## [0.7.2](https://github.com/itsmaxymoo/photoserv/compare/0.7.1...0.7.2) (2025-12-27)
+
+
+### Bug Fixes
+
+* Public API showing unpublished photos ([75d4eb4](https://github.com/itsmaxymoo/photoserv/commit/75d4eb46c0aea1b1f57a1cbb06b95b00caecc864))
+
+## [0.7.1](https://github.com/itsmaxymoo/photoserv/compare/0.7.0...0.7.1) (2025-12-27)
+
+
+### Bug Fixes
+
+* Misaligned buttons on mobile ([8f86382](https://github.com/itsmaxymoo/photoserv/commit/8f8638225c964d75a4d18db5922c3ecc88507b27))
+
+## [0.7.0](https://github.com/itsmaxymoo/photoserv/compare/0.6.4...0.7.0) (2025-12-27)
 
 
 ### Features
 
-* Allow scheduling photos to publish in the future ([2abd809](https://github.com/photoserv/photoserv/commit/2abd80910223fa38cf4eb48f87ba171fdfc8e3f5))
-* Dispatch HTTP requests from within Photoserv ([f33d642](https://github.com/photoserv/photoserv/commit/f33d64215332826b07f7b75c4e72eb60897b2040))
-* Dispatch publish events manually per-photo ([c945d0f](https://github.com/photoserv/photoserv/commit/c945d0f3c146ffdbff440fa412f676d1a604c750))
-* Per-entity plugin parameters ([8759095](https://github.com/photoserv/photoserv/commit/8759095e724e7241cf21231987cad61c9812362d))
-* Python plugin integrations ([7bee460](https://github.com/photoserv/photoserv/commit/7bee4607f05d6b71d1422e1639f894ca35a813a5))
-* Track and review run logs of integrations. ([2fd4115](https://github.com/photoserv/photoserv/commit/2fd41159d3d4621f7121d6b3d1bdc129c393bdb2))
+* Allow scheduling photos to publish in the future ([2abd809](https://github.com/itsmaxymoo/photoserv/commit/2abd80910223fa38cf4eb48f87ba171fdfc8e3f5))
+* Dispatch HTTP requests from within Photoserv ([f33d642](https://github.com/itsmaxymoo/photoserv/commit/f33d64215332826b07f7b75c4e72eb60897b2040))
+* Dispatch publish events manually per-photo ([c945d0f](https://github.com/itsmaxymoo/photoserv/commit/c945d0f3c146ffdbff440fa412f676d1a604c750))
+* Per-entity plugin parameters ([8759095](https://github.com/itsmaxymoo/photoserv/commit/8759095e724e7241cf21231987cad61c9812362d))
+* Python plugin integrations ([7bee460](https://github.com/itsmaxymoo/photoserv/commit/7bee4607f05d6b71d1422e1639f894ca35a813a5))
+* Track and review run logs of integrations. ([2fd4115](https://github.com/itsmaxymoo/photoserv/commit/2fd41159d3d4621f7121d6b3d1bdc129c393bdb2))
 
 
 ### Bug Fixes
 
-* Do not attempt to access the database before migrations run when creating initial user ([bc01f08](https://github.com/photoserv/photoserv/commit/bc01f089738c530bc5bb971bb5ecda97b3461ac2))
-* Docker compose example image name update ([3c427fb](https://github.com/photoserv/photoserv/commit/3c427fb153e39e8502d1ea6e2bcf5450c9d5ebd7))
-* Footer displaying wrong user on users page ([053fbff](https://github.com/photoserv/photoserv/commit/053fbff282a72b420abb2a7afc1745451d5c81d9))
-* Make consistency checker run more frequently ([4910e28](https://github.com/photoserv/photoserv/commit/4910e2873e91d677f771d98161778906bdd135c0))
-* Persist job results for longer ([a40177b](https://github.com/photoserv/photoserv/commit/a40177bb10527ad20775770a838755d3eb899f08))
+* Do not attempt to access the database before migrations run when creating initial user ([bc01f08](https://github.com/itsmaxymoo/photoserv/commit/bc01f089738c530bc5bb971bb5ecda97b3461ac2))
+* Docker compose example image name update ([3c427fb](https://github.com/itsmaxymoo/photoserv/commit/3c427fb153e39e8502d1ea6e2bcf5450c9d5ebd7))
+* Footer displaying wrong user on users page ([053fbff](https://github.com/itsmaxymoo/photoserv/commit/053fbff282a72b420abb2a7afc1745451d5c81d9))
+* Make consistency checker run more frequently ([4910e28](https://github.com/itsmaxymoo/photoserv/commit/4910e2873e91d677f771d98161778906bdd135c0))
+* Persist job results for longer ([a40177b](https://github.com/itsmaxymoo/photoserv/commit/a40177bb10527ad20775770a838755d3eb899f08))
 
-## [0.6.4](https://github.com/photoserv/photoserv/compare/0.6.3...0.6.4) (2025-12-04)
-
-
-### Bug Fixes
-
-* Make dockerfile and CSS compiler look in the right place for Python 3.14 packages ([ba98515](https://github.com/photoserv/photoserv/commit/ba98515bbabd89f4f090fdf874177118ed72435e))
-
-## [0.6.3](https://github.com/photoserv/photoserv/compare/0.6.2...0.6.3) (2025-12-04)
+## [0.6.4](https://github.com/itsmaxymoo/photoserv/compare/0.6.3...0.6.4) (2025-12-04)
 
 
 ### Bug Fixes
 
-* Configure Dependabot for multiple ecosystems ([d015e16](https://github.com/photoserv/photoserv/commit/d015e169ab217a1ef450b098bc535f127a0656df))
-* make publish date auto_now_add ([97acbe7](https://github.com/photoserv/photoserv/commit/97acbe7bee64fbf8e6d1329b090e83a942eb2660))
+* Make dockerfile and CSS compiler look in the right place for Python 3.14 packages ([ba98515](https://github.com/itsmaxymoo/photoserv/commit/ba98515bbabd89f4f090fdf874177118ed72435e))
+
+## [0.6.3](https://github.com/itsmaxymoo/photoserv/compare/0.6.2...0.6.3) (2025-12-04)
+
+
+### Bug Fixes
+
+* Configure Dependabot for multiple ecosystems ([d015e16](https://github.com/itsmaxymoo/photoserv/commit/d015e169ab217a1ef450b098bc535f127a0656df))
+* make publish date auto_now_add ([97acbe7](https://github.com/itsmaxymoo/photoserv/commit/97acbe7bee64fbf8e6d1329b090e83a942eb2660))
 
 
 ### Dependencies
 
-* **docker:** bump python from 3.13-slim to 3.14-slim ([3213617](https://github.com/photoserv/photoserv/commit/321361749aceb511378bf386479ded4c8e249424))
-* **js:** bump @alpinejs/sort from 3.14.9 to 3.15.2 ([7f94744](https://github.com/photoserv/photoserv/commit/7f94744e67cc9f2a6ab804eb93e6ef2a053942d5))
-* **js:** bump alpinejs from 3.14.9 to 3.15.2 ([2a43528](https://github.com/photoserv/photoserv/commit/2a4352817480a502adab5a11661a04e2889a9e02))
-* **js:** bump daisyui from 5.0.50 to 5.5.8 ([e306feb](https://github.com/photoserv/photoserv/commit/e306febae653a7ceb2b7b118dd3d38387a0b6163))
-* **js:** bump esbuild from 0.25.9 to 0.27.1 ([a903319](https://github.com/photoserv/photoserv/commit/a903319d682839b23caabf77a9b07f2cea8387f5))
-* **js:** bump tailwindcss from 4.1.11 to 4.1.17 ([4a71c03](https://github.com/photoserv/photoserv/commit/4a71c032ed8e82a146585a9f743401e595ef3181))
-* **python:** bump crispy-daisyui from 0.7.0 to 0.8.0 ([cb63c59](https://github.com/photoserv/photoserv/commit/cb63c5927c50f14da5eeb7900dd51900092bcb28))
-* **python:** bump drf-spectacular from 0.28.0 to 0.29.0 ([6da7b16](https://github.com/photoserv/photoserv/commit/6da7b166484b6e523bc16097f7e0eaccf89eca7a))
-* **python:** bump psycopg2-binary from 2.9.10 to 2.9.11 ([b198dd8](https://github.com/photoserv/photoserv/commit/b198dd8fa4c69eaa88aae5c543e41aaa76e5c661))
-* **python:** bump python-dotenv from 1.1.1 to 1.2.1 ([5c29179](https://github.com/photoserv/photoserv/commit/5c29179f83f89ae96cbba579aeeca4d49fddf5d9))
-* **python:** bump redis from 6.4.0 to 7.1.0 ([bcd0178](https://github.com/photoserv/photoserv/commit/bcd01788ea3a02d0edd89eb9e6d253cb27d184df))
+* **docker:** bump python from 3.13-slim to 3.14-slim ([3213617](https://github.com/itsmaxymoo/photoserv/commit/321361749aceb511378bf386479ded4c8e249424))
+* **js:** bump @alpinejs/sort from 3.14.9 to 3.15.2 ([7f94744](https://github.com/itsmaxymoo/photoserv/commit/7f94744e67cc9f2a6ab804eb93e6ef2a053942d5))
+* **js:** bump alpinejs from 3.14.9 to 3.15.2 ([2a43528](https://github.com/itsmaxymoo/photoserv/commit/2a4352817480a502adab5a11661a04e2889a9e02))
+* **js:** bump daisyui from 5.0.50 to 5.5.8 ([e306feb](https://github.com/itsmaxymoo/photoserv/commit/e306febae653a7ceb2b7b118dd3d38387a0b6163))
+* **js:** bump esbuild from 0.25.9 to 0.27.1 ([a903319](https://github.com/itsmaxymoo/photoserv/commit/a903319d682839b23caabf77a9b07f2cea8387f5))
+* **js:** bump tailwindcss from 4.1.11 to 4.1.17 ([4a71c03](https://github.com/itsmaxymoo/photoserv/commit/4a71c032ed8e82a146585a9f743401e595ef3181))
+* **python:** bump crispy-daisyui from 0.7.0 to 0.8.0 ([cb63c59](https://github.com/itsmaxymoo/photoserv/commit/cb63c5927c50f14da5eeb7900dd51900092bcb28))
+* **python:** bump drf-spectacular from 0.28.0 to 0.29.0 ([6da7b16](https://github.com/itsmaxymoo/photoserv/commit/6da7b166484b6e523bc16097f7e0eaccf89eca7a))
+* **python:** bump psycopg2-binary from 2.9.10 to 2.9.11 ([b198dd8](https://github.com/itsmaxymoo/photoserv/commit/b198dd8fa4c69eaa88aae5c543e41aaa76e5c661))
+* **python:** bump python-dotenv from 1.1.1 to 1.2.1 ([5c29179](https://github.com/itsmaxymoo/photoserv/commit/5c29179f83f89ae96cbba579aeeca4d49fddf5d9))
+* **python:** bump redis from 6.4.0 to 7.1.0 ([bcd0178](https://github.com/itsmaxymoo/photoserv/commit/bcd01788ea3a02d0edd89eb9e6d253cb27d184df))
 
 ## [0.6.2](https://github.com/itsmaxymoo/photoserv/compare/0.6.1...0.6.2) (2025-11-26)
 

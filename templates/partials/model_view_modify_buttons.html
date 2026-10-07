@@ -1,7 +1,15 @@
 <div class="flex flex-col sm:flex-row justify-center items-center gap-2">
     <a href="../" class="btn btn-neutral w-full sm:w-auto">Back</a>
-    {% if can_edit != False %}
-        <a href="./edit" class="btn btn-primary w-full sm:w-auto">Edit</a>
-    {% endif %}
-    <a href="./delete" class="btn btn-error w-full sm:w-auto">Delete</a>
+
+    {% with perm=object_app_label|add:".change_"|add:object_url_name_slug %}
+        {% if can_edit != False and perm in perms %}
+            <a href="./edit" class="btn btn-primary w-full sm:w-auto">Edit</a>
+        {% endif %}
+    {% endwith %}
+
+    {% with perm=object_app_label|add:".delete_"|add:object_url_name_slug %}
+        {% if can_delete != False and perm in perms %}
+            <a href="./delete" class="btn btn-error w-full sm:w-auto">Delete</a>
+        {% endif %}
+    {% endwith %}
 </div>
