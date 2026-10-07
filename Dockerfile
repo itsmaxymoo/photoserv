@@ -28,6 +28,7 @@ COPY . .
 RUN npm install
 RUN npm run build:all
 
+ENV SIMPLE_AUTH=True
 RUN python manage.py collectstatic
 
 # Stage 2: Production stage
