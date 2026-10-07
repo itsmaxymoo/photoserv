@@ -1,55 +1,5 @@
 # Changelog
 
-## [1.0.0](https://github.com/itsmaxymoo/photoserv/compare/0.9.10...1.0.0) (2026-10-07)
-
-
-### ⚠ BREAKING CHANGES
-
-* Remove photo-plugin parameters. Now, plugins will specify an element for which they will read per-photo in Custom Attributes
-* Update refs to point to the new repository namespace
-* Introduce publishing channels for fine-grained photo publishing workflows
-* Require integrations to subscribe to a channel
-* Completely reworked the API - Full CRUD endpoints and paginated. GET-list endpoints return objects in the "results" element.
-* Removed the WebRequest integration type, now all integrations are performed through python plugins. The webrequest plugin is included by default.
-* For developers, the 'core' app has been renamed to 'media'.
-* Anonymous mode no longer supported. You must configure either simple auth or OIDC.
-* Remove the "Create Multiple" photo form. This may be re-implemented later with a better drafting system.
-* Photoserv 1.0 Release!
-
-### Features
-
-* Anonymous mode no longer supported. You must configure either simple auth or OIDC. ([fa60a32](https://github.com/itsmaxymoo/photoserv/commit/fa60a32555a91f905335951532796b2f72ffe37b))
-* By default, the API only exposes resources in the default publishing channel. Use the media.full_api_access permission to access other channels and private sizes. ([fa60a32](https://github.com/itsmaxymoo/photoserv/commit/fa60a32555a91f905335951532796b2f72ffe37b))
-* Completely reworked the API - Full CRUD endpoints and paginated. GET-list endpoints return objects in the "results" element. ([fa60a32](https://github.com/itsmaxymoo/photoserv/commit/fa60a32555a91f905335951532796b2f72ffe37b))
-* For developers, the 'core' app has been renamed to 'media'. ([fa60a32](https://github.com/itsmaxymoo/photoserv/commit/fa60a32555a91f905335951532796b2f72ffe37b))
-* Introduce publishing channels for fine-grained photo publishing workflows ([fa60a32](https://github.com/itsmaxymoo/photoserv/commit/fa60a32555a91f905335951532796b2f72ffe37b))
-* Introduce user-group permissions and tie into the API/frontend. ([fa60a32](https://github.com/itsmaxymoo/photoserv/commit/fa60a32555a91f905335951532796b2f72ffe37b))
-* Official Photoserv icon! ([fa60a32](https://github.com/itsmaxymoo/photoserv/commit/fa60a32555a91f905335951532796b2f72ffe37b))
-* Photoserv 1.0 Release! ([fa60a32](https://github.com/itsmaxymoo/photoserv/commit/fa60a32555a91f905335951532796b2f72ffe37b))
-* Remove photo-plugin parameters. Now, plugins will specify an element for which they will read per-photo in Custom Attributes ([1b7f995](https://github.com/itsmaxymoo/photoserv/commit/1b7f995767151186b3a4b7dde686e55140323183))
-* Remove the "Create Multiple" photo form. This may be re-implemented later with a better drafting system. ([fa60a32](https://github.com/itsmaxymoo/photoserv/commit/fa60a32555a91f905335951532796b2f72ffe37b))
-* Removed the WebRequest integration type, now all integrations are performed through python plugins. The webrequest plugin is included by default. ([fa60a32](https://github.com/itsmaxymoo/photoserv/commit/fa60a32555a91f905335951532796b2f72ffe37b))
-* Require integrations to subscribe to a channel ([fa60a32](https://github.com/itsmaxymoo/photoserv/commit/fa60a32555a91f905335951532796b2f72ffe37b))
-* Session auth supported by the API for eventual interactivity features. ([fa60a32](https://github.com/itsmaxymoo/photoserv/commit/fa60a32555a91f905335951532796b2f72ffe37b))
-* The channel scheduler allows you to schedule photo publish events for new channels. ([fa60a32](https://github.com/itsmaxymoo/photoserv/commit/fa60a32555a91f905335951532796b2f72ffe37b))
-* The photo calendar is now based on publishing channels. ([fa60a32](https://github.com/itsmaxymoo/photoserv/commit/fa60a32555a91f905335951532796b2f72ffe37b))
-* Update refs to point to the new repository namespace ([fa60a32](https://github.com/itsmaxymoo/photoserv/commit/fa60a32555a91f905335951532796b2f72ffe37b))
-* Updated official plugins and integrations to support the new version. ([fa60a32](https://github.com/itsmaxymoo/photoserv/commit/fa60a32555a91f905335951532796b2f72ffe37b))
-
-
-### Bug Fixes
-
-* Photos will not be published until all sizes and metadata has successfully generated. ([fa60a32](https://github.com/itsmaxymoo/photoserv/commit/fa60a32555a91f905335951532796b2f72ffe37b))
-
-
-### Dependencies
-
-* **js:** bump @alpinejs/sort from 3.15.12 to 3.17.4 ([95d7534](https://github.com/itsmaxymoo/photoserv/commit/95d7534e63b8ca73fce9b157cb7832a2cfc427b3))
-* **js:** bump @tailwindcss/cli from 4.3.2 to 4.3.3 ([db2bbef](https://github.com/itsmaxymoo/photoserv/commit/db2bbef6b088bbe4ed96653e71f9a115f04da946))
-* **js:** bump alpinejs from 3.15.12 to 3.17.4 ([4c3c985](https://github.com/itsmaxymoo/photoserv/commit/4c3c9851e6138c9c11bda4523b86034f1221e20c))
-* **python:** bump django from 6.0.6 to 6.1.1 ([d4a48bc](https://github.com/itsmaxymoo/photoserv/commit/d4a48bcc28022e5b0d9fa8f2529f66d73cd03ec0))
-* **python:** bump redis from 8.0.1 to 8.1.0 ([d51eebf](https://github.com/itsmaxymoo/photoserv/commit/d51eebfca5c17606fea8edc72d9694cad0513107))
-
 ## [0.9.10](https://github.com/itsmaxymoo/photoserv/compare/0.9.9...0.9.10) (2026-10-01)
 
 
