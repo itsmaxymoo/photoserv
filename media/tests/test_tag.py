@@ -17,6 +17,15 @@ class TagTests(TestCase):
         url = self.tag.get_absolute_url()
         self.assertIn(str(self.tag.pk), url)
 
+    def test_count_returns_related_photo_count(self):
+        first_photo = Photo.objects.create(title="First", raw_image="first.jpg")
+        second_photo = Photo.objects.create(title="Second", raw_image="second.jpg")
+
+        self.assertEqual(self.tag.count, 0)
+        PhotoTag.objects.create(photo=first_photo, tag=self.tag)
+        PhotoTag.objects.create(photo=second_photo, tag=self.tag)
+        self.assertEqual(self.tag.count, 2)
+
     def test_clean_rejects_invalid_characters(self):
         t = Tag(name="bad;tag")
         with self.assertRaises(ValidationError):

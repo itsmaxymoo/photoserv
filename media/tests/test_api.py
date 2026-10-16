@@ -249,12 +249,25 @@ class MediaAPITests(TestCase):
     def test_tag_detail_lists_photos(self):
         tag = Tag.objects.create(name="listed")
         PhotoTag.objects.create(photo=self.photo, tag=tag)
+        second_photo = Photo.objects.create(
+            title="Second tagged photo",
+            raw_image="two.jpg",
+        )
+        PhotoTag.objects.create(photo=second_photo, tag=tag)
 
-        self.assertEqual(self.client.get("/api/tags/").status_code, status.HTTP_200_OK)
+        list_response = self.client.get("/api/tags/")
+        self.assertEqual(list_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(list_response.data["results"][0]["count"], 2)
         response = self.client.get(f"/api/tags/{tag.uuid}/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["photos"][0]["uuid"], str(self.photo.uuid))
-        self.assertEqual(len(response.data["photos"][0]["sizes"]), 1)
+        self.assertEqual(response.data["count"], 2)
+        self.assertEqual(
+            {photo["uuid"] for photo in response.data["photos"]},
+            {str(self.photo.uuid), str(second_photo.uuid)},
+        )
+
+        photo_response = self.client.get(f"/api/photos/{self.photo.uuid}/")
+        self.assertEqual(photo_response.data["tags"][0]["count"], 2)
 
     def test_photo_relationship_endpoints_are_not_exposed(self):
         for relationship in ("tags", "albums", "channels"):
@@ -458,6 +471,32 @@ class MediaAPITests(TestCase):
                 tag__uuid=response.data["uuid"],
             ).exists()
         )
+
+    def test_tag_count_is_read_only(self):
+        tag = Tag.objects.create(name="read-only count")
+
+        post_response = self.client.post(
+            "/api/tags/",
+            {"name": "invalid count", "count": 1},
+            format="json",
+        )
+        self.assertEqual(post_response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("count", post_response.data)
+
+        put_response = self.client.put(
+            f"/api/tags/{tag.uuid}/",
+            {"name": "still read-only", "count": 1},
+            format="json",
+        )
+        self.assertEqual(put_response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("count", put_response.data)
+
+        patch_response = self.client.patch(
+            f"/api/tags/{tag.uuid}/",
+            {"count": 1},
+            format="json",
+        )
+        self.assertEqual(patch_response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_tag_put_only_accepts_name_and_patch_is_disabled(self):
         tag = Tag.objects.create(name="before")

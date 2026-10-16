@@ -255,6 +255,12 @@ class Tag(PublicEntity):
     def __str__(self):
         return self.name
 
+    @property
+    def count(self):
+        if hasattr(self, "_count"):
+            return self._count
+        return self.photos.count()
+
     def get_absolute_url(self):
         return reverse("tag-detail", kwargs={"pk": self.pk})
 

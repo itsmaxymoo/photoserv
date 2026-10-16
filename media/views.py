@@ -417,7 +417,7 @@ class TagListView(TagMixin, SingleTableView):
     table_class = TagTable
 
     def get_queryset(self):
-        return Tag.objects.annotate(photo_count=Count("photos"))
+        return Tag.objects.annotate(_count=Count("photos"))
 
 
 class TagDetailView(TagMixin, DetailView):

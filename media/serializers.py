@@ -84,9 +84,11 @@ def serialize_photo_sizes(serializer, photo):
 
 
 class TagSummarySerializer(UUIDModelSerializer):
+    count = serializers.IntegerField(min_value=0, read_only=True)
+
     class Meta:
         model = Tag
-        fields = ["uuid", "name"]
+        fields = ["uuid", "name", "count"]
 
 
 class AlbumSummarySerializer(UUIDModelSerializer):
@@ -290,9 +292,11 @@ class AlbumDetailSerializer(AlbumSerializer):
 
 
 class TagSerializer(UUIDModelSerializer):
+    count = serializers.IntegerField(min_value=0, read_only=True)
+
     class Meta:
         model = Tag
-        fields = ["uuid", "name", "created_at", "updated_at"]
+        fields = ["uuid", "name", "count", "created_at", "updated_at"]
         read_only_fields = ["created_at", "updated_at"]
 
     def validate_name(self, value):
@@ -341,12 +345,18 @@ class TagCreateSerializer(TagSerializer):
         fields = [
             "uuid",
             "name",
+            "count",
             "photo",
             "photos",
             "created_at",
             "updated_at",
         ]
         read_only_fields = ["created_at", "updated_at"]
+
+    def validate(self, attrs):
+        if "count" in self.initial_data:
+            raise serializers.ValidationError({"count": "This field is read-only."})
+        return attrs
 
     def create(self, validated_data):
         photo = validated_data.pop("photo", None)

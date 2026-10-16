@@ -78,7 +78,10 @@ class PhotoViewSet(UUIDModelViewSet):
             Photo.objects.select_related("metadata")
             .prefetch_related(
                 "albums",
-                "tags",
+                Prefetch(
+                    "tags",
+                    queryset=Tag.objects.prefetch_related("photos"),
+                ),
             )
             .order_by("uuid")
         )
