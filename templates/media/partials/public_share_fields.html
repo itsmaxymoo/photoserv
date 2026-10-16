@@ -1,0 +1,29 @@
+<td>
+    {% if not is_new %}
+    <span x-show="!editing">{{ share.views_remaining|default_if_none:"Unlimited" }}</span>
+    {% endif %}
+    {% if is_new or perms.media.change_publicshare %}
+    <input{% if not is_new %} x-show="editing" x-cloak style="display: none;"{% endif %}
+        form="{{ form_prefix }}{{ form_key }}" type="number" min="0"
+        name="views_remaining" value="{{ views_remaining|default_if_none:'' }}"
+        class="input input-bordered input-sm w-28" />
+    {% endif %}
+</td>
+<td>
+    {% if not is_new %}
+    <span x-show="!editing">
+        {% if share.expiration_date %}
+        {{ share.expiration_date|date:"Y-m-d H:i" }}
+        <span class="font-light">(in {{ share.days_until_expiration }} days)</span>
+        {% else %}
+        Never
+        {% endif %}
+    </span>
+    {% endif %}
+    {% if is_new or perms.media.change_publicshare %}
+    <input{% if not is_new %} x-show="editing" x-cloak style="display: none;"{% endif %}
+        form="{{ form_prefix }}{{ form_key }}" type="datetime-local"
+        name="expiration_date" value="{{ expiration_date|date:'Y-m-d\TH:i' }}"
+        class="input input-bordered input-sm" />
+    {% endif %}
+</td>

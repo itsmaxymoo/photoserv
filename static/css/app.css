@@ -9,6 +9,10 @@
 @import "./codemirror.css";
 @import 'leaflet/dist/leaflet.css';
 
+[x-cloak] {
+    display: none !important;
+}
+
 h2 {
     @apply text-3xl;
     @apply pb-2;

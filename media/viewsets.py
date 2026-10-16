@@ -1,4 +1,6 @@
 import mimetypes
+import os
+from io import BytesIO
 
 from django.http import FileResponse, Http404
 from django.db import transaction
@@ -6,6 +8,7 @@ from django.db.models import Max, Prefetch
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import mixins, status, viewsets
+from rest_framework.permissions import AllowAny
 from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
@@ -30,6 +33,7 @@ from .models import (
     Photo,
     PhotoInAlbum,
     PhotoTag,
+    PublicShare,
     Size,
     Tag,
 )
@@ -43,6 +47,7 @@ from .serializers import (
     PhotoRelationshipSerializer,
     PhotoSerializer,
     PhotoUpdateSerializer,
+    PublicShareSerializer,
     SizeSerializer,
     TagCreateSerializer,
     TagDetailSerializer,
@@ -59,6 +64,46 @@ def _relationship_value(request, key):
 
 class UUIDModelViewSet(MediaAPIViewSetMixin, viewsets.ModelViewSet):
     pass
+
+
+class PublicShareViewSet(
+    MediaAPIViewSetMixin,
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
+    queryset = PublicShare.objects.select_related("photo", "size").order_by("uuid")
+    serializer_class = PublicShareSerializer
+
+    @extend_schema(
+        responses={(200, "application/octet-stream"): OpenApiTypes.BINARY}
+    )
+    @action(
+        detail=True,
+        methods=["get"],
+        permission_classes=[AllowAny],
+        authentication_classes=[],
+    )
+    def image(self, request, uuid=None):
+        share = get_object_or_404(self.get_queryset(), uuid=uuid)
+        image = share.get_image()
+        if image is None:
+            raise Http404
+        photo_size = share.photo.get_size(share.size.slug)
+        if photo_size is None or not photo_size.image:
+            raise Http404
+        filename = os.path.basename(photo_size.image.name)
+        content_type = (
+            mimetypes.guess_type(filename)[0]
+            or "application/octet-stream"
+        )
+        return FileResponse(
+            BytesIO(image),
+            content_type=content_type,
+            filename=filename,
+        )
 
 
 class PhotoViewSet(UUIDModelViewSet):

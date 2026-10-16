@@ -130,6 +130,17 @@ Assume:
 - "traefik.http.services.photoserv.loadbalancer.server.port=8000"
 ```
 
+#### Exposing Some Endpoints
+
+Note that some integrations (Instagram) require you to expose a portion of Photoserv (they query the photo to upload).
+In this situation, it is recommended to use Public Shares and expose the relevant endpoint directly:
+
+```
+Host(`photoserv.domain.com`) && PathRegexp(`^/api/public-shares/[A-Za-z0-9-]+/image$`)
+```
+
+This specific endpoint does not require authentication.
+
 ## Integrations
 
 Photoserv supports Python-based plugins to extend functionality.

@@ -1,4 +1,8 @@
+from datetime import timedelta
+
+from django.conf import settings
 from django.db import transaction
+from django.utils import timezone
 from rest_framework import serializers
 from drf_spectacular.utils import extend_schema_field
 
@@ -14,6 +18,7 @@ from .models import (
     Photo,
     PhotoMetadata,
     PhotoSize,
+    PublicShare,
     Size,
     Tag,
 )
@@ -69,6 +74,36 @@ class PhotoSizeSerializer(serializers.ModelSerializer):
     class Meta:
         model = PhotoSize
         fields = ["size", "height", "width", "md5"]
+
+
+class PublicShareSerializer(UUIDModelSerializer):
+    photo = PublicEntityRelatedField(queryset=Photo.objects.all())
+    size = PublicEntityRelatedField(queryset=Size.objects.all())
+
+    class Meta:
+        model = PublicShare
+        fields = [
+            "uuid",
+            "photo",
+            "size",
+            "expiration_date",
+            "views_remaining",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["created_at", "updated_at"]
+
+    def validate_expiration_date(self, value):
+        if value is None:
+            return value
+        now = timezone.now()
+        if value <= now:
+            raise serializers.ValidationError("Must be in the future.")
+        if value > now + timedelta(days=settings.MEDIA_PUBLIC_SHARE_MAX_EXPIRATION):
+            raise serializers.ValidationError(
+                "Exceeds MEDIA_PUBLIC_SHARE_MAX_EXPIRATION."
+            )
+        return value
 
 
 def serialize_photo_sizes(serializer, photo):

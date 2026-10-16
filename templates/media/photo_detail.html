@@ -271,11 +271,30 @@ Photo: {{ object }}
                     <colgroup>
                         <col class="w-min whitespace-nowrap" />
                         <col class="w-min whitespace-nowrap" />
+                        <col class="w-min whitespace-nowrap" />
                         <col class="w-full" />
                     </colgroup>
-                    {% for size, photo_size in sizes %}
+                    {% for size, photo_size, public_shares in sizes %}
+                    <tbody x-data="{ open: false }"
+                        @refresh-public-shares="
+                            $refs.publicShareTable.dispatchEvent(new Event('refresh'));
+                            $refs.publicShareCount.dispatchEvent(new Event('refresh'))
+                        ">
                     <tr>
                         <th>{{ size.slug }}</th>
+                        <td>
+                            {% if perms.media.add_publicshare or perms.media.change_publicshare or perms.media.delete_publicshare %}
+                            <button type="button" class="btn btn-sm btn-ghost" @click="open = !open"
+                                :aria-expanded="open.toString()" aria-label="Toggle public shares"
+                                title="Public shares">
+                                <span x-text="open ? '▾' : '▸'"></span>
+                                <span id="public-share-count-{{ size.uuid }}" x-ref="publicShareCount"
+                                    class="badge badge-sm" hx-get="{{ request.path }}" hx-trigger="refresh"
+                                    hx-select="#public-share-count-{{ size.uuid }}"
+                                    hx-target="this" hx-swap="outerHTML">{{ public_shares|length }}</span>
+                            </button>
+                            {% endif %}
+                        </td>
                         <td>
                             {% if photo_size %}
                             <a href="{% url 'photo-image' object.pk size.slug %}" download>
@@ -291,6 +310,10 @@ Photo: {{ object }}
                             </td>
                         {% endif %}
                     </tr>
+                    {% if perms.media.add_publicshare or perms.media.change_publicshare or perms.media.delete_publicshare %}
+                    {% include "media/partials/public_share_table.html" %}
+                    {% endif %}
+                    </tbody>
                     {% endfor %}
                 </table>
             </div>

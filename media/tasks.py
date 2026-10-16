@@ -120,6 +120,14 @@ def post_photo_create(photo_id):
 def consistency():
     issues = 0
 
+    # Public shares
+    invalid_share_ids = [
+        share.pk for share in models.PublicShare.objects.all() if not share.is_valid
+    ]
+    if invalid_share_ids:
+        issues += len(invalid_share_ids)
+        models.PublicShare.objects.filter(pk__in=invalid_share_ids).delete()
+
     # Filesystem
     # --- Build full paths under MEDIA_ROOT ---
     resized_photos_dir = os.path.join(settings.MEDIA_ROOT, CONTENT_RESIZED_PHOTOS_PATH)

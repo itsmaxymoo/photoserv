@@ -58,9 +58,36 @@ class PhotoDetailView(CRUDGenericMixin, DetailView):
         context = super().get_context_data(**kwargs)
         all_sizes = Size.objects.all().order_by('max_dimension')
         photo_sizes = {ps.size_id: ps for ps in self.object.sizes.all()}
+        can_manage_public_shares = any(
+            self.request.user.has_perm(f'media.{action}_publicshare')
+            for action in ('add', 'change', 'delete')
+        )
+        public_shares_by_size = defaultdict(list)
+        if can_manage_public_shares:
+            for share in (
+                PublicShare.objects.filter(photo=self.object)
+                .select_related('size')
+                .order_by('size__max_dimension', 'created_at')
+            ):
+                if share.expiration_date is not None:
+                    seconds_remaining = (
+                        share.expiration_date - timezone.now()
+                    ).total_seconds()
+                    share.days_until_expiration = max(
+                        0,
+                        int((seconds_remaining + 86399) // 86400),
+                    )
+                public_shares_by_size[share.size_id].append(share)
         context['sizes'] = [
-            (size, photo_sizes.get(size.id)) for size in all_sizes
+            (
+                size,
+                photo_sizes.get(size.id),
+                public_shares_by_size[size.id],
+            )
+            for size in all_sizes
         ]
+        if self.request.user.has_perm('media.add_publicshare'):
+            context['public_share_defaults'] = PublicShare()
         channel_photos = {
             channel_photo.channel_id: channel_photo
             for channel_photo in ChannelPhoto.objects.filter(photo=self.object)

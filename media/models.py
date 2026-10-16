@@ -9,6 +9,8 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from .signals import *
 from django.db.models import Q
+from datetime import timedelta
+from django.conf import settings
 
 
 class PublicEntity(models.Model):
@@ -547,3 +549,81 @@ class ChannelPhoto(models.Model):
         channel_photo_unpublished.send(Photo, instance=self)
 
         return super().delete(*args, **kwargs)
+
+
+def public_share_default_expiration():
+    return timezone.now() + timedelta(
+        days=settings.MEDIA_PUBLIC_SHARE_DEFAULT_EXPIRATION
+    )
+
+
+def public_share_default_views():
+    return settings.MEDIA_PUBLIC_SHARE_DEFAULT_VIEWS
+
+
+class PublicShare(PublicEntity):
+    photo = models.ForeignKey(
+        Photo,
+        on_delete=models.CASCADE,
+        related_name="public_shares",
+    )
+    size = models.ForeignKey(
+        Size,
+        on_delete=models.CASCADE,
+        related_name="public_shares",
+    )
+    expiration_date = models.DateTimeField(
+        null=True,
+        blank=True,
+        default=public_share_default_expiration,
+    )
+    views_remaining = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        default=public_share_default_views,
+    )
+
+    @property
+    def is_valid(self) -> bool:
+        if self.expiration_date and timezone.now() >= self.expiration_date:
+            return False
+        if self.views_remaining is not None and self.views_remaining <= 0:
+            return False
+        return True
+
+    def save(self, *args, **kwargs):
+        if self.views_remaining is not None and self.views_remaining < 0:
+            raise ValidationError("views_remaining cannot be negative.")
+        update_fields = kwargs.get("update_fields")
+        validate_expiration = (
+            update_fields is None or "expiration_date" in update_fields
+        )
+        if validate_expiration and self.expiration_date is not None:
+            now = timezone.now()
+            if self.expiration_date <= now:
+                raise ValidationError("expiration_date must be in the future.")
+            maximum = now + timedelta(
+                days=settings.MEDIA_PUBLIC_SHARE_MAX_EXPIRATION
+            )
+            if self.expiration_date > maximum:
+                raise ValidationError(
+                    "expiration_date exceeds MEDIA_PUBLIC_SHARE_MAX_EXPIRATION."
+                )
+        super().save(*args, **kwargs)
+
+    def get_image(self) -> bytes:
+        if not self.is_valid:
+            return None
+
+        photo_size = self.photo.get_size(self.size.slug)
+        if photo_size and photo_size.image:
+            with photo_size.image.open("rb") as image_file:
+                self.views_remaining = (
+                    self.views_remaining - 1
+                    if self.views_remaining is not None
+                    else None
+                )
+                self.save(update_fields=["views_remaining"])
+                return image_file.read()
+
+        return None

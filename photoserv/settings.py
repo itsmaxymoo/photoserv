@@ -29,6 +29,16 @@ SECRET_KEY = os.environ.get("APP_KEY")
 DEBUG = (os.environ.get("DEBUG_MODE", "false").strip().lower() == "true")
 IS_CONTAINER = os.environ.get("PHOTOSERV_IS_CONTAINER", "false").lower().strip() == "true"
 
+MEDIA_PUBLIC_SHARE_DEFAULT_EXPIRATION = int(
+    os.environ.get("MEDIA_PUBLIC_SHARE_DEFAULT_EXPIRATION", "14")
+)
+MEDIA_PUBLIC_SHARE_MAX_EXPIRATION = int(
+    os.environ.get("MEDIA_PUBLIC_SHARE_MAX_EXPIRATION", "30")
+)
+MEDIA_PUBLIC_SHARE_DEFAULT_VIEWS = int(
+    os.environ.get("MEDIA_PUBLIC_SHARE_DEFAULT_VIEWS", "1")
+)
+
 # --- Application definition
 
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS","127.0.0.1").split(",") if not DEBUG else ["*"]
@@ -183,7 +193,7 @@ CACHES = {
 CELERY_BEAT_SCHEDULE = {
     'run-consistency': {
         'task': 'media.tasks.consistency',
-        'schedule': 60.0 * 60 * 2,
+        'schedule': 60.0 * 60 * 1,
     },
     'publish-photos': {
         'task': 'media.tasks.publish_photos',

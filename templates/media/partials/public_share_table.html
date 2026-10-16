@@ -1,0 +1,85 @@
+<tr x-show="open" x-cloak style="display: none;">
+    <td colspan="4" class="bg-base-200">
+        <div id="public-share-table-{{ size.uuid }}" x-ref="publicShareTable" class="overflow-x-auto"
+            hx-get="{{ request.path }}" hx-trigger="refresh"
+            hx-select="#public-share-table-{{ size.uuid }}"
+            hx-target="this" hx-swap="outerHTML">
+            <table class="table table-xs">
+                <thead>
+                    <tr>
+                        <th>Public URL</th>
+                        <th>Views remaining</th>
+                        <th>Expiration</th>
+                        {% if perms.media.add_publicshare or perms.media.change_publicshare %}<th>Actions</th>{% endif %}
+                        {% if perms.media.delete_publicshare %}<th>Delete</th>{% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for share in public_shares %}
+                    <tr x-data="{ editing: false, copied: false }">
+                        <td>
+                            {% url 'media-api:public-share-image' uuid=share.uuid as public_share_url %}
+                            <button type="button" class="btn btn-xs btn-ghost"
+                                aria-label="Copy public URL" title="Copy public URL"
+                                @click="navigator.clipboard.writeText(new URL('{{ public_share_url|escapejs }}', window.location.origin).href); copied = true; setTimeout(() => copied = false, 1500)">
+                                <span x-show="!copied">⧉</span>
+                                <span x-show="copied" x-cloak style="display: none;">✓</span>
+                            </button>
+                        </td>
+                        {% include "media/partials/public_share_fields.html" with form_prefix="public-share-" form_key=share.uuid views_remaining=share.views_remaining expiration_date=share.expiration_date %}
+                        {% if perms.media.change_publicshare %}
+                        <td>
+                            <button x-show="!editing" type="button" class="btn btn-xs btn-primary"
+                                aria-label="Edit public share" title="Edit"
+                                @click="editing = true">✎</button>
+                            <form x-show="editing" x-cloak style="display: none;" x-ref="editForm"
+                                id="public-share-{{ share.uuid }}" class="flex gap-1"
+                                hx-patch="{% url 'media-api:public-share-detail' uuid=share.uuid %}"
+                                hx-swap="none"
+                                hx-on::after-request="if(event.detail.successful) event.target.dispatchEvent(new CustomEvent('refresh-public-shares', { bubbles: true }))">
+                                <button type="submit" class="btn btn-xs btn-success"
+                                    aria-label="Save public share" title="Save">✓</button>
+                                <button type="button" class="btn btn-xs"
+                                    aria-label="Cancel editing" title="Cancel"
+                                    @click="$refs.editForm.reset(); editing = false">×</button>
+                            </form>
+                        </td>
+                        {% endif %}
+                        {% if perms.media.delete_publicshare %}
+                        <td>
+                            <button type="button" class="btn btn-xs btn-error"
+                                aria-label="Delete public share" title="Delete"
+                                hx-delete="{% url 'media-api:public-share-detail' uuid=share.uuid %}"
+                                hx-swap="none"
+                                hx-on::after-request="if(event.detail.successful) event.target.dispatchEvent(new CustomEvent('refresh-public-shares', { bubbles: true }))">
+                                ⊖
+                            </button>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="text-center font-light">No public shares.</td></tr>
+                    {% endfor %}
+                    {% if perms.media.add_publicshare %}
+                    <tr>
+                        <td class="font-light">New</td>
+                        {% include "media/partials/public_share_fields.html" with form_prefix="new-public-share-" form_key=size.uuid views_remaining=public_share_defaults.views_remaining expiration_date=public_share_defaults.expiration_date is_new=True %}
+                        <td>
+                            <form id="new-public-share-{{ size.uuid }}"
+                                hx-post="{% url 'media-api:public-share-list' %}"
+                                hx-swap="none"
+                                hx-on::after-request="if(event.detail.successful) event.target.dispatchEvent(new CustomEvent('refresh-public-shares', { bubbles: true }))">
+                                <input type="hidden" name="photo" value="{{ object.uuid }}" />
+                                <input type="hidden" name="size" value="{{ size.uuid }}" />
+                                <button type="submit" class="btn btn-xs btn-success"
+                                    aria-label="Create public share" title="Create public share">✓</button>
+                            </form>
+                        </td>
+                        {% if perms.media.delete_publicshare %}<td></td>{% endif %}
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </td>
+</tr>
