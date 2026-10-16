@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/itsmaxymoo/photoserv/compare/1.0.1...1.1.0) (2026-10-16)
+
+
+### Features
+
+* Implement PublicShares for integrations and quick sharing. ([3e5324d](https://github.com/itsmaxymoo/photoserv/commit/3e5324dae3c8a54e430581560a50d8bb9eaee70e))
+
 ## [1.0.1](https://github.com/itsmaxymoo/photoserv/compare/1.0.0...1.0.1) (2026-10-16)
 
 
