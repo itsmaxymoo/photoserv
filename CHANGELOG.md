@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/itsmaxymoo/photoserv/compare/1.0.0...1.0.1) (2026-10-16)
+
+
+### Bug Fixes
+
+* Display tag count for each tag in the API ([a56c68f](https://github.com/itsmaxymoo/photoserv/commit/a56c68fcce8a388647f23199eb10a8c97075a087))
+
 ## [1.0.0](https://github.com/itsmaxymoo/photoserv/compare/0.9.10...1.0.0) (2026-10-07)
 
 
