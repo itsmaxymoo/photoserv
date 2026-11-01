@@ -14,7 +14,7 @@
     "tailwindcss": "^4.3.2"
   },
   "dependencies": {
-    "@alpinejs/persist": "^3.17.4",
+    "@alpinejs/persist": "^3.17.5",
     "@alpinejs/sort": "^3.17.4",
     "@codemirror/lang-json": "^6.0.1",
     "@codemirror/state": "^6.5.4",
