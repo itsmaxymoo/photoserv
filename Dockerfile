@@ -1,5 +1,5 @@
 # Stage 1: Base build stage
-FROM python:3.14-slim AS builder
+FROM python:3.15-slim AS builder
 
 # Install build tools and Node.js for frontend
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -32,7 +32,7 @@ ENV SIMPLE_AUTH=True
 RUN python manage.py collectstatic
 
 # Stage 2: Production stage
-FROM python:3.14-slim AS runner
+FROM python:3.15-slim AS runner
 
 # Install supervisord
 RUN apt-get update && apt-get install -y --no-install-recommends \
